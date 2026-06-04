@@ -45,25 +45,25 @@ profile.comment=\
 	tradeoffs between quality and performance allowing you to adapt Steadfast \
 	to your device..
 
-screen.EFFECTS=Effects & post-processing
+screen.EFFECTS=Effects & Post-Processing
 option.GODRAYS=Godrays
-option.NIGHT_DESATURATION_EFFECT=Night desaturation (Purkinje)
+option.NIGHT_DESATURATION_EFFECT=Night Desaturation (Purkinje)
 option.TONEMAP=Tonemap
 value.TONEMAP.TONEMAP_UCHIMURA=Uchimura (Gran Turismo)
 value.TONEMAP.TONEMAP_UNCHARTED2=Hable (Uncharted 2)
 option.SATURATED_TONEMAP=Satured Hable Tonemap
-option.WAVING_FOLIAGE=Waving foliage (wind)
+option.WAVING_FOLIAGE=Waving Foliage
 
-screen.WATER=Water & stained glass
+screen.WATER=Water & Translucents
 option.SCREENSPACE_REFLECTIONS=Reflections (screen-space)
 option.SCREENSPACE_REFRACTION=Refraction (screen-space)
-option.WATER_SURFACE=Water surface
+option.WATER_SURFACE=Water Surface
 value.WATER_SURFACE.NOISE=Waves (noise)
 value.WATER_SURFACE.BASIC=Waves (basic)
-option.FANCY_TRANSLUCENTS=All water/ice effects
-option.VANILLA_ISH_WATER=Vanilla-like water texture
-option.WATER_CAUSTICS=Underwater Caustics
-option.NUM_CAUSTICS=Number of caustic waves
+option.FANCY_TRANSLUCENTS=Enable Water/Ice Effects
+option.VANILLA_ISH_WATER=Vanilla-like Water
+option.WATER_CAUSTICS=Water Caustics
+option.NUM_CAUSTICS=Caustics Detail Waves
 option.WATER_CAUSTICS_DISTANCE=Caustics Distance
 value.WATER_CAUSTICS_DISTANCE.8.0=Minimum (8 blocks)
 value.WATER_CAUSTICS_DISTANCE.16.0=Very Low (16 blocks)
@@ -71,38 +71,89 @@ value.WATER_CAUSTICS_DISTANCE.24.0=Low (24 blocks)
 value.WATER_CAUSTICS_DISTANCE.32.0=Medium (32 blocks)
 value.WATER_CAUSTICS_DISTANCE.48.0=High (48 blocks)
 value.WATER_CAUSTICS_DISTANCE.64.0=Extreme (64 blocks)
-screen.WATER_SURFACE_NOISE=Noise wave settings
+option.WATER_CHARACTER=Water Color Character
+value.WATER_CHARACTER.COLD=Cold
+value.WATER_CHARACTER.BALANCED=Balanced
+value.WATER_CHARACTER.TROPICAL=Tropical
+option.DARK_UNDERWATER=Underwater Brightness
+option.WATER_PARALLAX=Water Parallax
+option.WATER_PARALLAX_DISTANCE=Parallax Distance
+value.WATER_PARALLAX_DISTANCE.8.0=Minimum (8 blocks)
+value.WATER_PARALLAX_DISTANCE.16.0=Very Low (16 blocks)
+value.WATER_PARALLAX_DISTANCE.24.0=Low (24 blocks)
+value.WATER_PARALLAX_DISTANCE.32.0=Medium (32 blocks)
+value.WATER_PARALLAX_DISTANCE.48.0=High (48 blocks)
+value.WATER_PARALLAX_DISTANCE.64.0=Extreme (64 blocks)
+option.WATER_AA=Water Anti-Aliasing
+value.WATER_AA.OFF=Off
+value.WATER_AA.LOW=Low
+value.WATER_AA.BALANCED=Balanced
+value.WATER_AA.HIGH=High
+option.NUM_CRESTS=Wave Noise Crests
+option.NUM_RIPPLES=Wave Noise Ripples
+screen.WATER_WAVES=Water Waves
+option.WATER_ABSORPTION_METHOD=Water Absorption Method
+value.WATER_ABSORPTION_METHOD.NO_ABSORPTION=None
+value.WATER_ABSORPTION_METHOD.REFRACTION_ASSISTED=Refraction Assisted
 
-screen.ATMOSPHERE_CLOUDS=Atmosphere & clouds
-option.PLANAR_CLOUD_LAYERS=Cirrus clouds
+screen.ATMOSPHERE_CLOUDS=Atmosphere & Clouds
+option.DAY_ATMOSPHERE=Day Atmosphere
+value.DAY_ATMOSPHERE.RETRO=Retro
+value.DAY_ATMOSPHERE.FANTASY=Fantasy
+value.DAY_ATMOSPHERE.SEMI_NATURAL=Semi-Natural
+option.NIGHT_ATMOSPHERE=Night Atmosphere
+value.NIGHT_ATMOSPHERE.RETRO=Retro
+value.NIGHT_ATMOSPHERE.FANTASY=Fantasy
+value.NIGHT_ATMOSPHERE.SEMI_NATURAL=Semi-Natural
+option.HARDER_HORIZON_DAY=Harder Horizon at Day
+option.HARDER_HORIZON_NIGHT=Harder Horizon at Night
+option.PLANAR_CLOUD_LAYERS=Cirrus Clouds
 value.PLANAR_CLOUD_LAYERS.0=Off
 value.PLANAR_CLOUD_LAYERS.1=Light (1 layer)
 value.PLANAR_CLOUD_LAYERS.2=Medium (2 layers)
 value.PLANAR_CLOUD_LAYERS.3=Heavy (3 layers)
 value.PLANAR_CLOUD_LAYERS.4=Extreme (4 layers)
-option.VANILLA_CLOUDS=Blocky (vanilla) clouds
-option.BORDER_FOG=Border (render distance) fog
-option.ATMOSPHERE_FOG_STRENGTH_NOON=Atmospheric fog at noon
+option.VANILLA_CLOUDS=Vanilla Clouds
+option.BORDER_FOG=Render Distance Border Fog
+option.ATMOSPHERE_FOG_STRENGTH_NOON=Atmospheric Fog at Noon
 option.ATMOSPHERE_MODEL=Atmosphere
-value.ATMOSPHERE_MODEL.MINISHITA=Semi-realistic (Nishita)
+value.ATMOSPHERE_MODEL.MINISHITA=Semi-Realistic (Nishita)
 value.ATMOSPHERE_MODEL.GRADIENT=Gradient
-screen.LEGACY_ATMOSPHERE=Gradient atmosphere settings
+screen.LEGACY_ATMOSPHERE=Gradient Atmosphere Settings
 
-screen.LIGHTING=Lighting & shadows
-screen.DEVELOPMENT=Development & debugging
-
+screen.LIGHTING=Lighting & Shadows
+option.DAY_SKY_LIGHTING=Day Sky Lighting
+value.DAY_SKY_LIGHTING.RETRO=Retro
+value.DAY_SKY_LIGHTING.FANTASY=Fantasy
+value.DAY_SKY_LIGHTING.SEMI_NATURAL=Semi-Natural
+option.NIGHT_SKY_LIGHTING=Night Sky Lighting
+value.NIGHT_SKY_LIGHTING.RETRO=Retro
+value.NIGHT_SKY_LIGHTING.FANTASY=Fantasy
+value.NIGHT_SKY_LIGHTING.SEMI_NATURAL=Semi-Natural
+option.ORANGER_BLOCKLIGHT=Warmer Toned Blocklight
+option.HELD_BLOCK_LIGHTING=Handheld Lighting
+option.REAL_TIME_SHADOWS=Enable Shadows
+option.SHADOW_SOFTNESS=Shadow Softness
+option.SOFTER_SHADOWS=Softer Shadows
+option.SHADOW_DISTORT_FACTOR=Shadow Distortion Factor
+option.shadowMapResolution=Shadow Map Resolution
+value.shadowMapResolution.1024=Very Low (1024px²)
+value.shadowMapResolution.1536=Low (1536px²)
+value.shadowMapResolution.2048=Medium (2048px²)
+value.shadowMapResolution.3072=High (3072px²)
+value.shadowMapResolution.4096=Extreme (4096px²)
 option.shadowDistance=Shadow Distance
-value.shadowDistance.32.0=Minimum (2 chunks)
-value.shadowDistance.48.0=Very Low (3 chunks)
-value.shadowDistance.64.0=Low (4 chunks)
-value.shadowDistance.80.0=Low (5 chunks)
-value.shadowDistance.96.0=Low (6 chunks)
-value.shadowDistance.112.0=Medium (7 chunks)
-value.shadowDistance.128.0=Medium (8 chunks)
-value.shadowDistance.144.0=Medium (9 chunks)
-value.shadowDistance.160.0=Normal (10 chunks)
-value.shadowDistance.192.0=High (12 chunks)
-value.shadowDistance.256.0=Extreme (16 chunks)
+value.shadowDistance.32=Minimum (2 chunks)
+value.shadowDistance.48=Very Low (3 chunks)
+value.shadowDistance.64=Low (4 chunks)
+value.shadowDistance.80=Low (5 chunks)
+value.shadowDistance.96=Low (6 chunks)
+value.shadowDistance.112=Medium (7 chunks)
+value.shadowDistance.128=Medium (8 chunks)
+value.shadowDistance.144=Medium (9 chunks)
+value.shadowDistance.160=Normal (10 chunks)
+value.shadowDistance.192=High (12 chunks)
+value.shadowDistance.256=Extreme (16 chunks)
 option.shadowDistance.comment=The shadow render distance controls how far away \
 	terrain can potentially cast or receive real-time shadows.\n\n\
 	Terrain outside of this distance will cast and receive approximate, static \
@@ -111,15 +162,26 @@ option.shadowDistance.comment=The shadow render distance controls how far away \
 	rates.\n\n\
 	The actual shadow render distance is capped by the View Distance setting \
 	in Video Settings..
+option.DIRECTIONAL_SKYLIGHT_SHADING=Directional Skylight Shading
+option.REAL_TIME_ENTITY_SHADOWS=Entity Shadows
+option.REAL_TIME_BLOCK_ENTITY_SHADOWS=Block Entity Shadows
 
-option.SURFACE_COLORS=Surface colors
+screen.DEVELOPMENT=Development & Debugging
+option.SURFACE_COLORS=Debug Surface Colors
 value.SURFACE_COLORS.STANDARD=Standard
 value.SURFACE_COLORS.NONE=None (whiteworld)
-value.SURFACE_COLORS.VERTEX_COLOR=Vertex color (foliage)
+value.SURFACE_COLORS.VERTEX_COLOR=Vertex Color (foliage)
 option.SURFACE_COLORS.comment=When None, the object's base color is \
 	disregarded in favor of simply treating every surface as white. \
 	With vertex color, only the texture color is disregarded, so foliage \
 	remains green. \
 	Useful for debugging lighting. \
 	Alpha testing is still applied.
-option.SKY_DITHER=Sky dithering strength
+value.SURFACE_COLORS.WORLD_POSITION=World Position
+value.SURFACE_COLORS.WORLD_NORMAL=Surface Normal
+option.SKY_DITHER=Sky Dithering Strength
+option.DEBUG=Debug View
+value.DEBUG.DEBUG_NONE=None
+value.DEBUG.DEBUG_GODRAYS_NOISY=Godrays (noisy)
+value.DEBUG.DEBUG_GODRAYS_SMOOTH=Godrays (smooth)
+value.DEBUG.DEBUG_SKYLIGHT=Skylight
