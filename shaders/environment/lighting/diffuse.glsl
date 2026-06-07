@@ -19,12 +19,6 @@
 // a look similar to indirect lighting can be achieved without the associated
 // complexity and performance cost.
 
-// Whether to use a more intensely orange (rather than yellow) block light color
-#define ORANGER_BLOCKLIGHT
-#ifdef ORANGER_BLOCKLIGHT
-	// Actual impact is in shaders.properties
-#endif
-
 // Whether to use the new direct lighting model with atmospheric scattering.
 #define MINISHITA_LIGHTING
 #ifdef MINISHITA_LIGHTING
@@ -59,7 +53,6 @@
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
 	uniform vec3 minAmbient;
 	uniform vec3 skyAmbient;
-	uniform vec3 blocklightColor;
 	uniform float blocklightSuppression;
 	uniform float nightVision;
 #endif
@@ -153,6 +146,21 @@ float NightDesaturation(float skyLight, float blockLight) {
 		return mix(color, luma * desaturationColor, desaturation);
 	}
 #endif
+
+/*
+# Rare 1 (Purple): Crying obsidian, nether portals, end chests, end rods, purple froglights
+#uniform.vec3.blocklightColor=vec3(3.3, 3.3, 3.3) * vec3(0.60, 0.10, 1.0)
+
+# Rare 2 (Red): Redstone if there's an available color channel, otherwise default to torches.
+uniform.vec3.blocklightColor=vec3(3.3, 3.3, 3.3) * vec3(1.75, 0.05, 0.0)
+
+# Rare 3 (Green): Uranium / radioactive
+#uniform.vec3.blocklightColor=vec3(3.3, 3.3, 3.3) * vec3(0.3, 1.0, 0.05)
+*/
+
+#include "blackbody.glsl"
+#define BLOCKLIGHT_LUMINANCE 2.0 // [1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0]
+const vec3 blocklightColor = BLOCKLIGHT_COLOR * BLOCKLIGHT_LUMINANCE;
 
 vec3 BlockLighting(float skyLight, float blockLight, float heldLight) {
 	// Give block lighting a strong but visually appealing falloff.
