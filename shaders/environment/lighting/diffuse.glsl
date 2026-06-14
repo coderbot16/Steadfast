@@ -147,22 +147,12 @@ float NightDesaturation(float skyLight, float blockLight) {
 	}
 #endif
 
-/*
-# Rare 1 (Purple): Crying obsidian, nether portals, end chests, end rods, purple froglights
-#uniform.vec3.blocklightColor=vec3(3.3, 3.3, 3.3) * vec3(0.60, 0.10, 1.0)
-
-# Rare 2 (Red): Redstone if there's an available color channel, otherwise default to torches.
-uniform.vec3.blocklightColor=vec3(3.3, 3.3, 3.3) * vec3(1.75, 0.05, 0.0)
-
-# Rare 3 (Green): Uranium / radioactive
-#uniform.vec3.blocklightColor=vec3(3.3, 3.3, 3.3) * vec3(0.3, 1.0, 0.05)
-*/
-
-#include "blackbody.glsl"
-#define BLOCKLIGHT_LUMINANCE 2.0 // [1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0]
-const vec3 blocklightColor = BLOCKLIGHT_COLOR * BLOCKLIGHT_LUMINANCE;
+#include "blocklight_color.glsl"
+#define BLOCKLIGHT_LUMINANCE 2.0 // [0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0 3.25 3.5 3.75 4.0]
 
 vec3 BlockLighting(float skyLight, float blockLight, float heldLight) {
+	const vec3 blocklightColor = BLOCKLIGHT_COLOR * BLOCKLIGHT_LUMINANCE;
+
 	// Give block lighting a strong but visually appealing falloff.
 	float blockLightIntensity = pow(blockLight, 4.0);
 	float heldLightIntensity = pow(heldLight, 4.0);
@@ -182,6 +172,26 @@ vec3 BlockLighting(float skyLight, float blockLight, float heldLight) {
 	// This method of combining held light and block light avoids weird lines
 	// where the lights intersect.
 	return blocklightColor * min(1.0, blockLightIntensity + heldLightIntensity);
+}
+
+// The returned color is the adjusted block lighting of this fragment, and the
+// alpha is the emissiveness for bloom and similar effects.
+vec4 EmissiveDetection(vec3 blockLighting, uint materialID, vec3 surfaceColor) {
+	if (materialID == EMITTER_MAGIC) {
+		// This material applies to crying obsidian and the nether portal, this
+		// is a way of isolating the "tears" out of crying obsidian without
+		// impacting nether portals.
+		bool emissive = dot(surfaceColor, vec3(2.0, 0.0, 1.0)) > 0.2;
+
+		if (emissive) {
+			// The colors in vanilla crying obsidian tears and nether portals
+			// are tuned to its yellowish block lighting, so we need to mimic
+			// that to get reasonable colors.
+			return vec4(BLACKBODY_4000K * BLOCKLIGHT_LUMINANCE, 1.0);
+		}
+	}
+
+	return vec4(blockLighting, 0.0);
 }
 
 // Tilt the path of the sun sideways. This is a standard shader effect that
@@ -386,6 +396,24 @@ vec3 DiffuseLighting(SurfaceFragment fragment) {
 		fragment.heldLight
 	);
 
+	float emission = 0.0;
+
+	// Detection of emissive pixels from vanilla-like textures with hardcoded
+	// color values.
+	#define EMISSIVE_DETECTION
+	#ifdef EMISSIVE_DETECTION
+		vec4 detection = EmissiveDetection(
+			blocklightIndirect,
+			fragment.materialID,
+			fragment.surfaceColor
+		);
+
+		blocklightIndirect = detection.rgb;
+		emission = detection.a;
+
+		// TODO: Use emission in bloom
+	#endif
+
 	vec3 directLightColor = directLightSurface;
 
 	#if WATER_ABSORPTION_METHOD == REFRACTION_ASSISTED
@@ -442,7 +470,7 @@ vec3 DiffuseLighting(SurfaceFragment fragment) {
 	#ifdef NIGHT_DESATURATION_EFFECT
 		float desaturation = NightDesaturation(
 			fragment.skyLight,
-			max(fragment.blockLight, fragment.heldLight)
+			max(max(fragment.blockLight, emission), fragment.heldLight)
 		);
 
 		surfaceColor = Desaturate(surfaceColor, desaturation);

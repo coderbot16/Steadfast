@@ -35,6 +35,8 @@ const uint ICE = 5u;
 // Blocks that do not cast shadows (Glass and translucents)
 const uint GLASS = 6u;
 
+const uint EMITTER_MAGIC = 8u;
+
 // Geometry selector: Diagonally horizontal geometry
 // Add 16 to any material ID to apply this geometry selector
 const uint GEOMETRY_HORIZONTAL_DIAGONAL_ONLY = 1u;
