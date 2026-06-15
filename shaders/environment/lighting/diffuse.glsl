@@ -181,15 +181,19 @@ vec4 EmissiveDetection(vec3 blockLighting, uint materialID, vec3 surfaceColor) {
 		// This material applies to crying obsidian and the nether portal, this
 		// is a way of isolating the "tears" out of crying obsidian without
 		// impacting nether portals.
-		bool emissive = dot(surfaceColor, vec3(2.0, 0.0, 1.0)) > 0.2;
+		bool magic = dot(surfaceColor, vec3(2.5, -10.0, 5.0)) > 1.0;
+		bool glowstone = dot(surfaceColor, vec3(6.0, 6.0, -10.0)) > 1.0;
 
-		if (emissive) {
+		if (magic || glowstone) {
 			// The colors in vanilla crying obsidian tears and nether portals
 			// are tuned to its yellowish block lighting, so we need to mimic
 			// that to get reasonable colors.
 			return vec4(BLACKBODY_4000K * BLOCKLIGHT_LUMINANCE, 1.0);
 		}
 	}
+
+	// TODO
+	// bool torch = dot(surfaceColor, vec3(2.0, 0.0, 0.0)) > 1.0;
 
 	return vec4(blockLighting, 0.0);
 }
@@ -474,6 +478,11 @@ vec3 DiffuseLighting(SurfaceFragment fragment) {
 		);
 
 		surfaceColor = Desaturate(surfaceColor, desaturation);
+	#endif
+
+	//#define EMISSIVE_DETECTION_DEBUG
+	#ifdef EMISSIVE_DETECTION_DEBUG
+		lighting *= mix(0.001, 1.0, emission);
 	#endif
 
 	return surfaceColor * lighting;
