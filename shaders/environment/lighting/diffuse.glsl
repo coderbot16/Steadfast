@@ -413,7 +413,7 @@ vec3 DiffuseLighting(SurfaceFragment fragment) {
 		);
 
 		blocklightIndirect = detection.rgb;
-		emission = detection.a;
+		emission = max(float(fragment.blockLight > 0.995), detection.a);
 
 		// TODO: Use emission in bloom
 	#endif
