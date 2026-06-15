@@ -48,7 +48,7 @@ fn write_color(label: String, mut r: f64, mut g: f64, mut b: f64) {
 }
 
 fn main() {
-	let default_temperature = 2000;
+	let default_temperature = 3000;
 	let mut temperatures: Vec<u32> = (250u32..=7500u32).step_by(250).collect();
 	temperatures.extend((8000u32..=12000u32).step_by(1000));
 
