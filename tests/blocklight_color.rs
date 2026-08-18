@@ -83,4 +83,5 @@ fn main() {
 	let default = format!("BLACKBODY_{}K", default_temperature);
 
 	println!("#define BLOCKLIGHT_COLOR {} // [{}]", default, options.join(" "));
+	println!("#define HELD_LIGHT_COLOR {} // [{}]", default, options.join(" "));
 }

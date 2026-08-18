@@ -147,12 +147,16 @@ float NightDesaturation(float skyLight, float blockLight) {
 	}
 #endif
 
-#include "blocklight_color.glsl"
-#define BLOCKLIGHT_LUMINANCE 2.0 // [0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0 3.25 3.5 3.75 4.0]
-
-vec3 BlockLighting(float skyLight, float blockLight, float heldLight) {
-	const vec3 blocklightColor = BLOCKLIGHT_COLOR * BLOCKLIGHT_LUMINANCE;
-
+// The returned RGB is the block lighting, normalized such that the brightest
+// result has a luminance of 1.0. The returned alpha is the detected emission
+// value for the purposes of bloom and similar effects.
+vec4 BlockLighting(
+	float skyLight,
+	float blockLight,
+	float heldLight,
+	vec3 blockLightColor,
+	vec3 heldLightColor
+) {
 	// Give block lighting a strong but visually appealing falloff.
 	float blockLightIntensity = pow(blockLight, 4.0);
 	float heldLightIntensity = pow(heldLight, 4.0);
@@ -161,7 +165,11 @@ vec3 BlockLighting(float skyLight, float blockLight, float heldLight) {
 	//
 	// sqrt(skyLight) makes the suppression affect most areas impacted
 	// by skylight.
-	blockLightIntensity *= 1.0 - sqrt(skyLight) * blocklightSuppression;
+	float blocklightSuppressed = 1.0 - sqrt(skyLight) * blocklightSuppression;
+	blockLightIntensity *= blocklightSuppressed;
+
+	// By default, only detect fully lit fragments as emissive.
+	float emission = float(blockLight > 0.995) * blocklightSuppressed;
 
 	// For held light, we also suppress it if the player is standing in sky
 	// light, so that suppressed light held by the player doesn't still get
@@ -171,31 +179,17 @@ vec3 BlockLighting(float skyLight, float blockLight, float heldLight) {
 
 	// This method of combining held light and block light avoids weird lines
 	// where the lights intersect.
-	return blocklightColor * min(1.0, blockLightIntensity + heldLightIntensity);
-}
+	float intensity = min(1.0, blockLightIntensity + heldLightIntensity);
+	vec3 lightColor = blockLightColor;
 
-// The returned color is the adjusted block lighting of this fragment, and the
-// alpha is the emissiveness for bloom and similar effects.
-vec4 EmissiveDetection(vec3 blockLighting, uint materialID, vec3 surfaceColor) {
-	if (materialID == EMITTER_MAGIC) {
-		// This material applies to crying obsidian and the nether portal, this
-		// is a way of isolating the "tears" out of crying obsidian without
-		// impacting nether portals.
-		bool magic = dot(surfaceColor, vec3(2.5, -10.0, 5.0)) > 1.0;
-		bool glowstone = dot(surfaceColor, vec3(6.0, 6.0, -10.0)) > 1.0;
-
-		if (magic || glowstone) {
-			// The colors in vanilla crying obsidian tears and nether portals
-			// are tuned to its yellowish block lighting, so we need to mimic
-			// that to get reasonable colors.
-			return vec4(BLACKBODY_4000K * BLOCKLIGHT_LUMINANCE, 1.0);
-		}
+	// Trivial linear interpolation seems to look fine for mixing different
+	// light colors together
+	if (heldLightIntensity > 0.0) {
+		float heldLightWeight = heldLightIntensity / intensity;
+		lightColor = mix(lightColor, heldLightColor, heldLightWeight);
 	}
 
-	// TODO
-	// bool torch = dot(surfaceColor, vec3(2.0, 0.0, 0.0)) > 1.0;
-
-	return vec4(blockLighting, 0.0);
+	return vec4(lightColor * intensity, emission);
 }
 
 // Tilt the path of the sun sideways. This is a standard shader effect that
@@ -277,6 +271,10 @@ struct SurfaceFragment {
 	float blockLight;
 	// The held light strength, where 1 is light level 15 and 0 is no light.
 	float heldLight;
+	// The block light color normalized to a luminance of 1.
+	vec3 blockLightColor;
+	// The held light color normalized to a luminance of 1.
+	vec3 heldLightColor;
 };
 
 float DirectLighting(SurfaceFragment fragment, bool subsurfaceScatter) {
@@ -376,6 +374,8 @@ float DirectLighting(SurfaceFragment fragment, bool subsurfaceScatter) {
 	#endif
 }
 
+#define BLOCKLIGHT_LUMINANCE 2.0 // [0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0 3.25 3.5 3.75 4.0]
+
 vec3 DiffuseLighting(SurfaceFragment fragment) {
 	// Part of approximating subsurface scattering
 	bool subsurfaceScatter = fragment.materialID == SUBSURFACE_SCATTERING \
@@ -394,29 +394,18 @@ vec3 DiffuseLighting(SurfaceFragment fragment) {
 	// immediately applying it. When water absorption is enabled, for gameplay
 	// purposes we tweak the amount of water absorption applied to blocklight
 	// based on depth to avoid ruining submerged bases.
-	vec3 blocklightIndirect = BlockLighting(
+	vec4 blockLighting = BlockLighting(
 		fragment.skyLight,
 		fragment.blockLight,
-		fragment.heldLight
+		fragment.heldLight,
+		fragment.blockLightColor,
+		fragment.heldLightColor
 	);
 
-	float emission = 0.0;
+	vec3 blocklightIndirect = blockLighting.rgb * BLOCKLIGHT_LUMINANCE;
 
-	// Detection of emissive pixels from vanilla-like textures with hardcoded
-	// color values.
-	#define EMISSIVE_DETECTION
-	#ifdef EMISSIVE_DETECTION
-		vec4 detection = EmissiveDetection(
-			blocklightIndirect,
-			fragment.materialID,
-			fragment.surfaceColor
-		);
-
-		blocklightIndirect = detection.rgb;
-		emission = max(float(fragment.blockLight > 0.995), detection.a);
-
-		// TODO: Use emission in bloom
-	#endif
+	// TODO: Forward emission to bloom when implementing bloom.
+	float emission = blockLighting.a;
 
 	vec3 directLightColor = directLightSurface;
 
@@ -474,7 +463,7 @@ vec3 DiffuseLighting(SurfaceFragment fragment) {
 	#ifdef NIGHT_DESATURATION_EFFECT
 		float desaturation = NightDesaturation(
 			fragment.skyLight,
-			max(max(fragment.blockLight, emission), fragment.heldLight)
+			max(fragment.blockLight, fragment.heldLight)
 		);
 
 		surfaceColor = Desaturate(surfaceColor, desaturation);

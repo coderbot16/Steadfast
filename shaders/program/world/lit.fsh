@@ -53,6 +53,7 @@ uniform float frameTimeCounter;
 #endif
 
 #include "/environment/lighting/diffuse.glsl"
+#include "/environment/lighting/blocklight_color_detection.glsl"
 
 #if defined(AFTER_DEFERRED)
 	#define APPLY_FOG
@@ -241,13 +242,14 @@ void main() {
 	vec3 worldNormal = DecodePerFaceWorldNormal(perFace);
 
 	vec4 surfaceColor;
+	vec4 sampledColor;
 
 	#if defined(COLORWHEEL)
 		vec4 entityColor;
 		vec2 lightMap;
 		float ignoredAo;
 
-		vec4 sampledColor = texture(gtexture, texcoord);
+		sampledColor = texture(gtexture, texcoord);
 
 		#if SURFACE_COLORS == VERTEX_COLOR
 			sampledColor.rgb = vec3(1.0);
@@ -267,6 +269,7 @@ void main() {
 			// Output: equivalent to entityColor.
 			entityColor);
 	#else
+		sampledColor = vec4(1.0);
 		surfaceColor = tinting;
 	#endif
 
@@ -327,13 +330,15 @@ void main() {
 				//#define VANILLA_ISH_WATER 
 				#ifndef VANILLA_ISH_WATER
 					// TODO: Use dedicated water color uniform?
+					sampledColor = vec4(1.0);
 					surfaceColor.rgb = mix(
 						surfaceColor.rgb,
 						skyAmbient,
 						reflectionStrength);
 					surfaceColor.a = 0.25 * (1.0 - reflectionStrength);
 				#else
-					surfaceColor *= texture(gtexture, texcoord);
+					sampledColor = texture(gtexture, texcoord);
+					surfaceColor *= sampledColor;
 
 					// We blend in HDR, meaning that there can be a large
 					// difference in brightness between the water surface
@@ -345,7 +350,8 @@ void main() {
 				#endif
 			} else {
 		#endif
-				surfaceColor *= texture(gtexture, texcoord);
+				sampledColor = texture(gtexture, texcoord);
+				surfaceColor *= sampledColor;
 		#if defined(TRANSLUCENT)
 			}
 		#endif
@@ -490,6 +496,25 @@ void main() {
 	// in sRGB color space.
 	surfaceColor.rgb = SrgbToLinear(surfaceColor.rgb);
 
+	float blockLight = LightMapToLight(lightMap.x);
+	vec3 blockLightColor = BLOCKLIGHT_COLOR;
+
+	// Detection of emissive pixels from vanilla-like textures with hardcoded
+	// color values.
+	#define EMISSIVE_DETECTION
+	#ifdef EMISSIVE_DETECTION
+		EmissiveDetection(
+			materialID,
+			// It's important that we use the original color sampled from the
+			// texture rather than the surface color with tinting applied. Else
+			// we get bogus emissive detection results when in surface debug
+			// modes
+			sampledColor.rgb,
+			blockLight,
+			blockLightColor
+		);
+	#endif
+
 	// Skip all these lighting calculations if we are going to throw away the
 	// result anyhow.
 	#if defined(SKIP_ALPHA_TEST)
@@ -514,10 +539,14 @@ void main() {
 			skyLight,
 			// The block light strength, where 1 is light level 15 and 0 is no
 			// light.
-			LightMapToLight(lightMap.x),
+			blockLight,
 			// The held light strength, where 1 is light level 15 and 0 is no
 			// light.
-			HeldLightStrength(cameraRelativePos)
+			HeldLightStrength(cameraRelativePos),
+			// The block light color normalized to a luminance of 1.
+			blockLightColor,
+			// The held light color normalized to a luminance of 1.
+			HELD_LIGHT_COLOR
 		));
 	#if defined(SKIP_ALPHA_TEST)
 		}
