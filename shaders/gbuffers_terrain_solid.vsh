@@ -17,5 +17,8 @@
 #version 150 compatibility
 #define HAS_BLOCK_ATTRIBUTES
 #define HAS_WAVING_FOLIAGE
-#define NORMALS_ARE_IN_WORLD_SPACE
+// TODO: Create Aeronautics uses the terrain shader, but passes a non-identity
+//       normal matrix, and we have no easy way to detect or differentiate, so
+//       we have to turn off this optimization.
+// #define NORMALS_ARE_IN_WORLD_SPACE
 #include "/program/world/lit.vsh"
