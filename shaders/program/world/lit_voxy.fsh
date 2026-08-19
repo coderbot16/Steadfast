@@ -43,6 +43,7 @@
 #include "/environment/materialIDs.glsl"
 
 #include "/environment/lighting/diffuse.glsl"
+#include "/environment/lighting/blocklight_color_detection.glsl"
 
 layout(location = 0) out vec4 out0;
 layout(location = 1) out float out1;
@@ -126,7 +127,11 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
 		// light.
 		LightMapToLight(parameters.lightMap.x),
 		// The held light strength, where 1 is light level 15 and 0 is no light.
-		0.0
+		0.0,
+		// The block light color normalized to a luminance of 1.
+		BLOCKLIGHT_COLOR,
+		// The held light color normalized to a luminance of 1.
+		vec3(0.0)
 	)), surfaceColor.a);
 
 
