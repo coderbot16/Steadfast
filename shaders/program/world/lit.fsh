@@ -188,7 +188,9 @@ uniform vec2 windowToNdc;
 #define VERTEX_COLOR 3
 #define WORLD_POSITION 4
 #define WORLD_NORMAL 5
-#define SURFACE_COLORS STANDARD // [STANDARD NONE VERTEX_COLOR WORLD_POSITION WORLD_NORMAL]
+#define WORLD_TANGENT 6
+#define WORLD_BITANGENT 7
+#define SURFACE_COLORS STANDARD // [STANDARD NONE VERTEX_COLOR WORLD_POSITION WORLD_NORMAL WORLD_TANGENT WORLD_BITANGENT]
 
 // Alpha test threshold - any pixels with an alpha less than this will be
 // discarded.
@@ -240,6 +242,7 @@ void main() {
 
 	uint materialID = DecodePerFaceMaterialID(perFace);
 	vec3 worldNormal = DecodePerFaceWorldNormal(perFace);
+	mat3 worldTBN = DecodePerFaceWorldTBN(perFace, worldNormal);
 
 	vec4 surfaceColor;
 	vec4 sampledColor;
@@ -370,6 +373,10 @@ void main() {
 		surfaceColor.rgb = fract(cameraRelativePos + worldPosOffset);
 	#elif SURFACE_COLORS == WORLD_NORMAL
 		surfaceColor.rgb = 0.5 * worldNormal + 0.5;
+	#elif SURFACE_COLORS == WORLD_TANGENT
+		surfaceColor.rgb = 0.5 * worldTBN[0] + 0.5;
+	#elif SURFACE_COLORS == WORLD_BITANGENT
+		surfaceColor.rgb = 0.5 * worldTBN[1] + 0.5;
 	#endif
 
 	// TODO: For now, we make all water fully reflective with Distant Horizons
@@ -556,6 +563,7 @@ void main() {
 		fragmentColor = TranslucentLighting(
 			fragmentColor,
 			worldNormal,
+			worldTBN,
 			cameraRelativePos,
 			viewPos,
 			reflectionStrength,

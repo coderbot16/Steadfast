@@ -68,10 +68,35 @@ layout(location = 1) out float out1;
 #include "/lib/encoding/lightmap.glsl"
 
 void voxy_emitFragment(VoxyFragmentParameters parameters) {
-	vec3 worldNormal = (float(int(parameters.face) & 1) * 2.0 - 1.0) * vec3(
+	float normalSign = (float(int(parameters.face) & 1) * 2.0 - 1.0);
+	vec3 worldNormal = normalSign * vec3(
 		uint((parameters.face >> 1) == 2),
 		uint((parameters.face >> 1) == 0),
 		uint((parameters.face >> 1) == 1)
+	);
+
+	// Experimentally collected for normal terrain
+	//
+	// Normal -X -> Tangent +Z = vec3( 0.0, 0.0,  1.0)
+	// Normal +X -> Tangent -Z = vec3( 0.0, 0.0, -1.0)
+	// Normal -Y -> Tangent +X = vec3( 1.0, 0.0,  0.0)
+	// Normal +Y -> Tangent +X = vec3( 1.0, 0.0,  0.0)
+	// Normal -Z -> Tangent -X = vec3(-1.0, 0.0,  0.0)
+	// Normal +Z -> Tangent +X = vec3( 1.0, 0.0,  0.0)
+	vec3 worldTangent = vec3(
+		abs(worldNormal.y) + worldNormal.z,
+		0.0,
+		-1.0 * worldNormal.x
+	);
+
+	// Experimentally collected for normal terrain
+	// Horizontal normal -> Bitangent -Y = vec3(0.0, -1.0, 0.0)
+	// Normal -Y -> Bitangent -Z
+	// Normal +Y -> Bitangent +Z
+	vec3 worldBitangent = vec3(
+		0.0,
+		(parameters.face >> 1) == 0 ? 0.0 : -1.0,
+		worldNormal.y
 	);
 
 	vec4 surfaceColor =
@@ -121,6 +146,11 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
 		fragmentColor = TranslucentLighting(
 			fragmentColor,
 			worldNormal,
+			mat3(
+				worldTangent,
+				worldBitangent,
+				worldNormal
+			),
 			cameraRelativePos,
 			viewPos,
 			reflectionStrength,

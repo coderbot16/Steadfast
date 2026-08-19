@@ -79,8 +79,11 @@ vec3 parallaxWaterNormal(
 	vec2 ddxWorldPos,
 	vec2 ddyWorldPos,
 	bool verticalNormal,
-	vec3 worldNormal
+	vec3 worldNormal,
+	vec3 worldTangent,
+	vec3 worldBinormal
 ) {
+	mat3 worldTBN = mat3(worldTangent, worldBinormal, worldNormal);
 	vec2 waterWorldPos = cameraRelativePos.xz + cameraPosition.xz;
 
 	// If the normal vector is facing down instead of up, we need to flip the
@@ -103,6 +106,8 @@ vec3 parallaxWaterNormal(
 			float(verticalNormal));
 
 		if (parallaxStrength > 0.0001) {
+			// Note: this is safe instead of using (worldTBN * incident) because
+			// we already checked that the normal vector wasn't horizontal.
 			vec3 viewDirTangent = facing * incident.xzy;
 			vec2 offsetPos = WaterSurfaceParallaxMapping(
 				waterWorldPos,
@@ -120,17 +125,8 @@ vec3 parallaxWaterNormal(
 		ddyWorldPos,
 		timeSeconds);
 
-	// Hardcoded for the common case where normal vectors are pointing
-	// upwards in world-space.
-	//
-	// The swizzle is XZY because in tangent space 
-	//
-	// TODO: This breaks when looking at the side towards slanted water normals.
-	//       It mostly breaks reflection, but refraction doesn't like it either.
-	//       Any way we can do an approximation? Maybe just skip the parallax,
-	//       or can we "slant" by the normal facing? Or is that just TBN with
-	//       more steps?
-	return facing * waterNormal.xzy;
+
+	return worldTBN * waterNormal;
 }
 
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
@@ -259,6 +255,7 @@ void dWorldPosdxdy(
 vec4 TranslucentLighting(
 	vec4 fragmentColor,
 	vec3 worldNormal,
+	mat3 worldTBN,
 	vec3 cameraRelativePos,
 	vec3 viewPos,
 	float reflectionStrength,
@@ -281,16 +278,8 @@ vec4 TranslucentLighting(
 	// from our view is necessarily the direction of the fragment in view space!
 	vec3 incident = normalize(cameraRelativePos);
 
-	// TODO: We are assuming that the normal vector of this plane is pointing
-	// upwards in world-space, which is true for current water surfaces, but
-	// we should probably just use the actual tangent and binormal vectors
-	// instead of assuming.
-	//
-	// This is currently not an issue since we restrict fancy water effects to
-	// water faces where the normal vector points up, but once we pass full TBN
-	// data to the fragment shader, we should remove the hardcoding.
-	vec3 worldTangent  = vec3(1.0, 0.0, 0.0);
-	vec3 worldBinormal = vec3(0.0, 0.0, 1.0);
+	vec3 worldTangent  = worldTBN[0];
+	vec3 worldBinormal = worldTBN[1];
 
 	// Compute ddxWorldPos = dFdx(worldPos) and ddyWorldPos = dFdy(worldPos)
 	// without actually requiring the screen-space partial derivative functions
@@ -319,7 +308,9 @@ vec4 TranslucentLighting(
 				ddxWorldPos.xz,
 				ddyWorldPos.xz,
 				verticalNormal,
-				worldNormal);
+				worldNormal,
+				worldTangent,
+				worldBinormal);
 		}
 	#endif
 
