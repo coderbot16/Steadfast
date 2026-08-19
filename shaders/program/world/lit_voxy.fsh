@@ -107,7 +107,13 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
 	// Geometry selectors are not applicable on Voxy terrain right now, as the
 	// only selector is for diagonal geometry, which is not possible in Voxy.
 	if (materialID > 0xFu) {
-		materialID = 0u;
+		materialID = GENERIC;
+	}
+
+	// For now, disable fancy Voxy water when the normal isn't +Y or -Y.
+	// This mirrors current lit.fsh behavior.
+	if (materialID == WATER && (parameters.face >> 1) != 0) {
+		materialID = GENERIC;
 	}
 
 	float skyLight = LightMapToLight(parameters.lightMap.y);
