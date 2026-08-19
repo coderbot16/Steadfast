@@ -159,11 +159,11 @@ uint FetchMaterialID(vec3 worldNormal) {
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 
-vec3 FetchWorldNormal() {
+vec3 FetchWorldVector(vec3 v) {
 	#if defined(NORMALS_ARE_IN_WORLD_SPACE)
 		// If gl_Normal is already in world space, then skip two matrix-vector
 		// multiplies that are otherwise completely unnecessary!
-		return gl_Normal;
+		return v;
 	#else
 		// Otherwise, get the view-space normal and then convert to world-space
 		// by multiplying with the inverse view matrix. For example, on some
@@ -185,9 +185,23 @@ vec3 FetchWorldNormal() {
 		// "correct" matrix gives the same result for nausea, so perhaps Iris or
 		// Minecraft do not handle this properly; therefore, we have no need to
 		// pay the extra cost for that approach.
-		vec4 homogenousNormal = vec4(gl_NormalMatrix * gl_Normal, 0.0);
+		vec4 homogenousNormal = vec4(gl_NormalMatrix * v, 0.0);
 		return (gbufferModelViewInverse * homogenousNormal).xyz;
 	#endif
+}
+
+vec3 FetchWorldNormal() {
+	return FetchWorldVector(gl_Normal);
+}
+
+in vec4 at_tangent;
+
+vec3 FetchWorldTangent() {
+	return FetchWorldVector(at_tangent.xyz);
+}
+
+bool FetchTangentHandedness() {
+	return at_tangent.w > 0.0;
 }
 
 #if !defined(NEVER_RECEIVES_SHADOWS)
@@ -275,6 +289,8 @@ void main() {
 	#endif
 
 	vec3 worldNormal = FetchWorldNormal();
+	vec3 worldTangent = FetchWorldTangent();
+	bool handedness = FetchTangentHandedness();
 	uint materialID = FetchMaterialID(worldNormal);
 
 	// Note: The vertex normal isn't actually guaranteed to be the same for all
@@ -286,7 +302,7 @@ void main() {
 	// I wonder if this could be done with manual interpolation in the fragment
 	// shader / barycentrics instead of just giving up and passing in the full
 	// normal or even TBN matrix through varyings.
-	perFace = EncodePerFace(worldNormal, materialID);
+	perFace = EncodePerFace(worldNormal, worldTangent, handedness, materialID);
 
 	#if !defined(NEVER_RECEIVES_SHADOWS)
 		shadowPos = ShadowMapPosition(cameraRelativePos, worldNormal);
