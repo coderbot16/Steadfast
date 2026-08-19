@@ -1,6 +1,5 @@
 option.STEADFAST=Steadfast Shaders
-option.STEADFAST.comment=Made by coderbot16, the original developer of Iris. \
-	This is a closed alpha release - §c§lplease do not redistribute in public!
+option.STEADFAST.comment=Made by coderbot16, the original developer of Iris.
 value.STEADFAST.BY_CODERBOT=by coderbot16
 profile.MINISHITA_HIGH=§aMinishita (WIP)§r style - §b🔥 High§r
 profile.MINISHITA_HIGH=§aMinishita (WIP)§r style - §b🔥 High§r
