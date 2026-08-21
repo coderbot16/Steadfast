@@ -16,4 +16,5 @@
 
 #version 150 compatibility
 #define SKIP_ALPHA_TEST
+#define HAS_AMBIENT_OCCLUSION
 #include "/program/world/lit.fsh"

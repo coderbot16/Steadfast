@@ -88,6 +88,24 @@ value.ATMOSPHERE_MODEL.GRADIENT=Gradient
 screen.LEGACY_ATMOSPHERE=Gradient atmosphere settings
 
 screen.LIGHTING=Lighting & shadows
+
+option.ambientOcclusionLevel=Ambient Occlusion (AO)
+value.ambientOcclusionLevel.0.0=Off
+value.ambientOcclusionLevel.0.1=10%
+value.ambientOcclusionLevel.0.2=20%
+value.ambientOcclusionLevel.0.3=30%
+value.ambientOcclusionLevel.0.4=40%
+value.ambientOcclusionLevel.0.5=50%
+value.ambientOcclusionLevel.0.6=60%
+value.ambientOcclusionLevel.0.7=70%
+value.ambientOcclusionLevel.0.8=80%
+value.ambientOcclusionLevel.0.9=90%
+value.ambientOcclusionLevel.1.0=100%
+option.DIRECT_LIGHT_AMBIENT_OCCLUSION=Ambient Occlusion Everywhere
+option.DIRECT_LIGHT_AMBIENT_OCCLUSION.comment=Apply ambient occlusion even in \
+	direct sunlight and moonlight. This matches vanilla Minecraft lighting and \
+	makes all lighting appear softer, but it is not realistic..
+
 option.BLOCKLIGHT_COLOR=Block light
 value.BLOCKLIGHT_COLOR.BLACKBODY_250K=Red (250K)
 value.BLOCKLIGHT_COLOR.BLACKBODY_500K=Red (500K)

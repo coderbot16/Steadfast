@@ -50,6 +50,13 @@
 	// Actual effect is in shaders.properties
 #endif
 
+// The strength of Minecraft's baked ambient occlusion. Lower values can look
+// more realistic in some cases but come at the expense of flat lighting.
+//
+// If you're going for the exact SEUS Renewed look, you'll want to lower this
+// down to 0.1 (10%).
+const float ambientOcclusionLevel = 1.0; // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
 	uniform vec3 minAmbient;
 	uniform vec3 skyAmbient;
@@ -258,9 +265,10 @@ struct SurfaceFragment {
 		// determine to what extent the fragment is or is not in shadow.
 		vec3 shadowPos;
 	#endif
-	// The linear RGB color of the surface at this position, including all AO
-	// and tinting.
+	// The linear RGB color of the surface at this position.
 	vec3 surfaceColor;
+	// The linear ambient occlusion at this position.
+	float ao;
 	// The predefined material ID of this fragment.
 	uint materialID;
 	// The normal vector of the surface where this fragment is, in world-space.
@@ -354,7 +362,7 @@ float DirectLighting(SurfaceFragment fragment, bool subsurfaceScatter) {
 	//   
 	//   File /shaders/include/lighting/shadows.glsl#L56-L59 as of commit
 	//   26c2906ee02cc484359b835fba6993d443d45966
-	float shadowSample = smoothstep(
+	float shadowSample = fragment.ao * smoothstep(
 		// Everything darker than this will be fully in shadow
 		13.5 / 15.0,
 		// Everything lighter than this will be fully lit
@@ -368,9 +376,10 @@ float DirectLighting(SurfaceFragment fragment, bool subsurfaceScatter) {
 			subsurfaceScatter,
 			directLightStrength,
 			fragment.shadowPos,
-			fragment.cameraRelativePos);
+			fragment.cameraRelativePos,
+			fragment.ao);
 	#else
-		return directLightStrength * shadowSample;
+		return fragment.ao * directLightStrength * shadowSample;
 	#endif
 }
 
@@ -382,7 +391,7 @@ vec3 DiffuseLighting(SurfaceFragment fragment) {
 		|| fragment.materialID == GROUND_FOLIAGE \
 		|| fragment.materialID == LEAVES;
 
-	vec3 lighting = AmbientSkyLighting(
+	vec3 lighting = fragment.ao * AmbientSkyLighting(
 		// When night vision is active, treat everything as fully lit by sky
 		// light.
 		max(fragment.skyLight, nightVision),
@@ -403,6 +412,7 @@ vec3 DiffuseLighting(SurfaceFragment fragment) {
 	);
 
 	vec3 blocklightIndirect = blockLighting.rgb * BLOCKLIGHT_LUMINANCE;
+	blocklightIndirect *= fragment.ao;
 
 	// TODO: Forward emission to bloom when implementing bloom.
 	float emission = blockLighting.a;
@@ -453,7 +463,7 @@ vec3 DiffuseLighting(SurfaceFragment fragment) {
 	#if !defined(NEVER_RECEIVES_SHADOWS)
 		float directLightStrength = DirectLighting(fragment, subsurfaceScatter);
 	#else
-		float directLightStrength = 1.0;
+		float directLightStrength = fragment.ao;
 	#endif
 
 	lighting += directLightStrength * directLightColor;

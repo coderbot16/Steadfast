@@ -23,4 +23,5 @@
 #endif
 #define AFTER_DEFERRED
 #define ALPHA_TEST_CUTOFF 0.0001
+#define HAS_AMBIENT_OCCLUSION
 #include "/program/world/lit.fsh"

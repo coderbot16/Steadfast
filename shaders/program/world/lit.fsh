@@ -273,7 +273,11 @@ void main() {
 			entityColor);
 	#else
 		sampledColor = vec4(1.0);
-		surfaceColor = tinting;
+		#if defined(HAS_AMBIENT_OCCLUSION)
+			surfaceColor = vec4(tinting.rgb, 1.0);
+		#else
+			surfaceColor = tinting;
+		#endif
 	#endif
 
 	float skyLight = LightMapToLight(lightMap.y);
@@ -533,9 +537,14 @@ void main() {
 				// The projected shadowmap position to sample from.
 				shadowPos,
 			#endif
-			// The linear RGB color of the surface at this position, including
-			// all AO and tinting.
+			// The linear RGB color of the surface at this position.
 			surfaceColor.rgb,
+			// The linear ambient occlusion at this position.
+			#if defined(HAS_AMBIENT_OCCLUSION)
+				SrgbToLinear(tinting.a),
+			#else
+				1.0,
+			#endif
 			// The predefined material ID of this fragment.
 			materialID,
 			// The normal vector of the surface where this fragment is, in

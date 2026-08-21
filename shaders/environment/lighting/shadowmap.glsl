@@ -187,7 +187,8 @@ float ShadowMapping(
 	bool subsurfaceScatter,
 	float directLightStrength,
 	vec3 shadowPos,
-	vec3 cameraRelativePos
+	vec3 cameraRelativePos,
+	float ao
 ) {
 	// The culling enabled by shadowDistanceRenderMul takes the form of an
 	// axis-aligned box centered on the camera. As a result, we evaluate the
@@ -231,6 +232,16 @@ float ShadowMapping(
 	}
 
 	float shadowMapSample = mix(1.0, SampleShadows(shadowPos), withinShadowMap);
+
+	if (subsurfaceScatter) {
+		shadowMapSample *= ao;
+	} else {
+		// #define DIRECT_LIGHT_AMBIENT_OCCLUSION
+		#ifdef DIRECT_LIGHT_AMBIENT_OCCLUSION
+			shadowMapSample *= ao;
+		#endif
+	}
+
 	shadowSample = min(shadowSample, shadowMapSample);
 
 	#ifdef WATER_CAUSTICS

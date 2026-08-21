@@ -119,9 +119,10 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
 	float skyLight = LightMapToLight(parameters.lightMap.y);
 
 	vec4 fragmentColor = vec4(DiffuseLighting(SurfaceFragment(
-		// The linear RGB color of the surface at this position, including all
-		// AO and tinting.
+		// The linear RGB color of the surface at this position.
 		surfaceColor.rgb,
+		// The linear ambient occlusion at this position.
+		1.0,
 		// The predefined material ID of this fragment.
 		materialID,
 		// The normal vector of the surface where this fragment is, in

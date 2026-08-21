@@ -21,6 +21,10 @@
 
 const float SRGB_GAMMA = 2.2;
 
+float SrgbToLinear(float srgb) {
+	return pow(srgb, SRGB_GAMMA);
+}
+
 vec3 SrgbToLinear(vec3 srgb) {
 	return pow(srgb, vec3(SRGB_GAMMA));
 }
