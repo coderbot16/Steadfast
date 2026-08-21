@@ -179,6 +179,20 @@ uniform vec2 windowToNdc;
 	// The base material (block/entity/etc) texture
 	uniform sampler2D gtexture;
 
+	// #define PBR_NORMAL_MAPPING
+	#ifdef PBR_NORMAL_MAPPING
+		#define PBR_NORMALS_TEXTURE
+	#endif
+
+	// #define LABPBR_AMBIENT_OCCLUSION
+	#ifdef LABPBR_AMBIENT_OCCLUSION
+		#define PBR_NORMALS_TEXTURE
+	#endif
+
+	#if defined(PBR_NORMALS_TEXTURE)
+		uniform sampler2D normals;
+	#endif
+
 	// The interpolated texture coordinate directly from the vertex buffer.
 	in vec2 texcoord;
 #endif
@@ -509,6 +523,38 @@ void main() {
 
 	float blockLight = LightMapToLight(lightMap.x);
 	vec3 blockLightColor = BLOCKLIGHT_COLOR;
+	float ao = 1.0;
+
+	#if defined(HAS_AMBIENT_OCCLUSION)
+		ao = SrgbToLinear(tinting.a);
+	#endif
+
+	#if defined(PBR_NORMALS_TEXTURE)
+		// TODO: Measure performance and consider limiting render distance here.
+
+		vec4 normalsSample = texture(normals, texcoord);
+
+		#ifdef PBR_NORMAL_MAPPING
+			// Decoding from:
+			// https://shaderlabs.org/wiki/LabPBR_Material_Standard
+			//
+			// However, seusPBR / oldPBR also stores normal X/Y here, so this is
+			// the one feature that's automatically compatible with all PBR
+			// resource packs.
+			vec3 mappedNormal = vec3(normalsSample.xy * 2.0 - 1.0, 0.0);
+			mappedNormal.z = sqrt(1.0 - dot(mappedNormal.xy, mappedNormal.xy));
+			worldNormal = worldTBN * mappedNormal;
+		#endif
+
+		#ifdef LABPBR_AMBIENT_OCCLUSION
+			// Per https://shaderlabs.org/wiki/LabPBR_Material_Standard this is
+			// linear.
+			ao *= normalsSample.b;
+		#endif
+
+		// TODO: The alpha channel of the normals texture is displacement for
+		// parallax mapping, which we do not support right now.
+	#endif
 
 	// Detection of emissive pixels from vanilla-like textures with hardcoded
 	// color values.
@@ -540,11 +586,7 @@ void main() {
 			// The linear RGB color of the surface at this position.
 			surfaceColor.rgb,
 			// The linear ambient occlusion at this position.
-			#if defined(HAS_AMBIENT_OCCLUSION)
-				SrgbToLinear(tinting.a),
-			#else
-				1.0,
-			#endif
+			ao,
 			// The predefined material ID of this fragment.
 			materialID,
 			// The normal vector of the surface where this fragment is, in

@@ -177,6 +177,13 @@ value.HELD_LIGHT_COLOR.LIGHT_CUSTOM=Custom (see sliders)
 screen.MATERIALS=Materials & PBR
 option.EMISSIVE_DETECTION=Detect Common Emissives
 
+screen.RESOURCE_PACK_MATERIALS=Resource Pack Materials
+option.PBR_NORMAL_MAPPING=Normal Mapping (any pack)
+option.PBR_NORMAL_MAPPING.comment=Compatible with all PBR resource packs.
+option.LABPBR_AMBIENT_OCCLUSION=Ambient Occlusion (labPBR)
+option.LABPBR_AMBIENT_OCCLUSION.comment=Requires a labPBR resource pack (most \
+	modern PBR resource packs)
+
 screen.DEVELOPMENT=Development & debugging
 
 option.shadowDistance=Shadow Distance
