@@ -335,7 +335,9 @@ vec4 TranslucentLighting(
 					ddxWorldPos.xz,
 					ddyWorldPos.xz,
 					verticalNormal,
-					worldNormal);
+					worldNormal,
+					worldTangent,
+					worldBinormal);
 			}
 		#endif
 
