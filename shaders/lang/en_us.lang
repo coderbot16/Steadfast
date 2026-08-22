@@ -85,9 +85,9 @@ option.ATMOSPHERE_FOG_STRENGTH_NOON=Atmospheric fog at noon
 option.ATMOSPHERE_MODEL=Atmosphere
 value.ATMOSPHERE_MODEL.MINISHITA=Semi-realistic (Nishita)
 value.ATMOSPHERE_MODEL.GRADIENT=Gradient
-option.HORIZON_OCCLUDES_SUN=Horizon Occludes Sun
-option.HORIZON_OCCLUDES_SUN.comment=When enabled, the sun fades away behind \
-	the horizon.
+option.HORIZON_OCCLUDES_SUN_AND_MOON=Horizon Occludes Sun/Moon
+option.HORIZON_OCCLUDES_SUN_AND_MOON.comment=When enabled, the sun and moon \
+	fade away behind the horizon.
 screen.LEGACY_ATMOSPHERE=Gradient atmosphere settings
 
 screen.LIGHTING=Lighting & shadows

@@ -50,18 +50,28 @@ void main() {
 
 	#ifdef MC_RENDER_STAGE_SUN
 		bool sun = renderStage == MC_RENDER_STAGE_SUN;
+		bool moon = renderStage == MC_RENDER_STAGE_MOON;
 	#else
 		bool sun = dot(worldSpaceVector, worldSunVector) > 0.0;
+		bool moon = !sun;
 	#endif
 
 	// Whether the sun fades away as it passes below the horizon
-	#define HORIZON_OCCLUDES_SUN
-	#ifdef HORIZON_OCCLUDES_SUN
-		if (sun) {
-			float fadeInSun = clamp(5.0 * worldSunVector.y, 0.0, 1.0);
+	#define HORIZON_OCCLUDES_SUN_AND_MOON
+	#ifdef HORIZON_OCCLUDES_SUN_AND_MOON
+		if (sun || moon) {
+			float fade = clamp(5.0 * worldSunVector.y, 0.0, 1.0);
+
+			if (moon) {
+				// Fade in the moon to 10% brightness as the sun fades away,
+				// then fade in the rest of it as it passes over the horizon.
+				fade = 0.1 * (1.0 - fade);
+				fade += 0.9 * clamp(10.0 * -worldSunVector.y, 0.0, 1.0);
+			}
+
 			float horizonOcclusion = clamp(20.0 * worldSpaceVector.y, 0.0, 1.0);
 
-			fragmentColor.rgb *= (fadeInSun * horizonOcclusion);
+			fragmentColor.rgb *= (fade * horizonOcclusion);
 		}
 	#endif
 
