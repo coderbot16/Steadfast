@@ -182,9 +182,6 @@ const vec3[4] noiseChannels = vec3[4](
 // that.
 const float[4] scales = float[4](-5, -2, -7.5, -1);
 
-// Clouds are animated over time
-uniform float frameTimeCounter;
-
 // A few control parameters for mixing in the final cloud color
 uniform vec3 cloudColor;
 uniform float cloudFade;

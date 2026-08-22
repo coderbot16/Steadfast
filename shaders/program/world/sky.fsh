@@ -18,6 +18,10 @@
 
 #include "/lib/bayer8.glsl"
 #include "/environment/sky.glsl"
+
+// Clouds are animated over time
+uniform float frameTimeCounter;
+
 #include "/environment/clouds/cirrus.glsl"
 
 // #define VANILLA_CLOUDS
