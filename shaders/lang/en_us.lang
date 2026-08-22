@@ -102,9 +102,20 @@ value.ambientOcclusionLevel.0.8=80%
 value.ambientOcclusionLevel.0.9=90%
 value.ambientOcclusionLevel.1.0=100%
 option.DIRECT_LIGHT_AMBIENT_OCCLUSION=Ambient Occlusion Everywhere
+value.DIRECT_LIGHT_AMBIENT_OCCLUSION.0.0=Off
+value.DIRECT_LIGHT_AMBIENT_OCCLUSION.0.1=10%
+value.DIRECT_LIGHT_AMBIENT_OCCLUSION.0.2=20%
+value.DIRECT_LIGHT_AMBIENT_OCCLUSION.0.3=30%
+value.DIRECT_LIGHT_AMBIENT_OCCLUSION.0.4=40%
+value.DIRECT_LIGHT_AMBIENT_OCCLUSION.0.5=50%
+value.DIRECT_LIGHT_AMBIENT_OCCLUSION.0.6=60%
+value.DIRECT_LIGHT_AMBIENT_OCCLUSION.0.7=70%
+value.DIRECT_LIGHT_AMBIENT_OCCLUSION.0.8=80%
+value.DIRECT_LIGHT_AMBIENT_OCCLUSION.0.9=90%
+value.DIRECT_LIGHT_AMBIENT_OCCLUSION.1.0=100%
 option.DIRECT_LIGHT_AMBIENT_OCCLUSION.comment=Apply ambient occlusion even in \
-	direct sunlight and moonlight. This matches vanilla Minecraft lighting and \
-	makes all lighting appear softer, but it is not realistic..
+	direct sunlight and moonlight. 100% matches vanilla Minecraft lighting and \
+	makes all lighting appear softer, but enabling this is not realistic..
 
 option.BLOCKLIGHT_COLOR=Block light
 value.BLOCKLIGHT_COLOR.BLACKBODY_250K=Red (250K)
