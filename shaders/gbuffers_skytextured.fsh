@@ -23,4 +23,4 @@
 #else
 	#define UNLIT_BRIGHTNESS 2.0
 #endif
-#include "/program/world/unlit.fsh"
+#include "/program/world/unlit_sky.fsh"
