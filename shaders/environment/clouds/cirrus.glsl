@@ -19,7 +19,7 @@
 // enabling these is almost free, since this is just a pile of texture sampling,
 // fused multiply-add, and a few other miscellaneous arithmetic operations.
 
-#define PLANAR_CLOUD_LAYERS 0 // Number of layers of planar clouds [0 1 2 3 4]
+#define PLANAR_CLOUD_LAYERS 1 // Number of layers of planar clouds [0 1 2 3 4]
 
 // Only enable clouds if we need to draw cloud layers
 #if PLANAR_CLOUD_LAYERS > 0
@@ -35,6 +35,8 @@
 
 uniform float cloudDensityScale;
 uniform float cloudDensityThreshold;
+
+#define PLANAR_CLOUD_COVERAGE 2.0 // [1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
 
 float cirrusCloudPlane(float seconds, vec3 channel, vec2 at) {
 	// Distort the sampling position with time and noise so that we don't have
@@ -65,6 +67,14 @@ float cirrusCloudPlane(float seconds, vec3 channel, vec2 at) {
 	// positions accordingly to fight value noise artifacts and add some
 	// critical chaos to the sampling.
 	float primary = noise(channel, distorted * (noisePixel * vec2(0.2, 1.0)));
+
+	// In addition to the higher-frequency noise used to define the clouds,
+	// use some much lower-frequency noise to decide what parts of the sky will
+	// have clouds at all. This breaks up the uniformly random clouds, which
+	// otherwise look unnatural and repetitive.
+	float coverage = PLANAR_CLOUD_COVERAGE;
+	float coverageNoise = noise(channel, at * (vec2(0.05, 0.2) * noisePixel));
+	primary *= min(1.0, pow(coverage * coverageNoise, 4.0));
 
 	// The three midrange noise contributions. They all come of the same form:
 	//
