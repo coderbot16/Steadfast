@@ -174,19 +174,15 @@ vec3 FetchWorldVector(vec3 v) {
 		// generally not vertex shader bound and mods can do whatever they want,
 		// we can really only make the assumption safely on terrain.
 		//
-		// Note that technically, the normal matrix SHOULD be:
+		// We simplify the calculation per the following identity:
 		//
 		// transpose(inverse(gbufferModelViewInverse))
 		// = transpose(gbufferModelView)
 		//
-		// Otherwise, we apply the wrong transformation when the view matrix
-		// is not just a rotation, translation, uniform scaling, or combination,
-		// notably when under the nausea effect. However, it seems like that
-		// "correct" matrix gives the same result for nausea, so perhaps Iris or
-		// Minecraft do not handle this properly; therefore, we have no need to
-		// pay the extra cost for that approach.
-		vec4 homogenousNormal = vec4(gl_NormalMatrix * v, 0.0);
-		return (gbufferModelViewInverse * homogenousNormal).xyz;
+		// Note that the transpose & mat3 operations are cheap because they are
+		// just renaming / excluding variables used for the underlying matrix
+		// multiplication.
+		return transpose(mat3(gbufferModelView)) * (gl_NormalMatrix * v);
 	#endif
 }
 
