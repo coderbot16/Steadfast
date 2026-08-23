@@ -36,13 +36,6 @@ uniform float blindness;
 
 flat in float isstars;
 
-// Moves the sky dither pattern across the screen rapidly to reveal excessive
-// dithering
-// #define SKY_DITHER_DEBUG
-#ifdef SKY_DITHER_DEBUG
-	uniform float frameTimeCounter;
-#endif
-
 void main() {
 	// Project back to view space from the fragment coordinates. For this case,
 	// it is easier to start off with a position on the far plane and then
@@ -59,6 +52,9 @@ void main() {
 	// Dithering 
 	vec2 ditherCoord = gl_FragCoord.xy;
 
+	// Moves the sky dither pattern across the screen rapidly to reveal
+	// excessive dithering
+	// #define SKY_DITHER_DEBUG
 	#ifdef SKY_DITHER_DEBUG
 		ditherCoord += 500.0 * cos(frameTimeCounter);
 	#endif
