@@ -75,7 +75,16 @@ void main() {
 
 	// If clouds are enabled, blend them into the sky gradient.
 	#if defined(CLOUDS_ENABLED)
-		sky = BlendClouds(sky, worldSpaceVector);
+		// Make clouds "avoid" the sun and other bright parts of the sky.
+		// This is needed because clouds otherwise blend oddly with the sun,
+		// and this is much simpler than simulating clouds blocking the sun,
+		// which I don't want to do anyways for style reasons.
+		float skyLuminance = dot(sky, vec3(0.2126, 0.7152, 0.0722));
+
+		if (skyLuminance < 0.75) {
+			vec3 originalSky = sky;
+			sky = BlendClouds(sky, worldSpaceVector);
+		}
 	#endif
 
 /* DRAWBUFFERS:0 */
