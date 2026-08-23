@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 flat out float isstars;
+out float starAlpha;
 
 #ifdef MC_RENDER_STAGE_STARS
 	uniform int renderStage;
@@ -34,4 +35,5 @@ void main() {
 	#endif
 
 	isstars = float(stars);
+	starAlpha = gl_Color.a;
 }

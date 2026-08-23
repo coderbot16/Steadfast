@@ -35,6 +35,7 @@ uniform vec2 windowToNdc;
 uniform float blindness;
 
 flat in float isstars;
+in float starAlpha;
 
 void main() {
 	// Project back to view space from the fragment coordinates. For this case,
@@ -60,11 +61,11 @@ void main() {
 	#endif
 
 	vec3 sky;
+	float alpha = 1.0;
 
 	if (isstars > 0.5) {
-		// TODO: Fade in stars gradually instead of instantly going to full
-		// brightness.
 		sky = vec3(1.0);
+		alpha = starAlpha;
 	} else {
 		sky = SkyDither(ditherCoord, SkyColor(worldSpaceVector));
 	}
@@ -86,5 +87,5 @@ void main() {
 /* DRAWBUFFERS:0 */
 
 	// Fade away the sky during blindness
-	gl_FragData[0] = vec4(sky * max(0.0, 1.0 - 10.0 * blindness), 1.0);
+	gl_FragData[0] = vec4(sky * max(0.0, 1.0 - 10.0 * blindness), alpha);
 }
