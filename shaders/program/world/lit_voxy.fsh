@@ -28,10 +28,6 @@
 // Uniforms: none
 #include "/environment/water/absorption_settings.glsl"
 
-// Water absorption, if being done with the refraction-assisted method.
-// Uniforms: none
-#include "/environment/water/absorption.glsl"
-
 // Whether to freeze animations (useful for testing).
 //#define FREEZE_ANIMATION_TIMER
 #ifdef FREEZE_ANIMATION_TIMER

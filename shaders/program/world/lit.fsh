@@ -23,10 +23,6 @@
 // Uniforms: none
 #include "/environment/water/absorption_settings.glsl"
 
-// Water absorption, if being done with the refraction-assisted method.
-// Uniforms: none
-#include "/environment/water/absorption.glsl"
-
 // Used to covert viewPos to worldPos.
 uniform vec3 cameraPosition;
 

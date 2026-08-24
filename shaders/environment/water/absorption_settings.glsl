@@ -19,3 +19,17 @@
 
 // TODO: Remove this
 #define WATER_ABSORPTION_METHOD REFRACTION_ASSISTED // [NO_ABSORPTION REFRACTION_ASSISTED]
+
+const vec3 COLD = (-vec3(1.0, 5 / 16.0, 1 / 16.0));
+const vec3 BALANCED = (-vec3(1.0, 3 / 16.0, 1 / 16.0));
+const vec3 TROPICAL = (-vec3(2.0, 2 / 16.0, 0.5 / 16.0));
+
+// These coefficients determine the shades of blue that underwater surfaces take
+// as the depth increases.
+//
+// For usage in Beer's law:
+// https://wikipedia.org/wiki/Attenuation_coefficient#Beer%E2%80%93Lambert_law
+//
+// Units: 1/m (reciprocal meters)
+#define WATER_CHARACTER BALANCED // [COLD BALANCED TROPICAL]
+const vec3 WATER_ATTENUATION_COEFFICIENTS = WATER_CHARACTER;

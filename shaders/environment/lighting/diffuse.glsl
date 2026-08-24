@@ -215,13 +215,15 @@ const float	sunPathRotation	= -40.0f;
 
 void ApplyWaterAbsorption(
 	// Water depth in meters
-	float wdepth,
+	float depthInMeters,
 	out vec3 directLightColor,
 	inout vec3 lighting,
 	vec3 blocklightIndirect
 ) {
-	// Determine the tint needed to simulate water absorption
-	vec3 waterAbsorption = WaterAbsorption(wdepth);
+	// Beer's law for attenuation to simulate water absorption
+	vec3 waterAbsorption = exp(WATER_ATTENUATION_COEFFICIENTS * depthInMeters);
+
+	float wdepth = depthInMeters * (1.0 / 16.0);
 
 	// Fade direct light color to its luminance to avoid odd colors
 	// when orange sunrise light goes through water
@@ -441,10 +443,7 @@ vec3 DiffuseLighting(SurfaceFragment fragment) {
 		// of the screen with water until the player's eyes are actually
 		// underwater, which takes place near the end of the lit vertex shader.
 		if (isEyeInWater == 1) {
-			// TODO: Water depth calculation copied from
-			// /environment/water/absorption_refraction.glsl
-			// It should be in a common function
-			float waterDepth = (-15.0 / 16.0) * fragment.skyLight + 1.0;
+			float waterDepth = (-15.0) * fragment.skyLight + 16.0;
 
 			ApplyWaterAbsorption(
 				waterDepth,

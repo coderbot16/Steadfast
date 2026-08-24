@@ -24,7 +24,7 @@ vec3 RefractionBasedWaterAbsorption(
 	vec3 background,
 	sampler2D skylightBuffer
 ) {
-	float waterDepth = 1.0;
+	float waterDepth;
 
 	if (refractedScreenPos.z < 1.0) {
 		// The incident vector only gives a reasonable indication of the water
@@ -47,49 +47,24 @@ vec3 RefractionBasedWaterAbsorption(
 			float depthInMeters = dot(viewPos - viewPosRefracted, upVector);
 
 			// This is the reference equation for water depth, where the depth
-			// starts at 0.0 at the surface, and goes to a maximum of 1.0 at 15
+			// starts at 1.0 at the surface, and goes to a maximum of 1.0 at 15
 			// blocks below the water surface, which is intentionally within the
 			// same range as sky light attenuation (see details below.
 			waterDepth = clamp(
-				depthInMeters * (1.0 / 16.0) + 1.0 / 16.0,
+				depthInMeters + 1.0,
 				0.0,
-				1.0);
+				16.0);
 		} else {
-			// This is an optimized form of the calculation:
-			//
-			// (1.0 - skylight) * (15.0 / 16.0) + 1.0 / 16.0
-			//
-			// Which is equivalent to the calculation above, as skylight
-			// attenuates overhe 15 blocks.
-			//
-			// For example, 1 block of depth will have a skylight level of 14.
-			// This will be encoded in a lightmap coordinate of 14.5 / 16.0.
-			// This is then passed to the following calculation:
-			//
-			// skylight = (lmcoord.y - (0.5 / 16.0)) * (16.0 / 15.0)
-			//
-			// This results in a value of 14.0 / 15.0, which, when plugged into
-			// the equation above, gives a waterDepth of 0.125.
-			//
-			// When we plug 1.0 (distance between water surface and bottom) into
-			// the original equation based on water height instead of skylight,
-			// we get 1/16 + 1/16, or 1/8, which is also equivalent to 0.125,
-			// a match.
-			//
-			// Here is how it is optimized:
-			//
-			// (1.0 - skylight) * (15.0 / 16.0) + 1.0 / 16.0
-			// 15.0 / 16.0 - (15.0 / 16.0) * skylight + 1.0 / 16.0
-			// 1.0 - (15.0 / 16.0) * skylight
-			// (-15.0 / 16.0) * skylight + 1.0
-			//
-			// This final form is in the format of a fused multiply-add, which
-			// is a single instruction.
 			float skylight = RefractionSafeSample(
 				skylightBuffer,
 				refractedScreenPos.xy
 			).r;
-			waterDepth = (-15.0 / 16.0) * skylight + 1.0;
+
+			// Skylight is attenuated by 1 per vertical meter below the water
+			// surface, so we can use that to determine the depth up to 16
+			// meters. Start off at 1 meter of depth so that water near the
+			// surface is not excessively clear.
+			waterDepth = (-15.0) * skylight + 16.0;
 		}
 
 		// TODO: Based on the render distance, fade away to the background to
@@ -112,9 +87,10 @@ vec3 RefractionBasedWaterAbsorption(
 		// Note: This is also required to see the sun/moon through less thick
 		// volumes of water.
 		float fadeFactor = min(-viewPos.z / 24.0, 1.0);
-		waterDepth = 0.25 + 0.75 * fadeFactor;
+		waterDepth = 4.0 + 12.0 * fadeFactor;
 		background *= 1.0 - fadeFactor;
 	}
 
-	return background * WaterAbsorption(waterDepth);
+	// Beer's law for attenuation to simulate water absorption
+	return background * exp(WATER_ATTENUATION_COEFFICIENTS * waterDepth);
 }
