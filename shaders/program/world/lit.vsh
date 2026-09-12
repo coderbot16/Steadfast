@@ -409,6 +409,13 @@ void main() {
 			// imprecision, but without allowing a still center of flowing water
 			// which is below this threshold (3 pixels below, a 20/64 offset).
 			&& at_midBlock.y < -23.0
+			// Last but not least, the water face must have a normal actually
+			// facing us, too. Because we know that worldNormal is (0, 1, 0)
+			// or a very close approximation of it, instead of checking the
+			// dot product of the world direction (which is cameraRelativePos
+			// normalized) with the worldNormal, we can just check the Y value
+			// like this.
+			&& cameraRelativePos.y < 0.0
 		) {
 			// Then use clipping to stretch this face downward across the
 			// screen, vertically.
