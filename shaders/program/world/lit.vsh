@@ -182,7 +182,21 @@ vec3 FetchWorldVector(vec3 v) {
 		// Note that the transpose & mat3 operations are cheap because they are
 		// just renaming / excluding variables used for the underlying matrix
 		// multiplication.
-		return transpose(mat3(gbufferModelView)) * (gl_NormalMatrix * v);
+		vec3 world = transpose(mat3(gbufferModelView)) * (gl_NormalMatrix * v);
+
+		// If the transformed vector and the original vector are approximately
+		// the same, then it was probably already in world space. In that case,
+		// use the original vector, to avoid numerical precision / instability.
+		//
+		// This mitigates some weird glitching on the water surface when moving
+		// around and with TBN_MATRIX enabled.
+		//
+		// TODO: Quantitatively test TBN encoding for accuracy & stability
+		if (dot(world, v) > 0.9999) {
+			return v;
+		}
+
+		return world;
 	#endif
 }
 
