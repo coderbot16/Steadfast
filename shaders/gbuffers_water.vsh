@@ -19,7 +19,10 @@
 // TODO: Create Aeronautics uses the terrain shader, but passes a non-identity
 //       normal matrix, and we have no easy way to detect or differentiate, so
 //       we have to turn off this optimization.
-// #define NORMALS_ARE_IN_WORLD_SPACE
+//#define CREATE_AERONAUTICS_COMPATIBILITY
+#ifndef CREATE_AERONAUTICS_COMPATIBILITY
+	#define NORMALS_ARE_IN_WORLD_SPACE
+#endif
 // Whether to enable fancy translucent effects. When disabled, translucents are
 // rendered with the same shading as solids.
 #define FANCY_TRANSLUCENTS

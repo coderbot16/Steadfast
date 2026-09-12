@@ -554,7 +554,7 @@ void main() {
 
 	// Detection of emissive pixels from vanilla-like textures with hardcoded
 	// color values.
-	#define EMISSIVE_DETECTION
+	//#define EMISSIVE_DETECTION
 	#ifdef EMISSIVE_DETECTION
 		EmissiveDetection(
 			materialID,

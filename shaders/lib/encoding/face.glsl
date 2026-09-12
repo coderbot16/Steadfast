@@ -211,6 +211,9 @@ vec2 DecodeCodirectionalVector(float diamond) {
 	);
 }
 
+// Whether to encode and decode a full TBN matrix from vertex to fragment
+//#define TBN_MATRIX
+
 // Bits used for each of the two fixed-point encoded octahedral coordinates
 const uint OCT_BITS = 9u;
 
@@ -233,6 +236,7 @@ uint EncodePerFace(
 	// Truncate the material ID if needed
 	uint materialBits = materialID & 0xFu;
 
+#ifdef TBN_MATRIX
 	// Encode the tangent and bitangent. The bitangent can be reconstructed from
 	// the normal and tangent using the handedness boolean.
 	uint handednessBits = uint(handedness) << 31u;
@@ -280,7 +284,10 @@ uint EncodePerFace(
 	tangentFixed &= (1u << TANGENT_BITS) - 1u;
 	uint tangentBits = tangentFixed << TANGENT_SHIFT;
 
-	return handednessBits | tangentBits | normalBits | materialBits;
+	normalBits |= handednessBits | tangentBits;
+#endif
+
+	return normalBits | materialBits;
 }
 
 uint DecodePerFaceMaterialID(uint perFace) {
@@ -298,6 +305,14 @@ vec3 DecodePerFaceWorldNormal(uint perFace) {
 }
 
 mat3 DecodePerFaceWorldTBN(uint perFace, vec3 worldNormal) {
+#ifndef TBN_MATRIX
+	// Default for upwards facing normal
+	return mat3(
+		vec3(1.0, 0.0, 0.0),
+		vec3(0.0, 0.0, 1.0),
+		worldNormal
+	);
+#else
 	const float fromTangentFixed = 1.0 / float(1u << TANGENT_BITS);
 
 	// Determine the basis vectors the tangent was expressed with
@@ -320,4 +335,5 @@ mat3 DecodePerFaceWorldTBN(uint perFace, vec3 worldNormal) {
 	vec3 worldBitangent = basis * vec2(plane.y, -plane.x) * handedness;
 
 	return mat3(worldTangent, worldBitangent, worldNormal);
+#endif
 }
