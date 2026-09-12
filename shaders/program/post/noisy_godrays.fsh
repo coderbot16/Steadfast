@@ -82,7 +82,7 @@ float NoisyGodrays(vec2 texCoord, vec2 ScreenLightPos) {
 	return accumulated / NUM_SAMPLES;
 } 
 
-uniform vec2 windowToScreenGodrays;
+uniform vec2 windowToScreenHalf;
 uniform vec4 screenLightVector;
 uniform float godraysExposure;
 
@@ -110,7 +110,7 @@ void main() {
 
 	// Determine the position of this fragment on the screen in screen
 	// coordinates (0.0 to 1.0).
-	vec2 screenCoord = gl_FragCoord.xy * windowToScreenGodrays;
+	vec2 screenCoord = gl_FragCoord.xy * windowToScreenHalf;
 
 	// While we check whether godrays are exposed above to avoid
 	// additional computation cost, to fully use the 8 bits of

@@ -103,12 +103,15 @@ float SmoothGodrays(vec2 texCoord, vec2 ScreenLightPos) {
 #define DEBUG_GODRAYS_NOISY 1
 #define DEBUG_GODRAYS_SMOOTH 2
 #define DEBUG_SKYLIGHT 3
-#define DEBUG DEBUG_NONE // Debugging [DEBUG_NONE DEBUG_GODRAYS_NOISY DEBUG_GODRAYS_SMOOTH DEBUG_SKYLIGHT]
+#define DEBUG_ROUGH_REFRACTION 4
+#define DEBUG DEBUG_NONE // Debugging [DEBUG_NONE DEBUG_GODRAYS_NOISY DEBUG_GODRAYS_SMOOTH DEBUG_SKYLIGHT DEBUG_ROUGH_REFRACTION]
 
 #if DEBUG == DEBUG_GODRAYS_NOISY || DEBUG == DEBUG_GODRAYS_SMOOTH
 	//uniform sampler2D colortex1;
 #elif DEBUG == DEBUG_SKYLIGHT
 	uniform sampler2D colortex5;
+#elif DEBUG == DEBUG_ROUGH_REFRACTION
+	uniform sampler2D colortex6;
 #else
 	uniform sampler2D colortex0;
 #endif
@@ -120,6 +123,14 @@ uniform vec2 windowToScreen;
 layout(location = 0) out vec3 finalColor;
 
 uniform vec3 godraysColor;
+
+vec3 tonemap(vec3 color) {
+	#if TONEMAP == TONEMAP_UNCHARTED2
+		return Uncharted2Tonemap(color);
+	#else
+		return UchimuraTonemap(color);
+	#endif
+}
 
 void main() {
 	// Determine the position of this fragment on the screen in screen
@@ -137,6 +148,8 @@ void main() {
 		}
 	#elif DEBUG == DEBUG_SKYLIGHT
 		finalColor = vec3(texture(colortex5, screenCoord).r);
+	#elif DEBUG == DEBUG_ROUGH_REFRACTION
+		finalColor = LinearToSrgb(tonemap(texture(colortex6, screenCoord).rgb));
 	#else
 		vec3 color = texture(colortex0, screenCoord).rgb;
 
@@ -149,12 +162,6 @@ void main() {
 		}
 		#endif
 
-		#if TONEMAP == TONEMAP_UNCHARTED2
-			vec3 tonemapped = Uncharted2Tonemap(color);
-		#else
-			vec3 tonemapped = UchimuraTonemap(color);
-		#endif
-
-		finalColor = LinearToSrgb(tonemapped);
+		finalColor = LinearToSrgb(tonemap(color));
 	#endif
 }

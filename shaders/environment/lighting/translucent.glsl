@@ -51,9 +51,22 @@
 	uniform sampler2D colortex5;
 #endif
 
+// Enables rough screenspace refraction, which adds blur to screenspace
+// refraction on water. This is more appropriate for our moving water
+// surface which is not actually perfectly smooth.
+// #define ROUGH_REFRACTION
+
+// Strength of screenspace rough refractions (refraction blur), when enabled
+#define ROUGH_REFRACTION_STRENGTH 0.45 // [0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
+
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
 	// Color buffer to trace SSR in
 	uniform sampler2D colortex4;
+
+	#ifdef ROUGH_REFRACTION
+		// Downsampled refraction/reflection buffer
+		uniform sampler2D colortex6;
+	#endif
 
 	// We need to use the view matrix to convert between world-space and
 	// view-space.
@@ -595,6 +608,13 @@ vec4 TranslucentLighting(
 				colortex4, 
 				refractedScreenPos.xy
 			).rgb;
+
+			#ifdef ROUGH_REFRACTION
+				dstColor = mix(
+					dstColor,
+					texture(colortex6, refractedScreenPos.xy).rgb,
+					ROUGH_REFRACTION_STRENGTH);
+			#endif
 
 			#if WATER_ABSORPTION_METHOD == REFRACTION_ASSISTED
 				// The world-space upwards vector (0, 1, 0), transformed into
