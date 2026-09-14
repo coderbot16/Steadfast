@@ -537,9 +537,11 @@ void main() {
 			// However, seusPBR / oldPBR also stores normal X/Y here, so this is
 			// the one feature that's automatically compatible with all PBR
 			// resource packs.
-			vec3 mappedNormal = vec3(normalsSample.xy * 2.0 - 1.0, 0.0);
-			mappedNormal.z = sqrt(1.0 - dot(mappedNormal.xy, mappedNormal.xy));
-			worldNormal = worldTBN * mappedNormal;
+			vec2 mappedNormal = normalsSample.xy * 2.0 - 1.0;
+			worldNormal = worldTBN * vec3(
+				mappedNormal,
+				sqrt(max(0.0, 1.0 - dot(mappedNormal, mappedNormal)))
+			);
 		#endif
 
 		#ifdef LABPBR_AMBIENT_OCCLUSION
