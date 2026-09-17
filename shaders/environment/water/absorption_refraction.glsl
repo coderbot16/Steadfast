@@ -22,10 +22,9 @@ vec3 RefractionBasedWaterAbsorption(
 	vec3 viewPos,
 	bool verticalNormal,
 	vec3 background,
-	sampler2D skylightBuffer
+	sampler2D skylightBuffer,
+	out float waterDepth
 ) {
-	float waterDepth;
-
 	if (refractedScreenPos.z < 1.0) {
 		// The incident vector only gives a reasonable indication of the water
 		// depth when hitting water's top face. As a result, we use the sky
