@@ -50,7 +50,7 @@ vec3 RefractionBasedWaterAbsorption(
 			// blocks below the water surface, which is intentionally within the
 			// same range as sky light attenuation (see details below.
 			waterDepth = clamp(
-				depthInMeters + 1.0,
+				depthInMeters,
 				0.0,
 				16.0);
 		} else {
@@ -63,7 +63,7 @@ vec3 RefractionBasedWaterAbsorption(
 			// surface, so we can use that to determine the depth up to 16
 			// meters. Start off at 1 meter of depth so that water near the
 			// surface is not excessively clear.
-			waterDepth = (-15.0) * skylight + 16.0;
+			waterDepth = (-16.0) * skylight + 16.0;
 		}
 
 		// TODO: Based on the render distance, fade away to the background to
@@ -91,5 +91,12 @@ vec3 RefractionBasedWaterAbsorption(
 	}
 
 	// Beer's law for attenuation to simulate water absorption
+	// #define VIEW_DEPENDENT_WATER_DEPTH
+	#ifdef VIEW_DEPENDENT_WATER_DEPTH
+		waterDepth += distance(viewPos, viewPosRefracted);
+	#else
+		waterDepth += 1.0;
+	#endif
+
 	return background * exp(WATER_ATTENUATION_COEFFICIENTS * waterDepth);
 }
