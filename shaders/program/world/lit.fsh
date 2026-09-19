@@ -570,21 +570,21 @@ void main() {
 		);
 	#endif
 
-	#ifdef IRIS_INLINE_GLINT
-		// Essentially a direct copy of the reference code from IMS
-		// Apply before lighting so that the glints receive environment light,
-		// so that glints are not too bright in dark areas.
-		if (mc_hasGlint()) {
-			vec3 glint = mc_sampleGlint();
-			surfaceColor.rgb += glint * glint;
-		}
-	#endif
-
 	// Skip all these lighting calculations if we are going to throw away the
 	// result anyhow.
 	#if defined(SKIP_ALPHA_TEST)
 		if (fragmentColor.a > 0.01) {
 	#endif
+		#ifdef IRIS_INLINE_GLINT
+			// Essentially a direct copy of the reference code from IMS
+			// Apply before lighting so that the glints receive environment light,
+			// so that glints are not too bright in dark areas.
+			if (mc_hasGlint()) {
+				vec3 glint = mc_sampleGlint();
+				surfaceColor.rgb += glint * glint;
+			}
+		#endif
+
 		fragmentColor.rgb = DiffuseLighting(SurfaceFragment(
 			#if defined(REAL_TIME_SHADOWS)
 				cameraRelativePos,
