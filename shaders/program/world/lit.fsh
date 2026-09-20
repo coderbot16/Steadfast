@@ -55,10 +55,6 @@ uniform float frameTimeCounter;
 	#define APPLY_FOG
 #endif
 
-#if WATER_ABSORPTION_METHOD != REFRACTION_ASSISTED && !defined(VOXY)
-	#define APPLY_FOG
-#endif
-
 #if defined(TRANSLUCENT) || defined(APPLY_FOG)
 	#include "/environment/fog.glsl"
 
@@ -677,8 +673,7 @@ void main() {
 
 	gl_FragData[0] = fragmentColor;
 
-	#if (WATER_ABSORPTION_METHOD == REFRACTION_ASSISTED || defined(VOXY)) && \
-		!defined(AFTER_DEFERRED)
+	#if !defined(AFTER_DEFERRED)
 		gl_FragData[1] = vec4(skyLight);
 		/* DRAWBUFFERS:02 */
 	#else

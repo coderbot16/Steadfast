@@ -96,11 +96,6 @@ void main() {
 	// > for the lower-left-most pixel in a window.
 	vec3 background = texelFetch(colortex0, ivec2(gl_FragCoord), 0).rgb;
 
-	// colortex4 is a copy of the image for reflection and refraction, and does
-	// not apply fog.
-	gl_FragData[0] = vec4(background, 1.0);
-
-#if WATER_ABSORPTION_METHOD == REFRACTION_ASSISTED || defined(VOXY)
 	float skylight = texelFetch(colortex2, ivec2(gl_FragCoord), 0).r;
 	float depth = texelFetch(depthtex1, ivec2(gl_FragCoord), 0).r;
 
@@ -129,14 +124,19 @@ void main() {
 
 	// colortex0 from here on out will now be a complete image of the scene with
 	// fog applied, so that translucents can blend fog.
-	gl_FragData[1] = vec4(backgroundWithFog, 1.0);
+	gl_FragData[0] = vec4(backgroundWithFog, 1.0);
+
+#if WATER_ABSORPTION_METHOD == REFRACTION_ASSISTED
+	// colortex4 is a copy of the image for reflection and refraction, and does
+	// not apply fog.
+	gl_FragData[1] = vec4(background, 1.0);
 
 	// colortex5 is an immutable copy of colortex2.
 	// They both store skylight.
 	gl_FragData[2] = vec4(vec3(skylight), 1.0);
 
-	/* DRAWBUFFERS:405 */
+	/* DRAWBUFFERS:045 */
 #else
-	/* DRAWBUFFERS:4 */
+	/* DRAWBUFFERS:0 */
 #endif
 }
