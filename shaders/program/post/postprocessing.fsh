@@ -27,6 +27,11 @@
 // writing to the alpha channel as in all cases we are drawing against an opaque
 // background.
 const int R11F_G11F_B10F = 0;
+
+// By default, Iris clears colortex0 specifically to the fog color. We do not
+// need this behavior, so clear to zero. On some drivers this is supposedly
+// faster, though I noticed no difference.
+const vec4 colortex0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const int colortex0Format = R11F_G11F_B10F;
 
 #include "/lib/tonemap_uncharted2.glsl"
