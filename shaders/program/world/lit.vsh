@@ -104,19 +104,7 @@ flat out uint perFace;
 	}
 #endif
 
-// This is an Iris-exclusive uniform added in Iris 1.6.0 (Minecraft 1.19.4), but
-// it is a super convenient way to apply integrated PBR effects to blocks in all
-// other scenarios other than terrain rendering. Important, it is consistent,
-// so the item will look the same whether it is in the player's hand or on their
-// head.
-//
-// Doing the same with just gbuffers_hand and heldItemId / heldItemId2 is much
-// more of a hassle and more difficult to make consistent, and honestly I don't
-// feel like trying it when using this uniform is this easy. It's not the end of
-// the world if we miss item effects on ancient shader mod versions.
-uniform int currentRenderedItemId;
-
-uint FetchMaterialID(vec3 worldNormal) {
+uint FetchMaterialID(vec3 worldNormal, int currentRenderedItem) {
 	#if defined(HAS_BLOCK_ATTRIBUTES)
 		uint materialID = DecodeMaterialID(mc_Entity.x);
 
@@ -152,7 +140,7 @@ uint FetchMaterialID(vec3 worldNormal) {
 			return GENERIC;
 		}
 	#else
-		return DecodeMaterialID(currentRenderedItemId);
+		return DecodeMaterialID(currentRenderedItem);
 	#endif
 }
 
@@ -273,6 +261,18 @@ bool FetchTangentHandedness() {
 	}
 #endif
 
+// This is an Iris-exclusive uniform added in Iris 1.6.0 (Minecraft 1.19.4), but
+// it is a super convenient way to apply integrated PBR effects to blocks in all
+// other scenarios other than terrain rendering. Important, it is consistent,
+// so the item will look the same whether it is in the player's hand or on their
+// head.
+//
+// Doing the same with just gbuffers_hand and heldItemId / heldItemId2 is much
+// more of a hassle and more difficult to make consistent, and honestly I don't
+// feel like trying it when using this uniform is this easy. It's not the end of
+// the world if we miss item effects on ancient shader mod versions.
+uniform int currentRenderedItemId;
+
 void main() {
 	vec4 viewPos = gl_ModelViewMatrix * gl_Vertex;
 
@@ -301,7 +301,7 @@ void main() {
 	vec3 worldNormal = FetchWorldNormal();
 	vec3 worldTangent = FetchWorldTangent();
 	bool handedness = FetchTangentHandedness();
-	uint materialID = FetchMaterialID(worldNormal);
+	uint materialID = FetchMaterialID(worldNormal, currentRenderedItemId);
 
 	// Note: The vertex normal isn't actually guaranteed to be the same for all
 	// vertices of a triangle, but this is the case in practice for almost all
