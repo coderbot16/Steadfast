@@ -93,7 +93,16 @@ vec3 RefractionBasedWaterAbsorption(
 	// Beer's law for attenuation to simulate water absorption
 	// #define VIEW_DEPENDENT_WATER_DEPTH
 	#ifdef VIEW_DEPENDENT_WATER_DEPTH
-		waterDepth += distance(viewPos, viewPosRefracted);
+		// This is an approximation of distance(viewPos, viewPosRefracted).
+		// distance() and length() are both a bit expensive, and because we know
+		// that both vectors are already mostly in the Z direction as they are
+		// also mostly parallel with the view direction, the difference along
+		// the Z axis is a very strong (ie, not noticeable) approximation for
+		// the distance.
+		//
+		// I actually measured a performance difference here (not huge, <1%, but
+		// consistent) so this is a meaningful optimization.
+		waterDepth += abs(viewPos.z - viewPosRefracted.z);
 	#else
 		waterDepth += 1.0;
 	#endif
