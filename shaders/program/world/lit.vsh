@@ -140,7 +140,11 @@ uint FetchMaterialID(vec3 worldNormal, int currentRenderedItem) {
 			return GENERIC;
 		}
 	#else
-		return DecodeMaterialID(currentRenderedItem);
+		if (currentRenderedItem > 0) {
+			return DecodeMaterialID(uint(currentRenderedItem));
+		} else {
+			return GENERIC;
+		}
 	#endif
 }
 
