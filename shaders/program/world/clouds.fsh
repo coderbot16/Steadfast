@@ -28,8 +28,6 @@ in vec2 texcoord;
 
 in vec4 fog;
 
-in vec3 indirect;
-
 uniform vec3 cloudColor;
 
 // Alpha test threshold - any pixels with an alpha less than this will be
