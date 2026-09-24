@@ -76,8 +76,13 @@ vec2 depthRange(sampler2D depthBuffer, vec2 at) {
 	#endif
 }
 
-#define MIN_DEPTH(range) (range.x)
-#define MAX_DEPTH(range) (range.y)
+float min_depth(vec2 range) {
+	return range.x;
+}
+
+float max_depth(vec2 range) {
+	return range.y;
+}
 
 // Actually tracing or marching a ray would be way too expensive for refraction,
 // and in fact looks bad because in refraction we do not really want to reject
@@ -110,7 +115,7 @@ vec3 RefractTrace(
 	vec4 clipPos = gbufferProjection * vec4(viewPos, 1.0);
 	vec3 ndcPos = clipPos.xyz / clipPos.w;
 	vec2 backgroundPos2D = ndcPos.xy * 0.5 + 0.5;
-	float backgroundDepth = MAX_DEPTH(depthRange(depthBuffer, backgroundPos2D));
+	float backgroundDepth = max_depth(depthRange(depthBuffer, backgroundPos2D));
 	ndcPos.z = backgroundDepth * 2.0 - 1.0;
 	vec4 homogenousPos = gbufferProjectionInverse * vec4(ndcPos, 1.0);
 	float backgroundViewPosZ = homogenousPos.z / homogenousPos.w;
@@ -153,9 +158,9 @@ vec3 RefractTrace(
 	// Note: Use if defined(...) to avoid this getting picked up as a
 	// configurable option.
 	vec2 refractDepthRange = depthRange(depthBuffer, refractedPos2D);
-	float refractDepth = MAX_DEPTH(refractDepthRange);
+	float refractDepth = max_depth(refractDepthRange);
 
-	if (gl_FragCoord.z > MIN_DEPTH(refractDepthRange)) {
+	if (gl_FragCoord.z > min_depth(refractDepthRange)) {
 		refractedPos2D = backgroundPos2D;
 		refractDepth = backgroundDepth;
 	}

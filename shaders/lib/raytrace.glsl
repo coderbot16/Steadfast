@@ -42,20 +42,20 @@
 //
 // If this is too low, you will have holes and noise, and if this is too high,
 // you will have ugly stretchy reflections.
-#define MAX_THICKNESS 8.0
+const float MAX_THICKNESS = 8.0;
 
 // More steps give extra opportunities for refinements and similar, but also
 // come at a potential performance cost for rays that travel very far without
 // making a hit or escaping the frustum.
 //
 // Even if we make a hit, we'll still take a lot of steps to refine
-#define RAYMARCH_STEPS 24
+const uint RAYMARCH_STEPS = 24u;
 
 // How much to accelerate each step - this allows us to cover long distances
 // with simple raymarching without excessive steps or excessive oversampling,
 // in fact, it allows fairly aggressive undersampling, and if we overshoot
 // (see below) we can retrace at a slower velocity.
-#define ACCELERATION_FACTOR 2.0
+const float ACCELERATION_FACTOR = 2.0;
 
 // How many rounds of recursive refinement to attempt. Each refinement round
 // results in us retracing the last traced interval at a slower speed, and may
@@ -64,7 +64,7 @@
 // With 4 rounds of 4 taps, we're spending up to 20 steps on refinement: 1 step
 // each refinement round on hitting and rolling back, and 4 steps on checking
 // within that interval.
-#define MAX_REFINEMENT_ROUNDS 4
+const uint MAX_REFINEMENT_ROUNDS = 4u;
 
 // During each refinement round, we elect to dedicate a certain number of steps
 // (TAPS_PER_REFINEMENT) to that individual round, and cover a certain
@@ -84,8 +84,8 @@
 // Finally, we multiply in the REFINEMENT_DISTANCE at the very end - a value of
 // 0.75 means that we cover 75% of the original distance in this refinement
 // round.
-#define TAPS_PER_REFINEMENT 4
-#define REFINEMENT_DISTANCE 0.75
+const float TAPS_PER_REFINEMENT = 4.0;
+const float REFINEMENT_DISTANCE = 0.75;
 const float refinementDecelerationFactor = (REFINEMENT_DISTANCE
 	* pow(1 / ACCELERATION_FACTOR, TAPS_PER_REFINEMENT + 1));
 
@@ -107,7 +107,7 @@ bool Raytrace(
 	out vec3 hitViewPos
 ) {
 	// State variables for refinement
-	uint refinementRounds = uint(0);
+	uint refinementRounds = 0u;
 	bool hasHitPos = false;
 
 	// Initial velocity and thickness
@@ -122,7 +122,7 @@ bool Raytrace(
 		return false;
 	}
 
-	for (uint i = uint(0); i < uint(RAYMARCH_STEPS); i++){
+	for (uint i = 0u; i < RAYMARCH_STEPS; i++){
 		// Each step, accelerate by a certain factor to avoid oversampling
 		// near the end of the ray march.
 		//
@@ -209,7 +209,7 @@ bool Raytrace(
 			refinementRounds += uint(1);
 
 			// If we've already refined sufficiently, return this result as-is.
-			if (refinementRounds >= uint(MAX_REFINEMENT_ROUNDS)) {
+			if (refinementRounds >= MAX_REFINEMENT_ROUNDS) {
 				return true;
 			}
 		}
