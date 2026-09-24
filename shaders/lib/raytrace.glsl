@@ -114,7 +114,7 @@ bool Raytrace(
 	//
 	// Stored together in case the shader compiler likes a single vec4
 	// better than a vec3 + float.
-	vec4 velocityAndThickness = vec4(reflectDirection, thicknessControl);
+	vec4 velocityAndThickness = vec4(reflectDirection, thicknessControl.x);
 
 	// If the reflection is towards the viewer, immediately reject it since no
 	// good reflection is really feasible here.
