@@ -10,3 +10,5 @@ cat pipeline/pipeline.properties \
 	pipeline/uniforms/minishita/lighting.properties \
 	pipeline/uniforms/core/vectors.properties \
 > shaders/shaders.properties
+
+rm -rf shaders/common && cp -pr src/common shaders/common

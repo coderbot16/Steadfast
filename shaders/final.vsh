@@ -16,6 +16,9 @@
 
 #version 150 compatibility
 
+#include "/lib/unslang.glsl"
+#include "/common/post/cover_screen.slang"
+
 void main() {
-	gl_Position = ftransform();
+	gl_Position = float4(coverScreen(uint(gl_VertexID)), 1.0, 1.0);
 }

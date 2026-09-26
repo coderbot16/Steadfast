@@ -21,12 +21,12 @@
 
 // Based on "Ordered Dithering (Bayer)" by Tech_
 // https://www.shadertoy.com/view/7sfXDn
-float Bayer2(vec2 a) {
+float Bayer2(float2 a) {
 	a = floor(a);
 	return fract(a.x * 0.5 + a.y * a.y * 0.75);
 }
 
-float Bayer4(vec2 a) {
+float Bayer4(float2 a) {
 	return Bayer2(0.5 * a) * 0.25 + Bayer2(a);
 }
 
@@ -46,7 +46,7 @@ float Bayer4(vec2 a) {
 // 		Bayer2(a)
 // 	)
 // );
-float Bayer8(vec2 a) {
+float Bayer8(float2 a) {
 	return (Bayer4(0.5 * a) * 0.25 + Bayer2(a)) / 1.3;
 }
 

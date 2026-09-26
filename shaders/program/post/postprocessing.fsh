@@ -34,64 +34,66 @@ const int R11F_G11F_B10F = 0;
 const vec4 colortex0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const int colortex0Format = R11F_G11F_B10F;
 
+// Godrays format is just a single color channel, 8 bits is enough.
+//
+// Originally I used 16 bits, but it turns out that if we do not scale the
+// result, since we are smoothing the result anyways and the noise acts as a
+// dither, there is actually zero noticeable difference between 8 bits and 16
+// bits. So switching to 8 bit halves the required memory bandwidth on both ends
+// basically for free, compared to using 16 bits.
+const int R8 = 0;
+const int colortex1Format = R8;
+
+// For consistency, also clear colortex1 to zero. This in particular has no
+// performance difference but it is unusual compared to all other textures
+const vec4 colortex1ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
+
 #include "/lib/tonemap_uncharted2.glsl"
 #include "/lib/tonemap_uchimura.glsl"
 #include "/lib/srgb.glsl"
 
 // GODRAYS BEGIN
-#include "/lib/bayer8.glsl"
+#include "/lib/unslang.glsl"
+#include "/common/lib/bayer8.slang"
+
+#define GODRAYS_SAMPLE_DEFINED
+#define GodraysSampler sampler2D
+
+float godraysSample(GodraysSampler sampler, float2 uv) {
+	return texture(sampler, uv).r;
+}
+
+#include "/common/post/godrays.slang"
 
 #define GODRAYS // Efficient screen-space light shafts.
 
-uniform sampler2D colortex1;
-uniform vec4 screenLightVector;
+uniform GodraysSampler colortex1;
+uniform float4 screenLightVector;
 uniform float godraysExposure;
 
-// Godrays function based on GPU Gems 3:
-//
-// "Chapter 13. Volumetric Light Scattering as a Post-Process"
-// https://developer.nvidia.com/gpugems/gpugems3/part-ii-light-and-shadows
-//
-// Tweaks:
-// - Moved to sampling the depth map instead of the color map
-//   (DepthCompareSample)
-// - By varying the starting position using noise, we can get away with a
-//   much-reduced sample count
-float SmoothGodrays(vec2 texCoord, vec2 ScreenLightPos) {
-	// Constants for the godrays
-	const float NUM_SAMPLES = 8.0;
-	const float DENSITY = 0.75;
-	const float DECAY = pow(0.0001, 1.0 / NUM_SAMPLES);
+uniform float2 windowToScreen;
+uniform float3 godraysColor;
 
-	// Calculate vector from pixel to light source in screen space.
-	vec2 deltaTexCoord = (texCoord - ScreenLightPos);
-	// Divide by number of samples and scale by control factor.
-	deltaTexCoord *= 1.0f / NUM_SAMPLES * DENSITY;
-	// NEW: Use noise to allow us to get away with a singificantly reduced
-	// iteration count.
-	texCoord += deltaTexCoord * 1.5 * Bayer8(-gl_FragCoord.xy);
-	// Store initial sample.
-	float accumulated = texture(colortex1, texCoord).r;
-	// Set up illumination decay factor.
-	float illuminationDecay = 1.0f;
-	// Evaluate summation from Equation 3 NUM_SAMPLES iterations.
-	for (uint i = uint(0); i < uint(NUM_SAMPLES); i++) {
-		// Step sample location along ray.
-		texCoord -= deltaTexCoord;
-		// Retrieve sample at new location.
-		float depthSample = texture(colortex1, texCoord).r;
-		// Apply sample attenuation scale/decay factors.
-		depthSample *= illuminationDecay;
-		// Accumulate depth samples.
-		accumulated += depthSample;
-		// Update exponential decay factor.
-		illuminationDecay *= DECAY;
+float3 smoothGodrays() {
+	if (godraysExposure <= 0.0) {
+		return float3(0.0);
 	}
-	// Output final accumulated sample with a further scale control factor.
-	float exposure = pow(1.0 - 4.0 * length(deltaTexCoord)
+
+	float2 uv = gl_FragCoord.xy * windowToScreen;
+
+	float exposure = pow(1.0 - 0.5 * length(uv - screenLightVector.xy)
+		* SMOOTH_GODRAYS.density
 		* (1.0 - 0.3 * Bayer8(-gl_FragCoord.xy)), 8.0);
-	return exposure * accumulated / NUM_SAMPLES;
-} 
+
+	// Note: godraysExposure is premultiplied into godraysColor
+	return godraysColor * (exposure * Godrays(
+		colortex1,
+		SMOOTH_GODRAYS,
+		uv,
+		screenLightVector.xy,
+		gl_FragCoord.xy
+	));
+}
 // GODRAYS END
 
 // Note: if we do not define all values used in GLSL expressions, we get the
@@ -123,13 +125,9 @@ float SmoothGodrays(vec2 texCoord, vec2 ScreenLightPos) {
 
 #include "/environment/tonemap_settings.glsl"
 
-uniform vec2 windowToScreen;
+layout(location = 0) out float3 finalColor;
 
-layout(location = 0) out vec3 finalColor;
-
-uniform vec3 godraysColor;
-
-vec3 tonemap(vec3 color) {
+float3 tonemap(float3 color) {
 	#if TONEMAP == TONEMAP_UNCHARTED2
 		return Uncharted2Tonemap(color);
 	#else
@@ -140,31 +138,23 @@ vec3 tonemap(vec3 color) {
 void main() {
 	// Determine the position of this fragment on the screen in screen
 	// coordinates (0.0 to 1.0).
-	vec2 screenCoord = gl_FragCoord.xy * windowToScreen;
+	float2 screenCoord = gl_FragCoord.xy * windowToScreen;
 
 	#if DEBUG == DEBUG_GODRAYS_NOISY
-		finalColor = vec3(texture(colortex1, screenCoord).r);
-	#elif DEBUG == DEBUG_GODRAYS_SMOOTH
-		if (godraysExposure > 0.0) {
-			float godrays = SmoothGodrays(screenCoord, screenLightVector.xy);
-			finalColor = godraysColor * godrays;
-		} else {
-			finalColor = vec3(0.0);
-		}
+		finalColor = float3(texture(colortex1, screenCoord).r);
 	#elif DEBUG == DEBUG_SKYLIGHT
-		finalColor = vec3(texture(colortex5, screenCoord).r);
+		finalColor = float3(texture(colortex5, screenCoord).r);
 	#elif DEBUG == DEBUG_ROUGH_REFRACTION
 		finalColor = LinearToSrgb(tonemap(texture(colortex6, screenCoord).rgb));
 	#else
-		vec3 color = texture(colortex0, screenCoord).rgb;
+		float3 color = float3(0.0);
+
+		#if DEBUG != DEBUG_GODRAYS_SMOOTH
+			color = texture(colortex0, screenCoord).rgb;
+		#endif
 
 		#ifdef GODRAYS
-		if (godraysExposure > 0.0) {
-			float godrays = SmoothGodrays(screenCoord, screenLightVector.xy);
-			
-			// Note: godraysExposure is premultiplied into godraysColor
-			color += godraysColor * godrays;
-		}
+			color += smoothGodrays();
 		#endif
 
 		finalColor = LinearToSrgb(tonemap(color));

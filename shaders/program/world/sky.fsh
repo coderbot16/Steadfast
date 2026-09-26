@@ -16,7 +16,8 @@
 
 // Trivial program that draws the sky color on to the full screen.
 
-#include "/lib/bayer8.glsl"
+#include "/lib/unslang.glsl"
+#include "/common/lib/bayer8.slang"
 #include "/environment/sky.glsl"
 
 // Clouds are animated over time

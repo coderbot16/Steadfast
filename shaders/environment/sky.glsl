@@ -25,7 +25,8 @@
 	#include "sky/minishita.glsl"
 #endif
 
-#include "/lib/bayer8.glsl"
+#include "/lib/unslang.glsl"
+#include "/common/lib/bayer8.slang"
 
 // Returns a darkening or brightening factor for the given fragment / pixel
 // coordinate on the screen.

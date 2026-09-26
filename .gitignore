@@ -1,3 +1,4 @@
 sync*.sh
 shaders/shaders.properties
 build
+shaders/common

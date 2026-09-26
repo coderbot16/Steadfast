@@ -123,7 +123,8 @@ uniform vec2 windowToNdc;
 	// Needed for stippling between vanilla and distant terrain during the
 	// transition between the two near the edge of vanilla render distance.
 	uniform float far;
-	#include "/lib/bayer8.glsl"
+	#include "/lib/unslang.glsl"
+	#include "/common/lib/bayer8.slang"
 #endif
 
 // sRGB to Linear RGB

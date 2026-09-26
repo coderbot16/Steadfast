@@ -14,5 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#version 150 compatibility
-#include "/program/post/noisy_godrays.vsh"
+#define float2 vec2
+#define float3 vec3
+#define float4 vec4
+#define double2 dvec2
+#define double3 dvec3
+#define double4 dvec4
+#define bool2 bvec2
+#define bool3 bvec3
+#define bool4 bvec4
+#define int2 ivec2
+#define int3 ivec3
+#define int4 ivec4
+#define uint2 uvec2
+#define uint3 uvec3
+#define uint4 uvec4
+
+#define float2x2 mat2
+#define float2x2 mat2x2
+#define float3x2 mat2x3
+#define float4x2 mat2x4
+#define float2x3 mat3x2
+#define float3x3 mat3
+#define float3x3 mat3x3
+#define float4x3 mat3x4
+#define float2x4 mat4x2
+#define float3x4 mat4x3
+#define float4x4 mat4
+#define float4x4 mat4x4
+
+#define static

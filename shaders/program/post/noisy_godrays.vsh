@@ -15,34 +15,24 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "/lib/unslang.glsl"
+#include "/common/post/cover_screen.slang"
 
-#define GODRAYS_SAMPLE_DEFINED
-#define GodraysSampler sampler2D
+// This stops godrays from rendering when they would not be visible.
+//
+// Notably this prevents the buffer from getting filled with garbage.
+// Avoiding undefined behavior is good though it is not visible outside
+// of a debugging view.
+uniform float godraysExposure;
 
-float godraysSample(GodraysSampler sampler, float2 uv) {
-	// The sky should have a depth value of 1.0. This is one of the few places
-	// where == works reliably.
-	return float(texture(sampler, uv).r == 1.0);
+bool shouldRender() {
+	return godraysExposure > 0.0;
 }
 
-#include "/common/post/godrays.slang"
-
-uniform vec2 windowToScreenHalf;
-uniform vec4 screenLightVector;
-uniform GodraysSampler depthtex0;
-
-/* DRAWBUFFERS:1 */
-out float godrays;
-
 void main() {
-	// While we check whether godrays are exposed above to avoid
-	// additional computation cost, to fully use the 8 bits of
-	// precision do not scale the value here.
-	godrays = Godrays(
-		depthtex0,
-		NOISY_GODRAYS,
-		gl_FragCoord.xy * windowToScreenHalf,
-		screenLightVector.xy,
-		gl_FragCoord.xy
-	);
+	if (!shouldRender()) {
+		gl_Position = float4(-1.0);
+		return;
+	}
+
+	gl_Position = float4(coverScreen(uint(gl_VertexID)), 1.0, 1.0);
 }
