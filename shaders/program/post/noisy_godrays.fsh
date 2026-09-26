@@ -96,6 +96,10 @@ uniform float godraysExposure;
 const int R8 = 0;
 const int colortex1Format = R8;
 
+// For consistency, also clear colortex1 to zero. This in particular has no
+// performance difference but it is unusual compared to all other textures
+const vec4 colortex1ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
+
 /* DRAWBUFFERS:1 */
 out float godrays;
 
