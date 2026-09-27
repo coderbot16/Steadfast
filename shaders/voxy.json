@@ -21,6 +21,7 @@
 		"waterStretchCrestB",
 		"waterMagnitudeRipple",
 		"waterMagnitudeCrest",
+		"skyAmbientLuminance",
 		"frameTimeCounter",
 		"cameraPosition",
 		"minAmbient",
