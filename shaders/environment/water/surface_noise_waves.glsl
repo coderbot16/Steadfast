@@ -31,16 +31,6 @@
 //
 //Since we use procedural caustics, that is not a worry for us.
 
-// Number of ripple waves in the water surface (NOISE only).
-#define NUM_RIPPLES 4 // [0 1 2 3 4]
-
-// Number of crest waves in the water surface (NOISE only).
-#define NUM_CRESTS 2 // [0 1 2]
-
-// The last two ripples are very minor and can be disregarded when an
-// approximate height is required.
-#define NUM_BIG_RIPPLES 2 
-
 // Ripple waves:
 //
 // These are a more basic and uniform wave shape where the height is essentially
@@ -68,12 +58,8 @@ const NoiseWave RIPPLES[4] = NoiseWave[](
 		3.0,
 		// Heading: 234° (-X/-Z quadrant)
 		180.0 * Degrees + 54.0 * Degrees,
-		// Weight: 16 (or 8 if this is the only other ripple wave)
-		#if NUM_RIPPLES >= 2
-			16.0
-		#else
-			8.0
-		#endif
+		// Weight: 16
+		16.0
 	),
 	// Tiny, high frequency ripples
 	NoiseWave (

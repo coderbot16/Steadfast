@@ -143,7 +143,6 @@ vec3 parallaxWaterNormal(
 				waterWorldPos,
 				ddxWorldPos,
 				ddyWorldPos,
-				timeSeconds,
 				viewDirTangent);
 			waterWorldPos = mix(waterWorldPos, offsetPos, parallaxStrength);
 		}

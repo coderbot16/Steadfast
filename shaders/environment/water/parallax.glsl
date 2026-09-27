@@ -37,7 +37,6 @@ vec2 WaterSurfaceParallaxMapping(
 	vec2 worldPos,
 	vec2 ddxWorldPos,
 	vec2 ddyWorldPos,
-	float time,
 	vec3 viewVector
 ) {
 	// We are tracing through a surface that is 1 meter thick. One factor that
@@ -72,8 +71,7 @@ vec2 WaterSurfaceParallaxMapping(
 		float sampleHeight = WaterHeightApproximate(
 			worldPos,
 			ddxWorldPos,
-			ddyWorldPos,
-			time);
+			ddyWorldPos);
 
 		// We have scaled the view vector such that adding it to the current
 		// position would take us from the top of the surface to the bottom of
