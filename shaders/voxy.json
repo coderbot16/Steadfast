@@ -10,6 +10,17 @@
 		"0": "ONE ONE_MINUS_SRC_ALPHA ZERO ONE"
 	},
 	"uniforms": [
+		"waterScrollRippleAB",
+		"waterScrollRippleCD",
+		"waterScrollCrestAB",
+		"waterStretchRippleA",
+		"waterStretchRippleB",
+		"waterStretchRippleC",
+		"waterStretchRippleD",
+		"waterStretchCrestA",
+		"waterStretchCrestB",
+		"waterMagnitudeRipple",
+		"waterMagnitudeCrest",
 		"frameTimeCounter",
 		"cameraPosition",
 		"minAmbient",

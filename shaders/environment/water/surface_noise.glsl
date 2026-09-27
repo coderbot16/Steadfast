@@ -129,211 +129,22 @@ float crestDerivative(float h) {
 //       waves.
 const float GRADIENT_STRENGTH = 0.15;
 
-// Define each wave as a set of intuitive measurements which the compiler can
-// convert to more direct scaling and offset values, for easy tweaking.
-struct NoiseWave {
-	// The size of each tile in the grid on the X axis and the Y axis in meters.
-	//
-	// The area covered by each tile is mapped to the area of a single pixel in
-	// the value noise texture, and therefore this directly controls the visible
-	// size of the visible trough and peak shapes of this wave.
-	//
-	// Due to the shear mapping below, each tile is actually a parallelogram.
-	// However, shear mapping preserves the length along each axis that each
-	// tile occupies in the grid, it just slants the tile.
-	vec2 tileSize;
+// Generated wave definitions passed in via custom uniforms.
+#if !defined(EXTERNALLY_DEFINED_UNIFORMS)
+	uniform vec4 waterScrollRippleAB;
+	uniform vec4 waterScrollRippleCD;
+	uniform vec4 waterScrollCrestAB;
 
-	// Shear angle for the vertical shear mapping of the tile grid:
-	// https://en.wikipedia.org/wiki/Shear_mapping
-	// 
-	// This is the angle in radians between the former horizontals and the
-	// vertical (Z) axis. 90 degrees = no shear, 0 degrees = maximum shear
-	// (not defined as tan(0) = 0)
-	//
-	// The shear angle may be negative, in which case the shear is in the
-	// opposite direction as a  positive shear. Therefore, the acceptable range
-	// of values is from -Pi/2 to Pi/2 (-90 degrees to 90 degrees), not
-	// inclusive of either -90 degrees or 90 degrees.
-	//
-	// Diagrams for intuition:
-	// 
-	// Z
-	// |
-	// |+--H--+
-	// ||     |
-	// ||     |
-	// |+--H--+
-	// | Angle between Z and current horizontal: 90 degrees (shear angle)
-	// | The shape is tilted by 0 degrees
-	// +--------------X
-	//
-	// Z
-	// |   /|
-	// |  / |
-	// | FH |
-	// |/   /
-	// ||  /
-	// || FH (Former horizontal)
-	// ||/
-	// | Angle between Z and FH: 30 degrees (shear angle)
-	// | The shape is tilted by 60 degrees
-	// +--------------
-	//
-	float shearAngle;
+	uniform vec3 waterStretchRippleA;
+	uniform vec3 waterStretchRippleB;
+	uniform vec3 waterStretchRippleC;
+	uniform vec3 waterStretchRippleD;
+	uniform vec3 waterStretchCrestA;
+	uniform vec3 waterStretchCrestB;
 
-	// The speed that the wave travels torwards its heading direction in meters
-	// (blocks) per second.
-	float speed;
-
-	// The heading of the wave, in radians. This follows the unit circle except
-	// our Z coordinate is the Y on the unit circle.
-	float heading;
-
-	// The weight of this particular wave. The height of each wave is multiplied
-	// by its weight and then the sum of all wave weights is divided by the
-	// total weight, such that the actual magnitude of this wave is given by
-	// weight divided by totalWeight.
-	float weight;
-};
-
-// Actual wave definitions - these values are converted in the boilerplate code
-// below into the actual scales and offsets used at runtime.
-#include "/environment/water/surface_noise_waves.glsl"
-
-// We must take the inverse of the tile size (meters per noise pixel) to get the
-// scaling factor from world space (noise pixels per meter).
-//
-// With shearing, the diagonal of the scale matrix remains unmodified, but we
-// apply the shearing after scaling, so we multiply the X scale with the
-// computed shearing factor. The shearing factor (m) is given by
-// cot(shearAngle), equivalently, as GLSL lacks cotangent, 1.0 / tan(shearAngle)
-//
-// Since we only support X/Z scaling in combination with a vertical shear, while
-// we can represent this as a 2D transformation matrix one of the elements will
-// always be zero, so we store it as a vector instead where the first two
-// components are the diagonal (X/Z scale) and the third element is the first
-// column, second row value - in other words, the scaling factor applied to the
-// X coordinate that gets added to the final Y position.
-// 
-// We could expand this to a mat2 like so: 
-// mat2(stretch.x, stretch.z, 0.0, stretch.y)
-//
-// Mathematica / Mathics code useful for validating the shear multiplication:
-//
-// VerticalShearMatrix[T_] := {{1.0, 0.0}, {T, 1.0}}
-// Simplify[Dot[VerticalShearMatrix[Shear], Dot[{{XScale, 0.0}, {0.0, YScale}},
-//     {X, Y}]] // MatrixForm]
-// Simplify[Dot[Dot[VerticalShearMatrix[Shear], {{XScale, 0.0}, {0.0, YScale}}],
-//     {X, Y}] // MatrixForm]
-// Simplify[Dot[VerticalShearMatrix[Shear], {{XScale, 0.0}, {0.0, YScale}
-//     ] // MatrixForm]
-const vec3 rippleStretch[4] = vec3[](
-	vec3(1.0 / RIPPLES[0].tileSize.x, 1.0 / RIPPLES[0].tileSize.y,
-		(1.0 / tan(RIPPLES[0].shearAngle)) / RIPPLES[0].tileSize.x),
-	vec3(1.0 / RIPPLES[1].tileSize.x, 1.0 / RIPPLES[1].tileSize.y,
-		(1.0 / tan(RIPPLES[1].shearAngle)) / RIPPLES[1].tileSize.x),
-	vec3(1.0 / RIPPLES[2].tileSize.x, 1.0 / RIPPLES[2].tileSize.y,
-		(1.0 / tan(RIPPLES[2].shearAngle)) / RIPPLES[2].tileSize.x),
-	vec3(1.0 / RIPPLES[3].tileSize.x, 1.0 / RIPPLES[3].tileSize.y,
-		(1.0 / tan(RIPPLES[3].shearAngle)) / RIPPLES[3].tileSize.x));
-
-const vec3 crestStretch[2] = vec3[](
-	vec3(1.0 / CRESTS[0].tileSize.x, 1.0 / CRESTS[0].tileSize.y,
-		(1.0 / tan(CRESTS[0].shearAngle)) / CRESTS[0].tileSize.x),
-	vec3(1.0 / CRESTS[1].tileSize.x, 1.0 / CRESTS[1].tileSize.y,
-		(1.0 / tan(CRESTS[1].shearAngle)) / CRESTS[1].tileSize.x));
-
-// Convert the speed and heading into the horizontal offset vector to multiply
-// by time - we call this the "scroll" vector as it is the vector used to scroll
-// the waves across the world as time passes.
-//
-// Essentially, we convert the speed and heading into a vector in world space,
-// and then transform into the coordinate system of this particular wave.
-//
-// Finally, we multiply by negative 1. Why? Well, to make it look like the wave
-// at (0, 0) moved 1 unit towards positive X, we must subtract 1 unit to make
-// the wave that was at (0, 0) now appear at (1, 0) because (1 - 1, 0) is
-// (0, 0), the original position of the wave.
-const vec2 rippleScroll[4] = vec2[](
-	-mat2(
-		rippleStretch[0].x, 
-		rippleStretch[0].x / tan(RIPPLES[0].shearAngle),
-		0.0,
-		rippleStretch[0].y)
-	 * RIPPLES[0].speed
-	 * vec2(cos(RIPPLES[0].heading), sin(RIPPLES[0].heading)),
-	-mat2(
-		rippleStretch[1].x, 
-		rippleStretch[1].x / tan(RIPPLES[1].shearAngle),
-		0.0,
-		rippleStretch[1].y)
-	 * RIPPLES[1].speed
-	 * vec2(cos(RIPPLES[1].heading), sin(RIPPLES[1].heading)),
-	-mat2(
-		rippleStretch[2].x,
-		rippleStretch[2].x / tan(RIPPLES[2].shearAngle),
-		0.0,
-		rippleStretch[2].y)
-	 * RIPPLES[2].speed
-	 * vec2(cos(RIPPLES[2].heading), sin(RIPPLES[2].heading)),
-	-mat2(
-		rippleStretch[3].x,
-		rippleStretch[3].x / tan(RIPPLES[3].shearAngle),
-		0.0,
-		rippleStretch[3].y)
-	 * RIPPLES[3].speed
-	 * vec2(cos(RIPPLES[3].heading), sin(RIPPLES[3].heading)));
-
-const vec2 crestScroll[2] = vec2[](
-	-mat2(
-		crestStretch[0].x,
-		crestStretch[0].x / tan(CRESTS[0].shearAngle),
-		0.0,
-		crestStretch[0].y)
-	 * CRESTS[0].speed
-	 * vec2(cos(CRESTS[0].heading), sin(CRESTS[0].heading)),
-	-mat2(
-		crestStretch[1].x,
-		crestStretch[1].x / tan(CRESTS[1].shearAngle),
-		0.0,
-		crestStretch[1].y)
-	 * CRESTS[1].speed
-	 * vec2(cos(CRESTS[1].heading), sin(CRESTS[1].heading)));
-
-// Compute the magnitude of each wave layer at compile time by dividing each
-// weight by the total weight, so we do not need to do this at runtime.
-const float totalWeight = 0.0
-		+ RIPPLES[0].weight
-		+ RIPPLES[1].weight
-		+ RIPPLES[2].weight
-		+ RIPPLES[3].weight
-		+ CRESTS[0].weight
-		+ CRESTS[1].weight;
-
-const float timeSecondsFixed = 500.0;
-
-uniform vec4 waterScrollRippleAB = timeSecondsFixed * vec4(rippleScroll[0], rippleScroll[1]);
-uniform vec4 waterScrollRippleCD = timeSecondsFixed * vec4(rippleScroll[2], rippleScroll[3]);
-
-uniform vec3 waterStretchRippleA = rippleStretch[0];
-uniform vec3 waterStretchRippleB = rippleStretch[1];
-uniform vec3 waterStretchRippleC = rippleStretch[2];
-uniform vec3 waterStretchRippleD = rippleStretch[3];
-
-uniform vec4 waterMagnitudeRipple = vec4(
-	RIPPLES[0].weight / totalWeight,
-	RIPPLES[1].weight / totalWeight,
-	RIPPLES[2].weight / totalWeight,
-	RIPPLES[3].weight / totalWeight);
-
-uniform vec4 waterScrollCrestAB = timeSecondsFixed * vec4(crestScroll[0], crestScroll[1]);
-
-uniform vec3 waterStretchCrestA = crestStretch[0];
-uniform vec3 waterStretchCrestB = crestStretch[1];
-
-uniform vec2 waterMagnitudeCrest = vec2(
-	CRESTS[0].weight / totalWeight,
-	CRESTS[1].weight / totalWeight);
+	uniform vec4 waterMagnitudeRipple;
+	uniform vec2 waterMagnitudeCrest;
+#endif
 
 // Avoiding excessive aliasing in our procedural water surface:
 //
@@ -519,7 +330,7 @@ float waterRippleHeight(
 // This function is responsible for adding together each wave layer into the
 // final heightmap.
 //
-// Inputs: horizontal world position in meters, time in seconds
+// Inputs: horizontal world position in meters and partial derivatives
 float WaterHeight(
 	vec2 worldPos,
 	vec2 ddxWorldPos,
@@ -745,7 +556,7 @@ vec2 WaterNGradientFDM(
 // Returns the normal map for the water surface computed from the gradient of
 // the water surface heightmap.
 //
-// Inputs: horizontal world position in meters, time in seconds
+// Inputs: horizontal world position in meters and partial derivatives
 // Output: normal vector in tangent space (X/Y = in-plane, Z = up out of the
 // plane)
 vec3 WaterNormal(
