@@ -54,7 +54,9 @@
 // Enables rough screenspace refraction, which adds blur to screenspace
 // refraction on water. This is more appropriate for our moving water
 // surface which is not actually perfectly smooth.
-// #define ROUGH_REFRACTION
+#if !defined(ROUGH_REFRACTION_NOT_SUPPORTED)
+	// #define ROUGH_REFRACTION
+#endif
 
 // Strength of screenspace rough refractions (refraction blur), when enabled
 #define ROUGH_REFRACTION_STRENGTH 0.45 // [0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
@@ -66,7 +68,9 @@
 
 #include "/environment/water/scattering_settings.glsl"
 
-uniform float skyAmbientLuminance;
+#if !defined(EXTERNALLY_DEFINED_UNIFORMS)
+	uniform float skyAmbientLuminance;
+#endif
 
 vec3 WaterScattering(float skyLight, float waterDepth) {
 	float scatter = (1.0 - exp(WATER_SCATTER_BY_DEPTH * waterDepth));

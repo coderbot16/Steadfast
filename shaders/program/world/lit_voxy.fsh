@@ -53,6 +53,7 @@ layout(location = 1) out float out1;
 	#include "/environment/fog.glsl"
 	#include "/environment/sky.glsl"
 
+	#define ROUGH_REFRACTION_NOT_SUPPORTED
 	#include "/environment/lighting/translucent.glsl"
 #elif defined(FANCY_TRANSLUCENTS)
 	layout(location = 2) out vec4 out2;
