@@ -13,163 +13,20 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-struct CausticNoiseWave {
-	// The size of each tile in the grid on the X axis and the Y axis in meters.
-	vec2 tileSize;
-
-	// Shear angle for the vertical shear mapping of the tile grid:
-	// https://en.wikipedia.org/wiki/Shear_mapping
-	float shearAngle;
-
-	// The speed that the wave travels torwards its heading direction in meters
-	// (blocks) per second.
-	float speed;
-
-	// The heading of the wave, in radians. This follows the unit circle except
-	// our Z coordinate is the Y on the unit circle.
-	float heading;
-
-	// The weight of this particular wave. The height of each wave is multiplied
-	// by its weight and then the sum of all wave weights is divided by the
-	// total weight, such that the actual magnitude of this wave is given by
-	// weight divided by totalWeight.
-	float weight;
-
-	// The exponent applied to the wave.
-	float exponent;
-};
-
-#include "/environment/water/caustics_noise_waves.glsl"
-
-// Boilerplate code roughly the same as noise waves
-const vec3 causticsStretch[6] = vec3[](
-	vec3(1.0 / CAUSTICS[0].tileSize.x, 1.0 / CAUSTICS[0].tileSize.y,
-		(1.0 / tan(CAUSTICS[0].shearAngle)) / CAUSTICS[0].tileSize.x),
-	vec3(1.0 / CAUSTICS[1].tileSize.x, 1.0 / CAUSTICS[1].tileSize.y,
-		(1.0 / tan(CAUSTICS[1].shearAngle)) / CAUSTICS[1].tileSize.x),
-	vec3(1.0 / CAUSTICS[2].tileSize.x, 1.0 / CAUSTICS[2].tileSize.y,
-		(1.0 / tan(CAUSTICS[2].shearAngle)) / CAUSTICS[2].tileSize.x),
-	vec3(1.0 / CAUSTICS[3].tileSize.x, 1.0 / CAUSTICS[3].tileSize.y,
-		(1.0 / tan(CAUSTICS[3].shearAngle)) / CAUSTICS[3].tileSize.x),
-	vec3(1.0 / CAUSTICS[4].tileSize.x, 1.0 / CAUSTICS[4].tileSize.y,
-		(1.0 / tan(CAUSTICS[4].shearAngle)) / CAUSTICS[4].tileSize.x),
-	vec3(1.0 / CAUSTICS[5].tileSize.x, 1.0 / CAUSTICS[5].tileSize.y,
-		(1.0 / tan(CAUSTICS[5].shearAngle)) / CAUSTICS[5].tileSize.x));
-
-const vec2 causticsScroll[6] = vec2[](
-	-mat2(
-		causticsStretch[0].x,
-		causticsStretch[0].x / tan(CAUSTICS[0].shearAngle),
-		0.0,
-		causticsStretch[0].y)
-	 * CAUSTICS[0].speed
-	 * vec2(cos(CAUSTICS[0].heading), sin(CAUSTICS[0].heading)),
-	-mat2(
-		causticsStretch[1].x,
-		causticsStretch[1].x / tan(CAUSTICS[1].shearAngle),
-		0.0,
-		causticsStretch[1].y)
-	 * CAUSTICS[1].speed
-	 * vec2(cos(CAUSTICS[1].heading), sin(CAUSTICS[1].heading)),
-	-mat2(
-		causticsStretch[2].x,
-		causticsStretch[2].x / tan(CAUSTICS[2].shearAngle),
-		0.0,
-		causticsStretch[2].y)
-	 * CAUSTICS[2].speed
-	 * vec2(cos(CAUSTICS[2].heading), sin(CAUSTICS[2].heading)),
-	-mat2(
-		causticsStretch[3].x,
-		causticsStretch[3].x / tan(CAUSTICS[3].shearAngle),
-		0.0,
-		causticsStretch[3].y)
-	 * CAUSTICS[3].speed
-	 * vec2(cos(CAUSTICS[3].heading), sin(CAUSTICS[3].heading)),
-	-mat2(
-		causticsStretch[4].x,
-		causticsStretch[4].x / tan(CAUSTICS[4].shearAngle),
-		0.0,
-		causticsStretch[4].y)
-	 * CAUSTICS[4].speed
-	 * vec2(cos(CAUSTICS[4].heading), sin(CAUSTICS[4].heading)),
-	-mat2(
-		causticsStretch[5].x,
-		causticsStretch[5].x / tan(CAUSTICS[5].shearAngle),
-		0.0,
-		causticsStretch[5].y)
-	 * CAUSTICS[5].speed
-	 * vec2(cos(CAUSTICS[5].heading), sin(CAUSTICS[5].heading)));
-
-// We are not actually doing any calculation here, so technically we do not need
-// this intermediate array from a structural standpoint. However, the macOS
-// driver appears to dislike when we reference a field in a struct in an array
-// in combination with another array access, and this intermediate array
-// avoids the problem without any further disruption to code style.
-const float causticsExponents[6] = float[](
-	CAUSTICS[0].exponent,
-	CAUSTICS[1].exponent,
-	CAUSTICS[2].exponent,
-	CAUSTICS[3].exponent,
-	CAUSTICS[4].exponent,
-	CAUSTICS[5].exponent);
-
-// The number of waves to use in water caustics.
-#define NUM_CAUSTICS 6 // [0 1 2 3 4 5 6]
-
-const float causticsTotalWeight = 0.0
-	#if NUM_CAUSTICS > 0
-		+ CAUSTICS[0].weight
-	#endif
-	#if NUM_CAUSTICS > 1
-		+ CAUSTICS[1].weight
-	#endif
-	#if NUM_CAUSTICS > 2
-		+ CAUSTICS[2].weight
-	#endif
-	#if NUM_CAUSTICS > 3
-		+ CAUSTICS[3].weight
-	#endif
-	#if NUM_CAUSTICS > 4
-		+ CAUSTICS[4].weight
-	#endif
-	#if NUM_CAUSTICS > 5
-		+ CAUSTICS[5].weight
-	#endif
-	;
-
-const float causticsLogMagnitude[6] = float[](
-	#if NUM_CAUSTICS > 0
-		log(CAUSTICS[0].weight / causticsTotalWeight)
-	#else
-		0.0
-	#endif
-	#if NUM_CAUSTICS > 1
-		,log(CAUSTICS[1].weight / causticsTotalWeight)
-	#else
-		,0.0
-	#endif
-	#if NUM_CAUSTICS > 2
-		,log(CAUSTICS[2].weight / causticsTotalWeight)
-	#else
-		,0.0
-	#endif
-	#if NUM_CAUSTICS > 3
-		,log(CAUSTICS[3].weight / causticsTotalWeight)
-	#else
-		,0.0
-	#endif
-	#if NUM_CAUSTICS > 4
-		,log(CAUSTICS[4].weight / causticsTotalWeight)
-	#else
-		,0.0
-	#endif
-	#if NUM_CAUSTICS > 5
-		,log(CAUSTICS[5].weight / causticsTotalWeight)
-	#else
-		,0.0
-	#endif
-	);
+#if !defined(EXTERNALLY_DEFINED_UNIFORMS)
+	uniform vec3 causticsStretch0;
+	uniform vec4 causticsScale0;
+	uniform vec3 causticsStretch1;
+	uniform vec4 causticsScale1;
+	uniform vec3 causticsStretch2;
+	uniform vec4 causticsScale2;
+	uniform vec3 causticsStretch3;
+	uniform vec4 causticsScale3;
+	uniform vec3 causticsStretch4;
+	uniform vec4 causticsScale4;
+	uniform vec3 causticsStretch5;
+	uniform vec4 causticsScale5;
+#endif
 
 // TODO: Copied from surface_noise.glsl
 //
@@ -189,6 +46,35 @@ float crestCaustics(float h) {
 // We use the smoothNoise2D variant of our value noise.
 #include "/lib/valueNoise.glsl"
 
+// This is pretty similar to the noise waves code, but adjusted for caustics
+float waterCaustic(vec2 worldPos, vec3 stretch, vec4 scale) {
+	vec2 scroll = scale.xy;
+	float exponent = scale.z;
+	float logMagnitude = scale.w;
+
+	vec2 stretched = vec2(
+		worldPos.x * stretch.x,
+		dot(worldPos, stretch.zy));
+	vec2 at = scroll + stretched;
+
+	// The "crest" function combined with raising to a power happens to work
+	// nicely for these caustics.
+	float noise = crestCaustics(smoothNoise2D(at));
+
+	// This is equivalent to: C * x^P
+	//
+	// First, we apply the identity that the shader compiler would have used
+	// to implement the pow(x, P) function:
+	// C * x^P = C * e^(P * ln(x))
+	//
+	// Then, we apply additional identity to pull in the C:
+	// C * e^(P * ln(x)) = e^(ln C) * e^(P * ln(x))
+	// C * e^(P * ln(x)) = e^(P * ln(x) + ln C)
+	//
+	// This compiles down to 3 operations (log, fused multiply-add, exp)
+	return exp(exponent * log(noise) + logMagnitude);
+}
+
 float WaterCaustics(vec3 worldPos, float time) {
 	// Project the 2D caustics on to the 3D underwater surface.
 	//
@@ -205,34 +91,12 @@ float WaterCaustics(vec3 worldPos, float time) {
 
 	float caustics = 0.0;
 
-	// This is pretty similar to the noise waves code, but adjusted for caustics
-	for (uint i = uint(0); i < uint(NUM_CAUSTICS); i++) {
-		vec3 stretch = causticsStretch[i];
-		vec2 scroll = causticsScroll[i];
-		
-		vec2 stretched = vec2(
-			worldPos.x * stretch.x,
-			dot(worldPos.xz, stretch.zy));
-		vec2 at = time * scroll + stretched;
-
-		// The "crest" function combined with raising to a power happens to work
-		// nicely for these caustics.
-		float noise = crestCaustics(smoothNoise2D(at));
-		float exponent = causticsExponents[i];
-
-		// This is equivalent to: C * x^P
-		//
-		// First, we apply the identity that the shader compiler would have used
-		// to implement the pow(x, P) function:
-		// C * x^P = C * e^(P * ln(x))
-		//
-		// Then, we apply additional identity to pull in the C:
-		// C * e^(P * ln(x)) = e^(ln C) * e^(P * ln(x))
-		// C * e^(P * ln(x)) = e^(P * ln(x) + ln C)
-		//
-		// This compiles down to 3 operations (log, fused multiply-add, exp)
-		caustics += exp(exponent * log(noise) + causticsLogMagnitude[i]);
-	}
+	caustics += waterCaustic(worldPos.xz, causticsStretch0, causticsScale0);
+	caustics += waterCaustic(worldPos.xz, causticsStretch1, causticsScale1);
+	caustics += waterCaustic(worldPos.xz, causticsStretch2, causticsScale2);
+	caustics += waterCaustic(worldPos.xz, causticsStretch3, causticsScale3);
+	caustics += waterCaustic(worldPos.xz, causticsStretch4, causticsScale4);
+	caustics += waterCaustic(worldPos.xz, causticsStretch5, causticsScale5);
 
 	// Allow anywhere between 66% brightness to 250% brightness. Square it
 	// so that caustics are more intermittent.

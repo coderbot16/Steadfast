@@ -24,6 +24,7 @@ cat pipeline/pipeline.properties \
 	pipeline/uniforms/minishita/common.properties \
 	pipeline/uniforms/minishita/sky.properties \
 	pipeline/uniforms/minishita/lighting.properties \
+	pipeline/uniforms/water/caustics_noise.properties \
 	pipeline/uniforms/water/surface_noise_waves.properties \
 	pipeline/uniforms/core/vectors.properties \
 > shaders/shaders.properties

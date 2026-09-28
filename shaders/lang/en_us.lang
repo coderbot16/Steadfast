@@ -64,7 +64,6 @@ value.WATER_SURFACE.BASIC=Waves (basic)
 option.FANCY_TRANSLUCENTS=All water/ice effects
 option.VANILLA_ISH_WATER=Vanilla-like water texture
 option.WATER_CAUSTICS=Underwater Caustics
-option.NUM_CAUSTICS=Number of caustic waves
 option.WATER_CAUSTICS_DISTANCE=Caustics Distance
 value.WATER_CAUSTICS_DISTANCE.8.0=Minimum (8 blocks)
 value.WATER_CAUSTICS_DISTANCE.16.0=Very Low (16 blocks)

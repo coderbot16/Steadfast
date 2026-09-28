@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-cp src/java/NoiseWave.java generators/
+cp src/java/NoiseWave.java src/java/Caustic.java generators/
 java generators/NoiseWaveIrisUniforms.java > \
 	pipeline/uniforms/water/surface_noise_waves.properties
+java generators/CausticIrisUniforms.java > \
+	pipeline/uniforms/water/caustics_noise.properties

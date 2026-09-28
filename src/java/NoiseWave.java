@@ -82,8 +82,6 @@ record NoiseWave(
 	double weight
 ) {
 	// Convenience constant to express degree measurements and units.
-	private static final double METERS = 1.0;
-	private static final double SECOND = 1.0;
 	private static final double DEGREES = Math.toRadians(1.0);
 
 	// Actual wave measurements/definitions used by the Noise water surface
