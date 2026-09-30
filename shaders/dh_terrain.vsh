@@ -15,6 +15,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #version 150 compatibility
+
+#include "/lib/unslang.glsl"
 #define NEVER_RECEIVES_SHADOWS
 #define NORMALS_ARE_IN_WORLD_SPACE
 #define NO_GTEXTURE

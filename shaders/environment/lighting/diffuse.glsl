@@ -58,8 +58,8 @@
 const float ambientOcclusionLevel = 1.0; // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
-	uniform vec3 minAmbient;
-	uniform vec3 skyAmbient;
+	uniform float3 minAmbient;
+	uniform float3 skyAmbient;
 	uniform float blocklightSuppression;
 	uniform float nightVision;
 #endif
@@ -71,7 +71,7 @@ float AmbientStrength(float worldDirY) {
 	return (0.67 + worldDirY * 0.33);
 }
 
-vec3 AmbientSkyLighting(float skyLightStrength, float ambientStrength) {
+float3 AmbientSkyLighting(float skyLightStrength, float ambientStrength) {
 	// x^3 falloff to have a more even transition
 	float skyLight = pow(skyLightStrength, 3);
 
@@ -114,7 +114,7 @@ vec3 AmbientSkyLighting(float skyLightStrength, float ambientStrength) {
 	const float heldLightSuppression = 0.0;
 #endif
 
-float HeldLightStrength(vec3 cameraRelativePos) {
+float HeldLightStrength(float3 cameraRelativePos) {
 	// This is an attempt to model held light strength off of the same scale as
 	// Minecraft block lights use.
 	//
@@ -141,28 +141,28 @@ float NightDesaturation(float skyLight, float blockLight) {
 
 #ifdef NIGHT_DESATURATION_EFFECT
 	#if !defined(EXTERNALLY_DEFINED_UNIFORMS)
-		uniform vec3 desaturationColor;
+		uniform float3 desaturationColor;
 	#endif
 
-	vec3 Desaturate(vec3 color, float desaturation) {
+	float3 Desaturate(float3 color, float desaturation) {
 		// Rec601 luma from https://en.wikipedia.org/wiki/Luma_(video)
 		// TODO: Use luminance, luma is for sRGB only.
-		float luma = dot(color, vec3(0.299, 0.587, 0.114));
+		float luma = dot(color, float3(0.299, 0.587, 0.114));
 
 		// Fade the pre-lighting color to the desaturation color
-		return mix(color, luma * desaturationColor, desaturation);
+		return lerp(color, luma * desaturationColor, desaturation);
 	}
 #endif
 
 // The returned RGB is the block lighting, normalized such that the brightest
 // result has a luminance of 1.0. The returned alpha is the detected emission
 // value for the purposes of bloom and similar effects.
-vec4 BlockLighting(
+float4 BlockLighting(
 	float skyLight,
 	float blockLight,
 	float heldLight,
-	vec3 blockLightColor,
-	vec3 heldLightColor
+	float3 blockLightColor,
+	float3 heldLightColor
 ) {
 	// Give block lighting a strong but visually appealing falloff.
 	float blockLightIntensity = pow(blockLight, 4.0);
@@ -187,16 +187,16 @@ vec4 BlockLighting(
 	// This method of combining held light and block light avoids weird lines
 	// where the lights intersect.
 	float intensity = min(1.0, blockLightIntensity + heldLightIntensity);
-	vec3 lightColor = blockLightColor;
+	float3 lightColor = blockLightColor;
 
 	// Trivial linear interpolation seems to look fine for mixing different
 	// light colors together
 	if (heldLightIntensity > 0.0) {
 		float heldLightWeight = heldLightIntensity / intensity;
-		lightColor = mix(lightColor, heldLightColor, heldLightWeight);
+		lightColor = lerp(lightColor, heldLightColor, heldLightWeight);
 	}
 
-	return vec4(lightColor * intensity, emission);
+	return float4(lightColor * intensity, emission);
 }
 
 // Tilt the path of the sun sideways. This is a standard shader effect that
@@ -208,26 +208,26 @@ const float	sunPathRotation	= -40.0f;
 		uniform int isEyeInWater;
 	#endif
 
-	uniform vec3 directLightSurface;
-	uniform vec3 directLightUnderwater;
-	uniform vec3 worldLightVector;
+	uniform float3 directLightSurface;
+	uniform float3 directLightUnderwater;
+	uniform float3 worldLightVector;
 #endif
 
 void ApplyWaterAbsorption(
 	// Water depth in meters
 	float depthInMeters,
-	out vec3 directLightColor,
-	inout vec3 lighting,
-	vec3 blocklightIndirect
+	out float3 directLightColor,
+	inout float3 lighting,
+	float3 blocklightIndirect
 ) {
 	// Beer's law for attenuation to simulate water absorption
-	vec3 waterAbsorption = exp(WATER_ATTENUATION_COEFFICIENTS * depthInMeters);
+	float3 waterAbsorption = exp(WATER_ATTENUATION_COEFFICIENTS * depthInMeters);
 
 	float wdepth = depthInMeters * (1.0 / 16.0);
 
 	// Fade direct light color to its luminance to avoid odd colors
 	// when orange sunrise light goes through water
-	directLightColor = mix(directLightSurface, directLightUnderwater, wdepth);
+	directLightColor = lerp(directLightSurface, directLightUnderwater, wdepth);
 
 	// Tint lighting (direct and ambient, but not block lighting) by the water
 	// absorption
@@ -259,22 +259,22 @@ void ApplyWaterAbsorption(
 
 struct SurfaceFragment {
 	#if defined(REAL_TIME_SHADOWS)
-		vec3 cameraRelativePos;
+		float3 cameraRelativePos;
 		// The projected shadow map position to sample from.
 		//
 		// X and Y are coordinates in the shadow map texture, and Z is the
 		// depth value to compare the sampled shadow depth against to
 		// determine to what extent the fragment is or is not in shadow.
-		vec3 shadowPos;
+		float3 shadowPos;
 	#endif
 	// The linear RGB color of the surface at this position.
-	vec3 surfaceColor;
+	float3 surfaceColor;
 	// The linear ambient occlusion at this position.
 	float ao;
 	// The predefined material ID of this fragment.
 	uint materialID;
 	// The normal vector of the surface where this fragment is, in world-space.
-	vec3 worldNormal;
+	float3 worldNormal;
 	// The sky light strength, where 1 is light level 15 and 0 is no light.
 	float skyLight;
 	// The block light strength, where 1 is light level 15 and 0 is no light.
@@ -282,9 +282,9 @@ struct SurfaceFragment {
 	// The held light strength, where 1 is light level 15 and 0 is no light.
 	float heldLight;
 	// The block light color normalized to a luminance of 1.
-	vec3 blockLightColor;
+	float3 blockLightColor;
 	// The held light color normalized to a luminance of 1.
-	vec3 heldLightColor;
+	float3 heldLightColor;
 };
 
 float DirectLighting(SurfaceFragment fragment, bool subsurfaceScatter) {
@@ -387,13 +387,13 @@ float DirectLighting(SurfaceFragment fragment, bool subsurfaceScatter) {
 
 #define BLOCKLIGHT_LUMINANCE 2.0 // [0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.25 2.5 2.75 3.0 3.25 3.5 3.75 4.0]
 
-vec3 DiffuseLighting(SurfaceFragment fragment) {
+float3 DiffuseLighting(SurfaceFragment fragment) {
 	// Part of approximating subsurface scattering
 	bool subsurfaceScatter = fragment.materialID == SUBSURFACE_SCATTERING \
 		|| fragment.materialID == GROUND_FOLIAGE \
 		|| fragment.materialID == LEAVES;
 
-	vec3 lighting = fragment.ao * AmbientSkyLighting(
+	float3 lighting = fragment.ao * AmbientSkyLighting(
 		// When night vision is active, treat everything as fully lit by sky
 		// light.
 		max(fragment.skyLight, nightVision),
@@ -405,7 +405,7 @@ vec3 DiffuseLighting(SurfaceFragment fragment) {
 	// immediately applying it. When water absorption is enabled, for gameplay
 	// purposes we tweak the amount of water absorption applied to blocklight
 	// based on depth to avoid ruining submerged bases.
-	vec4 blockLighting = BlockLighting(
+	float4 blockLighting = BlockLighting(
 		fragment.skyLight,
 		fragment.blockLight,
 		fragment.heldLight,
@@ -413,13 +413,13 @@ vec3 DiffuseLighting(SurfaceFragment fragment) {
 		fragment.heldLightColor
 	);
 
-	vec3 blocklightIndirect = blockLighting.rgb * BLOCKLIGHT_LUMINANCE;
+	float3 blocklightIndirect = blockLighting.rgb * BLOCKLIGHT_LUMINANCE;
 	blocklightIndirect *= fragment.ao;
 
 	// TODO: Forward emission to bloom when implementing bloom.
 	float emission = blockLighting.a;
 
-	vec3 directLightColor = directLightSurface;
+	float3 directLightColor = directLightSurface;
 
 	#if WATER_ABSORPTION_METHOD == REFRACTION_ASSISTED
 		// With refraction-assisted water absorption, we need an alternate way
@@ -467,7 +467,7 @@ vec3 DiffuseLighting(SurfaceFragment fragment) {
 
 	lighting += directLightStrength * directLightColor;
 
-	vec3 surfaceColor = fragment.surfaceColor;
+	float3 surfaceColor = fragment.surfaceColor;
 
 	#ifdef NIGHT_DESATURATION_EFFECT
 		float desaturation = NightDesaturation(
@@ -480,7 +480,7 @@ vec3 DiffuseLighting(SurfaceFragment fragment) {
 
 	//#define EMISSIVE_DETECTION_DEBUG
 	#ifdef EMISSIVE_DETECTION_DEBUG
-		lighting *= mix(0.001, 1.0, emission);
+		lighting *= lerp(0.001, 1.0, emission);
 	#endif
 
 	return surfaceColor * lighting;

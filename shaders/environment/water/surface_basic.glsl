@@ -43,7 +43,7 @@
 // At this point the symmetry is starting to be obvious. We can write this
 // as:
 //
-// dWdXeach = vec3(
+// dWdXeach = float3(
 //   dirX * cos(1.0 * angle + time),
 //   dirX * cos(2.0 * angle + time),
 //   dirX * cos(4.0 * angle + time)
@@ -53,7 +53,7 @@
 //
 // Which is equivalent to:
 //
-// dWdXeach = vec3(
+// dWdXeach = float3(
 //   cos(1.0 * angle + time),
 //   cos(2.0 * angle + time),
 //   cos(4.0 * angle + time)
@@ -63,20 +63,20 @@
 //
 // By definition, this is equivalent to:
 //
-// dWdXeach = cos(vec3(1.0, 2.0, 4.0) * vec3(angle) + vec3(time))
-// dW/dx = dot(vec3(dirX), dWdXeach)
+// dWdXeach = cos(float3(1.0, 2.0, 4.0) * float3(angle) + float3(time))
+// dW/dx = dot(float3(dirX), dWdXeach)
 //
 // Finally, we can note that the only function between dW/dx and dW/dy
 // is multiplying by dirX or dirY, so we can share the common operations
 // and only multiply in the direction at the end for a further win.
-vec2 gradWaterWave(vec2 worldPos, vec2 dir, float time) {
+float2 gradWaterWave(float2 worldPos, float2 dir, float time) {
 	float angle = dot(worldPos, dir);
 	float dWdA = dot(
-		cos(vec4(angle) * vec4(0.5, 1.0, 2.0, 4.0) + vec4(time)),
-		vec4(1.0)
+		cos(float4(angle) * float4(0.5, 1.0, 2.0, 4.0) + float4(time)),
+		float4(1.0)
 	);
 
-	return vec2(dWdA) * dir;
+	return float2(dWdA) * dir;
 }
 
 // This function uses a short sequence of pure ALU operations to generate some
@@ -85,32 +85,32 @@ vec2 gradWaterWave(vec2 worldPos, vec2 dir, float time) {
 // Inputs: horizontal world position, time in seconds
 // Output: normal vector in tangent space (X/Y = in-plane, Z = up out of the
 // plane)
-vec3 WaterNormal(
-	vec2 worldPos,
-	vec2 ddxWorldPos,
-	vec2 ddyWorldPos,
+float3 WaterNormal(
+	float2 worldPos,
+	float2 ddxWorldPos,
+	float2 ddyWorldPos,
 	float time
 ) {
 	// Deform the wavefront using a sine wave as in real life, water does not
 	// simply advance forward and straight diagonal wavefronts are entirely
 	// unconvincing.
-	worldPos += 0.125 * (sin(time * 2.0 + worldPos.yx * vec2(2.0, 1.0)));
+	worldPos += 0.125 * (sin(time * 2.0 + worldPos.yx * float2(2.0, 1.0)));
 
 	// The phase varies over time to move the waves, and we also add in
 	// random numbers to keep the waves out-of-phase of each other. 
-	vec4 phase = vec4(time * 4.0) + vec4(1.3657, 1.1345, 1.2290, 3.0297);
+	float4 phase = float4(time * 4.0) + float4(1.3657, 1.1345, 1.2290, 3.0297);
 
 	// Since the derivative of two functions summed together is the sum of the
 	// respective derivatives, we can calculate the gradients of each individual
 	// directional wave quartet separately and just add them all together.
-	vec2 gradient;
-	gradient  = 0.008 * gradWaterWave(worldPos, vec2(1.0, 1.0),  phase.x);
-	gradient += 0.004 * gradWaterWave(worldPos, vec2(1.0, 0.66), phase.y);
-	gradient += 0.008 * gradWaterWave(worldPos, vec2(0.5, 0.75), phase.z);
-	gradient += 0.004 * gradWaterWave(worldPos, vec2(1.0, 0.33), phase.w);
+	float2 gradient;
+	gradient  = 0.008 * gradWaterWave(worldPos, float2(1.0, 1.0),  phase.x);
+	gradient += 0.004 * gradWaterWave(worldPos, float2(1.0, 0.66), phase.y);
+	gradient += 0.008 * gradWaterWave(worldPos, float2(0.5, 0.75), phase.z);
+	gradient += 0.004 * gradWaterWave(worldPos, float2(1.0, 0.33), phase.w);
 
 	// Note that we are in tangent space, so in terms of directions, Z is the
 	// direction going up out of the face, and the X/Y are side-to-side within
 	// the face.
-	return normalize(vec3(gradient, 1.0));
+	return normalize(float3(gradient, 1.0));
 }

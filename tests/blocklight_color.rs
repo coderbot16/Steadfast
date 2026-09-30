@@ -44,7 +44,7 @@ fn write_color(label: String, mut r: f64, mut g: f64, mut b: f64) {
 		b /= adjust;
 	}
 
-	println!("const vec3 {} = vec3({:.3}, {:.3}, {:.3});", label, r, g, b);
+	println!("const float3 {} = float3({:.3}, {:.3}, {:.3});", label, r, g, b);
 }
 
 fn main() {
@@ -74,7 +74,7 @@ fn main() {
 		println!("#define {} 1.00 // [{}]", channel, values.join(" "));
 	}
 
-	println!("const vec3 LIGHT_CUSTOM = vec3(
+	println!("const float3 LIGHT_CUSTOM = float3(
 		LIGHT_CUSTOM_R,
 		LIGHT_CUSTOM_G,
 		LIGHT_CUSTOM_B);");

@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
-	uniform vec3 causticsStretch0;
-	uniform vec4 causticsScale0;
-	uniform vec3 causticsStretch1;
-	uniform vec4 causticsScale1;
-	uniform vec3 causticsStretch2;
-	uniform vec4 causticsScale2;
-	uniform vec3 causticsStretch3;
-	uniform vec4 causticsScale3;
-	uniform vec3 causticsStretch4;
-	uniform vec4 causticsScale4;
-	uniform vec3 causticsStretch5;
-	uniform vec4 causticsScale5;
+	uniform float3 causticsStretch0;
+	uniform float4 causticsScale0;
+	uniform float3 causticsStretch1;
+	uniform float4 causticsScale1;
+	uniform float3 causticsStretch2;
+	uniform float4 causticsScale2;
+	uniform float3 causticsStretch3;
+	uniform float4 causticsScale3;
+	uniform float3 causticsStretch4;
+	uniform float4 causticsScale4;
+	uniform float3 causticsStretch5;
+	uniform float4 causticsScale5;
 #endif
 
 // TODO: Copied from surface_noise.glsl
@@ -47,15 +47,15 @@ float crestCaustics(float h) {
 #include "/lib/valueNoise.glsl"
 
 // This is pretty similar to the noise waves code, but adjusted for caustics
-float waterCaustic(vec2 worldPos, vec3 stretch, vec4 scale) {
-	vec2 scroll = scale.xy;
+float waterCaustic(float2 worldPos, float3 stretch, float4 scale) {
+	float2 scroll = scale.xy;
 	float exponent = scale.z;
 	float logMagnitude = scale.w;
 
-	vec2 stretched = vec2(
+	float2 stretched = float2(
 		worldPos.x * stretch.x,
 		dot(worldPos, stretch.zy));
-	vec2 at = scroll + stretched;
+	float2 at = scroll + stretched;
 
 	// The "crest" function combined with raising to a power happens to work
 	// nicely for these caustics.
@@ -75,19 +75,19 @@ float waterCaustic(vec2 worldPos, vec3 stretch, vec4 scale) {
 	return exp(exponent * log(noise) + logMagnitude);
 }
 
-float WaterCaustics(vec3 worldPos, float time) {
+float WaterCaustics(float3 worldPos, float time) {
 	// Project the 2D caustics on to the 3D underwater surface.
 	//
 	// While potentially unintuitive, projecting this as we would with the
 	// shadow map looks bad. Perhaps we can rotate this with the light position
 	// but this simple approach seems to be completely fine.
-	worldPos.xz += vec2(-2.0 / 3.0, 2.0 / 3.0) * worldPos.y;
+	worldPos.xz += float2(-2.0 / 3.0, 2.0 / 3.0) * worldPos.y;
 
 	// Deform the coordinates with a sine wave to add some additional animation,
 	// which is a rough analog to the changing refraction which causes the
 	// caustics to vary. This helps avoid the it looking like we just scrolled
 	// a texture over the terrain.
-	worldPos.xz += 0.15 * sin(worldPos.zx * vec2(0.30, 0.25) + time);
+	worldPos.xz += 0.15 * sin(worldPos.zx * float2(0.30, 0.25) + time);
 
 	float caustics = 0.0;
 

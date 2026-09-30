@@ -25,18 +25,18 @@ float SrgbToLinear(float srgb) {
 	return pow(srgb, SRGB_GAMMA);
 }
 
-vec3 SrgbToLinear(vec3 srgb) {
-	return pow(srgb, vec3(SRGB_GAMMA));
+float3 SrgbToLinear(float3 srgb) {
+	return pow(srgb, float3(SRGB_GAMMA));
 }
 
-vec3 LinearToSrgb(vec3 linear) {
-	return pow(linear, vec3(1.0 / SRGB_GAMMA));
+float3 LinearToSrgb(float3 rgb) {
+	return pow(rgb, float3(1.0 / SRGB_GAMMA));
 }
 
-vec4 SrgbToLinear(vec4 srgb) {
-	return vec4(pow(srgb.rgb, vec3(SRGB_GAMMA)), srgb.a);
+float4 SrgbToLinear(float4 srgb) {
+	return float4(pow(srgb.rgb, float3(SRGB_GAMMA)), srgb.a);
 }
 
-vec4 LinearToSrgb(vec4 linear) {
-	return vec4(pow(linear.rgb, vec3(1.0 / SRGB_GAMMA)), linear.a);
+float4 LinearToSrgb(float4 rgb) {
+	return float4(pow(rgb.rgb, float3(1.0 / SRGB_GAMMA)), rgb.a);
 }

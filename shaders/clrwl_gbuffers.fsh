@@ -15,6 +15,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #version 150 compatibility
+
+#include "/lib/unslang.glsl"
 #define COLORWHEEL
 #define MIX_ENTITY_COLOR
 // Colorwheel material shaders have their own alpha test, which is evaluated

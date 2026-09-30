@@ -15,6 +15,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #version 150 compatibility
+
+#include "/lib/unslang.glsl"
 #define NEVER_REALTIME_SHADOWS
 #define DH_TERRAIN
 #define NO_GTEXTURE

@@ -30,49 +30,50 @@ const int colortex5Format = R8;
 // codebase.
 #include "/environment/water/absorption_settings.glsl"
 
-// vec4 Fog(...)
+// float4 Fog(...)
 #include "/environment/fog.glsl"
 
-// vec3 SkyColor(vec3 ray, float dither)
+// float3 SkyColor(float3 ray, float dither)
 #include "/environment/sky.glsl"
 
-uniform mat4 gbufferModelViewInverse;
-uniform mat4 gbufferProjectionInverse;
-uniform vec2 windowToNdc;
+uniform float4x4 gbufferModelViewInverse;
+uniform float4x4 gbufferProjectionInverse;
+uniform float2 windowToNdc;
 
 uniform sampler2D colortex2;
 uniform sampler2D colortex0;
 uniform sampler2D depthtex1;
 
 #ifdef DISTANT_HORIZONS
-	uniform mat4 dhProjectionInverse;
+	uniform float4x4 dhProjectionInverse;
 	uniform sampler2D dhDepthTex0;
 #endif
 
-vec3 ApplyFog(
-	mat4 inverseProjection,
-	vec3 fragCoord,
-	vec3 background,
+float3 ApplyFog(
+	float4x4 inverseProjection,
+	float3 fragCoord,
+	float3 background,
 	float skyLight
 ) {
 	// Project back to view space from the fragment coordinates
 	//
 	// Note: w must be 1.0 in these  homogenous coordinates, as 1.0 means a
 	// point in space rather than a vector.
-	vec3 ndcPos = vec3(fragCoord.xy * windowToNdc, fragCoord.z * 2.0) - 1.0;
-	vec4 viewPosH = inverseProjection * vec4(ndcPos, 1.0);
-	vec3 viewPos = viewPosH.xyz / viewPosH.w;
-	vec3 cameraRelativePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+	float3 ndcPos = float3(fragCoord.xy * windowToNdc, fragCoord.z * 2.0) - 1.0;
+	float4 viewPosH = inverseProjection * float4(ndcPos, 1.0);
+	float3 viewPos = viewPosH.xyz / viewPosH.w;
+	float3 cameraRelativePos =
+		(gbufferModelViewInverse * float4(viewPos, 1.0)).xyz;
 
-	vec3 worldSpaceVector = normalize(cameraRelativePos);
-	vec3 sky = SkyDither(fragCoord.xy, SkyColor(worldSpaceVector));
+	float3 worldSpaceVector = normalize(cameraRelativePos);
+	float3 sky = SkyDither(fragCoord.xy, SkyColor(worldSpaceVector));
 
 	// Compute the fog against the sky background
 	float fragDistance = max(
 		abs(cameraRelativePos.y),
 		length(cameraRelativePos.xz)
 	);
-	vec4 fog = Fog(sky, fragDistance, fragDistance, skyLight);
+	float4 fog = Fog(sky, fragDistance, fragDistance, skyLight);
 
 	return background * fog.a + fog.rgb;
 }
@@ -81,7 +82,7 @@ void main() {
 	// texelFetch & gl_FragCoord used like this are a perfect way to copy a
 	// texture.
 	//
-	// ivec2 cast functionality per the GLSL specification:
+	// int2 cast functionality per the GLSL specification:
 	//
 	// > When constructors are used to convert a floating-point type to an
 	// > integer type, the fractional part of the floating-point value is
@@ -94,27 +95,27 @@ void main() {
 	// > coordinates and assumes pixel centers are located at half-pixel
 	// > centers. For example, the (x, y) location (0.5, 0.5) is returned
 	// > for the lower-left-most pixel in a window.
-	vec3 background = texelFetch(colortex0, ivec2(gl_FragCoord), 0).rgb;
+	float3 background = texelFetch(colortex0, int2(gl_FragCoord), 0).rgb;
 
-	float skylight = texelFetch(colortex2, ivec2(gl_FragCoord), 0).r;
-	float depth = texelFetch(depthtex1, ivec2(gl_FragCoord), 0).r;
+	float skylight = texelFetch(colortex2, int2(gl_FragCoord), 0).r;
+	float depth = texelFetch(depthtex1, int2(gl_FragCoord), 0).r;
 
-	vec3 backgroundWithFog = background;
+	float3 backgroundWithFog = background;
 
 	if (depth < 1.0) {
 		backgroundWithFog = ApplyFog(
 			gbufferProjectionInverse,
-			vec3(gl_FragCoord.xy, depth),
+			float3(gl_FragCoord.xy, depth),
 			background,
 			skylight
 		);
 	} else {
 		#ifdef DISTANT_HORIZONS
-			depth = texelFetch(dhDepthTex0, ivec2(gl_FragCoord), 0).r;
+			depth = texelFetch(dhDepthTex0, int2(gl_FragCoord), 0).r;
 			if (depth < 1.0) {
 				backgroundWithFog = ApplyFog(
 					dhProjectionInverse,
-					vec3(gl_FragCoord.xy, depth),
+					float3(gl_FragCoord.xy, depth),
 					background,
 					skylight
 				);
@@ -124,16 +125,16 @@ void main() {
 
 	// colortex0 from here on out will now be a complete image of the scene with
 	// fog applied, so that translucents can blend fog.
-	gl_FragData[0] = vec4(backgroundWithFog, 1.0);
+	gl_FragData[0] = float4(backgroundWithFog, 1.0);
 
 #if WATER_ABSORPTION_METHOD == REFRACTION_ASSISTED
 	// colortex4 is a copy of the image for reflection and refraction, and does
 	// not apply fog.
-	gl_FragData[1] = vec4(background, 1.0);
+	gl_FragData[1] = float4(background, 1.0);
 
 	// colortex5 is an immutable copy of colortex2.
 	// They both store skylight.
-	gl_FragData[2] = vec4(vec3(skylight), 1.0);
+	gl_FragData[2] = float4(float3(skylight), 1.0);
 
 	/* DRAWBUFFERS:045 */
 #else

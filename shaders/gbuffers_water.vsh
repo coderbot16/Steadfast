@@ -15,6 +15,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #version 150 compatibility
+
+#include "/lib/unslang.glsl"
 #define HAS_BLOCK_ATTRIBUTES
 // TODO: Create Aeronautics uses the terrain shader, but passes a non-identity
 //       normal matrix, and we have no easy way to detect or differentiate, so

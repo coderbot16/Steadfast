@@ -41,7 +41,7 @@
 #include "/environment/lighting/diffuse.glsl"
 #include "/environment/lighting/blocklight_color_detection.glsl"
 
-layout(location = 0) out vec4 out0;
+layout(location = 0) out float4 out0;
 layout(location = 1) out float out1;
 
 #if defined(TRANSLUCENT)
@@ -56,7 +56,7 @@ layout(location = 1) out float out1;
 	#define ROUGH_REFRACTION_NOT_SUPPORTED
 	#include "/environment/lighting/translucent.glsl"
 #elif defined(FANCY_TRANSLUCENTS)
-	layout(location = 2) out vec4 out2;
+	layout(location = 2) out float4 out2;
 #endif
 
 // sRGB to Linear RGB
@@ -67,7 +67,7 @@ layout(location = 1) out float out1;
 
 void voxy_emitFragment(VoxyFragmentParameters parameters) {
 	float normalSign = (float(int(parameters.face) & 1) * 2.0 - 1.0);
-	vec3 worldNormal = normalSign * vec3(
+	float3 worldNormal = normalSign * float3(
 		uint((parameters.face >> 1) == 2),
 		uint((parameters.face >> 1) == 0),
 		uint((parameters.face >> 1) == 1)
@@ -75,29 +75,29 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
 
 	// Experimentally collected for normal terrain
 	//
-	// Normal -X -> Tangent +Z = vec3( 0.0, 0.0,  1.0)
-	// Normal +X -> Tangent -Z = vec3( 0.0, 0.0, -1.0)
-	// Normal -Y -> Tangent +X = vec3( 1.0, 0.0,  0.0)
-	// Normal +Y -> Tangent +X = vec3( 1.0, 0.0,  0.0)
-	// Normal -Z -> Tangent -X = vec3(-1.0, 0.0,  0.0)
-	// Normal +Z -> Tangent +X = vec3( 1.0, 0.0,  0.0)
-	vec3 worldTangent = vec3(
+	// Normal -X -> Tangent +Z = float3( 0.0, 0.0,  1.0)
+	// Normal +X -> Tangent -Z = float3( 0.0, 0.0, -1.0)
+	// Normal -Y -> Tangent +X = float3( 1.0, 0.0,  0.0)
+	// Normal +Y -> Tangent +X = float3( 1.0, 0.0,  0.0)
+	// Normal -Z -> Tangent -X = float3(-1.0, 0.0,  0.0)
+	// Normal +Z -> Tangent +X = float3( 1.0, 0.0,  0.0)
+	float3 worldTangent = float3(
 		abs(worldNormal.y) + worldNormal.z,
 		0.0,
 		-1.0 * worldNormal.x
 	);
 
 	// Experimentally collected for normal terrain
-	// Horizontal normal -> Bitangent -Y = vec3(0.0, -1.0, 0.0)
+	// Horizontal normal -> Bitangent -Y = float3(0.0, -1.0, 0.0)
 	// Normal -Y -> Bitangent -Z
 	// Normal +Y -> Bitangent +Z
-	vec3 worldBitangent = vec3(
+	float3 worldBitangent = float3(
 		0.0,
 		(parameters.face >> 1) == 0 ? 0.0 : -1.0,
 		worldNormal.y
 	);
 
-	vec4 surfaceColor =
+	float4 surfaceColor =
 		SrgbToLinear(parameters.sampledColour * parameters.tinting);
 	uint materialID = DecodeMaterialID(parameters.customId);
 
@@ -115,7 +115,7 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
 
 	float skyLight = LightMapToLight(parameters.lightMap.y);
 
-	vec4 fragmentColor = vec4(DiffuseLighting(SurfaceFragment(
+	float4 fragmentColor = float4(DiffuseLighting(SurfaceFragment(
 		// The linear RGB color of the surface at this position.
 		surfaceColor.rgb,
 		// The linear ambient occlusion at this position.
@@ -135,19 +135,19 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
 		// The block light color normalized to a luminance of 1.
 		BLOCKLIGHT_COLOR,
 		// The held light color normalized to a luminance of 1.
-		vec3(0.0)
+		float3(0.0)
 	)), surfaceColor.a);
 
 
 	#if defined(TRANSLUCENT)
-		vec3 ndcPos = gl_FragCoord.xyz * vec3(windowToNdc, 2.0) - 1.0;
-		vec4 viewPosH = inverseProjectionMatrix * vec4(ndcPos, 1.0);
-		vec3 viewPos = viewPosH.xyz / viewPosH.w;
-		vec3 cameraRelativePos =
-			(gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+		float3 ndcPos = gl_FragCoord.xyz * float3(windowToNdc, 2.0) - 1.0;
+		float4 viewPosH = inverseProjectionMatrix * float4(ndcPos, 1.0);
+		float3 viewPos = viewPosH.xyz / viewPosH.w;
+		float3 cameraRelativePos =
+			(gbufferModelViewInverse * float4(viewPos, 1.0)).xyz;
 
 		if (materialID == WATER) {
-			fragmentColor = vec4(0.0);
+			fragmentColor = float4(0.0);
 		}
 
 		float reflectionStrength = materialID == WATER ? 1.0 : 0.0;
@@ -155,7 +155,7 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
 		fragmentColor = TranslucentLighting(
 			fragmentColor,
 			worldNormal,
-			mat3(
+			float3x3(
 				worldTangent,
 				worldBitangent,
 				worldNormal

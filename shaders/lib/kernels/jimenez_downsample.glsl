@@ -24,31 +24,31 @@
 //
 // This implementation consists exclusively of texture sampling and fused
 // multiply-add instructions.
-vec3 JimenezDownsampleBlur(sampler2D source, vec2 uv, vec2 pxToUv) {
-	vec3 avg = vec3(0.0);
+float3 JimenezDownsampleBlur(sampler2D source, float2 uv, float2 pxToUv) {
+	float3 avg = float3(0.0);
 
 	// Top row: weight 4
-	avg += (1.0 / 32.0) * texture(source, vec2(-2.0, -2.0) * pxToUv + uv).rgb;
-	avg += (2.0 / 32.0) * texture(source, vec2( 0.0, -2.0) * pxToUv + uv).rgb;
-	avg += (1.0 / 32.0) * texture(source, vec2( 2.0, -2.0) * pxToUv + uv).rgb;
+	avg += (1.0 / 32.0) * texture(source, float2(-2.0, -2.0) * pxToUv + uv).rgb;
+	avg += (2.0 / 32.0) * texture(source, float2( 0.0, -2.0) * pxToUv + uv).rgb;
+	avg += (1.0 / 32.0) * texture(source, float2( 2.0, -2.0) * pxToUv + uv).rgb;
 
 	// Central upper (red dots in diagram): weight 8
-	avg += (4.0 / 32.0) * texture(source, vec2(-1.0, -1.0) * pxToUv + uv).rgb;
-	avg += (4.0 / 32.0) * texture(source, vec2( 1.0, -1.0) * pxToUv + uv).rgb;
+	avg += (4.0 / 32.0) * texture(source, float2(-1.0, -1.0) * pxToUv + uv).rgb;
+	avg += (4.0 / 32.0) * texture(source, float2( 1.0, -1.0) * pxToUv + uv).rgb;
 
 	// Middle row: weight 8
-	avg += (2.0 / 32.0) * texture(source, vec2(-2.0,  0.0) * pxToUv + uv).rgb;
-	avg += (4.0 / 32.0) * texture(source, vec2( 0.0,  0.0) * pxToUv + uv).rgb;
-	avg += (2.0 / 32.0) * texture(source, vec2( 2.0,  0.0) * pxToUv + uv).rgb;
+	avg += (2.0 / 32.0) * texture(source, float2(-2.0,  0.0) * pxToUv + uv).rgb;
+	avg += (4.0 / 32.0) * texture(source, float2( 0.0,  0.0) * pxToUv + uv).rgb;
+	avg += (2.0 / 32.0) * texture(source, float2( 2.0,  0.0) * pxToUv + uv).rgb;
 
 	// Central lower (red dots in diagram): weight 8
-	avg += (4.0 / 32.0) * texture(source, vec2(-1.0,  1.0) * pxToUv + uv).rgb;
-	avg += (4.0 / 32.0) * texture(source, vec2( 1.0,  1.0) * pxToUv + uv).rgb;
+	avg += (4.0 / 32.0) * texture(source, float2(-1.0,  1.0) * pxToUv + uv).rgb;
+	avg += (4.0 / 32.0) * texture(source, float2( 1.0,  1.0) * pxToUv + uv).rgb;
 
 	// Bottom row: weight 4
-	avg += (1.0 / 32.0) * texture(source, vec2(-2.0,  2.0) * pxToUv + uv).rgb;
-	avg += (2.0 / 32.0) * texture(source, vec2( 0.0,  2.0) * pxToUv + uv).rgb;
-	avg += (1.0 / 32.0) * texture(source, vec2( 2.0,  2.0) * pxToUv + uv).rgb;
+	avg += (1.0 / 32.0) * texture(source, float2(-2.0,  2.0) * pxToUv + uv).rgb;
+	avg += (2.0 / 32.0) * texture(source, float2( 0.0,  2.0) * pxToUv + uv).rgb;
+	avg += (1.0 / 32.0) * texture(source, float2( 2.0,  2.0) * pxToUv + uv).rgb;
 
 	return avg;
 }

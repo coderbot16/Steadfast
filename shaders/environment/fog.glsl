@@ -15,11 +15,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #if !defined (EXTERNALLY_DEFINED_UNIFORMS)
-	uniform vec3 caveFogColor;
+	uniform float3 caveFogColor;
 	uniform float eyeSkylight;
 	uniform int isEyeInWaterFog;
 
-	uniform vec3 underwaterFogColor;
+	uniform float3 underwaterFogColor;
 	uniform float atmosphereFogCoefficient;
 	uniform float blindness;
 	uniform float borderFogDistance;
@@ -30,7 +30,7 @@
 // The strength of fog at noon. 
 #define ATMOSPHERE_FOG_STRENGTH_NOON 0.5 // [0.0 0.25 0.33 0.5 0.66 0.75 1.0]
 
-vec4 FogV2(
+float4 FogV2(
 	out float skyFogStrength,
 	float fragDistance,
 	float borderFragDistance,
@@ -55,14 +55,14 @@ vec4 FogV2(
 		0.25,
 		max(skyLightStrength, eyeSkylight));
 	skyFogStrength = caveFogTransition;
-	vec3 fogColor = (1.0 - caveFogTransition) * caveFogColor;
+	float3 fogColor = (1.0 - caveFogTransition) * caveFogColor;
 
 	if (blindness > 0.0001) {
 		// Blindness is essentially just a very strong fog.
 		atmosphereFog = max(
 			0.85, 
 			1.0 - exp(-pow(fragDistance * blindness * 0.5, 2)));
-		fogColor = vec3(0.0);
+		fogColor = float3(0.0);
 		skyFogStrength = 0.0;
 	} else if (isEyeInWaterFog == 1) {
 		// Underwater fog is much more dense than atmospheric fog.
@@ -77,7 +77,7 @@ vec4 FogV2(
 		// when in lava (though in survival mode you won't be in the lava for
 		// long!)
 		atmosphereFog = max(0.85, 1.0 - exp(-pow(fragDistance * 0.5, 2)));
-		fogColor = vec3(1.0, 0.05, 0.0);
+		fogColor = float3(1.0, 0.05, 0.0);
 		skyFogStrength = 0.0;
 	}
 
@@ -90,23 +90,23 @@ vec4 FogV2(
 		fogFactor *= smoothstep(0.01, 0.015, fogFactor);
 	}
 
-	return vec4(fogColor, fogFactor);
+	return float4(fogColor, fogFactor);
 }
 
 // Kept around while we move over to FogV2
 // TODO: Move everything to FogV2 and just have one Fog function
-vec4 Fog(
-	vec3 skyGradient,
+float4 Fog(
+	float3 skyGradient,
 	float fragDistance,
 	float borderFragDistance,
 	float skyLightStrength
 ) {
 	float skyFogStrength = 0.0;
-	vec4 fogv2 = FogV2(
+	float4 fogv2 = FogV2(
 		skyFogStrength,
 		fragDistance,
 		borderFragDistance,
 		skyLightStrength);
 	fogv2.rgb += skyGradient * skyFogStrength;
-	return vec4(fogv2.rgb * fogv2.a, 1.0 - fogv2.a);
+	return float4(fogv2.rgb * fogv2.a, 1.0 - fogv2.a);
 }

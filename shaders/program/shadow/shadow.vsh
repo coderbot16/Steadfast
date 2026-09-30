@@ -16,19 +16,19 @@
 
 #include "/lib/distort.glsl"
 
-in vec4 mc_Entity;
-in vec3 at_midBlock;
+in float4 mc_Entity;
+in float3 at_midBlock;
 
-out vec2 texcoord;
+out float2 texcoord;
 out float waterHeight;
 
-uniform mat4 shadowModelViewInverse;
+uniform float4x4 shadowModelViewInverse;
 
 #include "/environment/materialIDs.glsl"
 
 void main() {
-	vec4 viewPos = gl_ModelViewMatrix * gl_Vertex;
-	vec4 cameraRelativePos = shadowModelViewInverse * viewPos;
+	float4 viewPos = gl_ModelViewMatrix * gl_Vertex;
+	float4 cameraRelativePos = shadowModelViewInverse * viewPos;
 	uint materialID = DecodeMaterialID(mc_Entity.x);
 
 	// TODO: Deduplicate this, copied from lit.fsh
@@ -66,6 +66,6 @@ void main() {
 	// Prevent some blocks from casting shadows for aesthetic reasons.
 	// See the definition in block.properties for more details.
 	if (materialID == GLASS) {
-		gl_Position = vec4(-1.0);
+		gl_Position = float4(-1.0);
 	}
 }

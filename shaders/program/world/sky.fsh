@@ -16,7 +16,6 @@
 
 // Trivial program that draws the sky color on to the full screen.
 
-#include "/lib/unslang.glsl"
 #include "/common/lib/bayer8.slang"
 #include "/environment/sky.glsl"
 
@@ -30,9 +29,9 @@ uniform float frameTimeCounter;
 	// Actual effect in shaders.properties
 #endif
 
-uniform mat4 gbufferModelViewInverse;
-uniform mat4 gbufferProjectionInverse;
-uniform vec2 windowToNdc;
+uniform float4x4 gbufferModelViewInverse;
+uniform float4x4 gbufferProjectionInverse;
+uniform float2 windowToNdc;
 uniform float blindness;
 
 flat in float isstars;
@@ -43,16 +42,16 @@ void main() {
 	// it is easier to start off with a position on the far plane and then
 	// normalize to a vector than to try to get a vector out of the screen
 	// position directly.
-	vec2 ndcPos = gl_FragCoord.xy * vec2(windowToNdc) - 1.0;
-	vec4 viewVecH = gbufferProjectionInverse * vec4(ndcPos, 1.0, 1.0);
-	vec3 viewVec = normalize(viewVecH.xyz / viewVecH.w);
+	float2 ndcPos = gl_FragCoord.xy * float2(windowToNdc) - 1.0;
+	float4 viewVecH = gbufferProjectionInverse * float4(ndcPos, 1.0, 1.0);
+	float3 viewVec = normalize(viewVecH.xyz / viewVecH.w);
 
 	// Note: w must be 0.0 in homogenous coordinates, as 1.0 means a point in
 	// space rather than a vector.
-	vec3 worldSpaceVector = (gbufferModelViewInverse * vec4(viewVec, 0.0)).xyz;
+	float3 worldSpaceVector = (gbufferModelViewInverse * float4(viewVec, 0.0)).xyz;
 
 	// Dithering 
-	vec2 ditherCoord = gl_FragCoord.xy;
+	float2 ditherCoord = gl_FragCoord.xy;
 
 	// Moves the sky dither pattern across the screen rapidly to reveal
 	// excessive dithering
@@ -61,11 +60,11 @@ void main() {
 		ditherCoord += 500.0 * cos(frameTimeCounter);
 	#endif
 
-	vec3 sky;
+	float3 sky;
 	float alpha = 1.0;
 
 	if (isstars > 0.5) {
-		sky = vec3(1.0);
+		sky = float3(1.0);
 		alpha = starAlpha;
 	} else {
 		sky = SkyDither(ditherCoord, SkyColor(worldSpaceVector));
@@ -77,10 +76,10 @@ void main() {
 		// This is needed because clouds otherwise blend oddly with the sun,
 		// and this is much simpler than simulating clouds blocking the sun,
 		// which I don't want to do anyways for style reasons.
-		float skyLuminance = dot(sky, vec3(0.2126, 0.7152, 0.0722));
+		float skyLuminance = dot(sky, float3(0.2126, 0.7152, 0.0722));
 
 		if (skyLuminance < 0.75) {
-			vec3 originalSky = sky;
+			float3 originalSky = sky;
 			sky = BlendClouds(sky, worldSpaceVector);
 		}
 	#endif
@@ -88,5 +87,5 @@ void main() {
 /* DRAWBUFFERS:0 */
 
 	// Fade away the sky during blindness
-	gl_FragData[0] = vec4(sky * max(0.0, 1.0 - 10.0 * blindness), alpha);
+	gl_FragData[0] = float4(sky * max(0.0, 1.0 - 10.0 * blindness), alpha);
 }

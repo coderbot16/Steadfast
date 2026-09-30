@@ -20,17 +20,17 @@
 // Fog requires the sky color
 #include "/environment/sky.glsl"
 
-uniform mat4 gbufferModelView;
-uniform mat4 gbufferModelViewInverse;
-uniform mat4 gbufferProjection;
+uniform float4x4 gbufferModelView;
+uniform float4x4 gbufferModelViewInverse;
+uniform float4x4 gbufferProjection;
 
 // The interpolated vertex color directly from the vertex buffer.
-out vec4 tinting;
+out float4 tinting;
 
 // The interpolated texture coordinate directly from the vertex buffer.
-out vec2 texcoord;
+out float2 texcoord;
 
-out vec4 fog;
+out float4 fog;
 
 void main() {
 	// This is effectively as if we multiplied with the model matrix, because we
@@ -41,12 +41,12 @@ void main() {
 	// 
 	// So the inverse of the view matrix times the model view matrix is the
 	// model matrix, which gives us camera-relative coordinates.
-	vec4 viewPos = gl_ModelViewMatrix * gl_Vertex;
-	vec4 cameraRelativePos = gbufferModelViewInverse * viewPos;
+	float4 viewPos = gl_ModelViewMatrix * gl_Vertex;
+	float4 cameraRelativePos = gbufferModelViewInverse * viewPos;
 
 	// Fairly standard vertex shader boilerplate here.
 	tinting = gl_Color;
-	vec3 normal = gl_NormalMatrix * gl_Normal;
+	float3 normal = gl_NormalMatrix * gl_Normal;
 
 	// Transform from camera-relative position to view position to clip position
 	gl_Position = gl_ProjectionMatrix * (gbufferModelView * cameraRelativePos);
@@ -57,7 +57,7 @@ void main() {
 
 	// Compute fog based on the distance, the sky color, etc.
 	// TODO: SkyDither?
-	vec3 skyGradient = SkyColor(normalize(cameraRelativePos.xyz));
+	float3 skyGradient = SkyColor(normalize(cameraRelativePos.xyz));
 
 	float fragDistance = max(
 		abs(cameraRelativePos.y),

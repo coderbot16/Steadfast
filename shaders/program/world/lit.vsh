@@ -39,23 +39,23 @@
 // from being picked up as shader configuration options.
 #if defined(HAS_BLOCK_ATTRIBUTES)
 	// Block identification
-	in vec4 mc_Entity;
-	in vec3 at_midBlock;
+	in float4 mc_Entity;
+	in float3 at_midBlock;
 #endif
 
 #if !defined(COLORWHEEL)
 	// The interpolated vertex color directly from the vertex buffer.
-	out vec4 tinting;
+	out float4 tinting;
 
 	// The lightmap texture coordinates, ranging from 0.03125 to 0.96875.
 	// The x / "s" component is the block light, and the y / "t" component is
 	// the sky light.
-	out vec2 lightMap;
+	out float2 lightMap;
 #endif
 
 #if !defined(NO_GTEXTURE)
 	// The interpolated texture coordinate directly from the vertex buffer.
-	out vec2 texcoord;
+	out float2 texcoord;
 #endif
 
 #if !defined(NEVER_RECEIVES_SHADOWS)
@@ -64,14 +64,14 @@
 	// X and Y are coordinates in the shadowmap texture, and Z is the
 	// depth value to compare the sampled shadow depth against to
 	// determine to what extent the fragment is or is not in shadow.
-	out vec3 shadowPos;
+	out float3 shadowPos;
 
 	// Shadow distortion
 	#include "/lib/distort.glsl"
 
-	uniform mat4 shadowProjection;
-	uniform mat4 shadowModelView;
-	uniform vec3 worldLightVector;
+	uniform float4x4 shadowProjection;
+	uniform float4x4 shadowModelView;
+	uniform float3 worldLightVector;
 #endif
 
 // Per-face data encoded by EncodePerFace (/lib/encoding/face.glsl)
@@ -82,12 +82,12 @@ flat out uint perFace;
 #if defined(HAS_WAVING_FOLIAGE)
 	#define WAVING_FOLIAGE // Waving foliage (optional but basically free).
 
-	uniform vec3 cameraPosition;
+	uniform float3 cameraPosition;
 
 	// WindDisplacement
 	#include "/environment/wind.glsl"
 
-	void WaveFoliage(uint materialID, inout vec4 cameraRelativePos) {
+	void WaveFoliage(uint materialID, inout float4 cameraRelativePos) {
 		// at_midBlock is the offset to the center of the block.
 		// So if these are the top vertices, then the offset to the center
 		// will be negative as the center is below these vertices.
@@ -96,15 +96,15 @@ flat out uint perFace;
 		bool wavingLeaves = materialID == LEAVES;
 
 		if (wavingLeaves || (wavingGroundFoliage && topOfFoliage)) {
-			vec3 worldPos = cameraRelativePos.xyz + cameraPosition;
-			vec3 displacement = WindDisplacement(worldPos);
+			float3 worldPos = cameraRelativePos.xyz + cameraPosition;
+			float3 displacement = WindDisplacement(worldPos);
 			displacement.y = wavingGroundFoliage ? 0.0 : displacement.y;
 			cameraRelativePos.xyz += displacement;
 		}
 	}
 #endif
 
-uint FetchMaterialID(vec3 worldNormal, int currentRenderedItem) {
+uint FetchMaterialID(float3 worldNormal, int currentRenderedItem) {
 	#if defined(HAS_BLOCK_ATTRIBUTES)
 		uint materialID = DecodeMaterialID(mc_Entity.x);
 
@@ -148,10 +148,10 @@ uint FetchMaterialID(vec3 worldNormal, int currentRenderedItem) {
 	#endif
 }
 
-uniform mat4 gbufferModelView;
-uniform mat4 gbufferModelViewInverse;
+uniform float4x4 gbufferModelView;
+uniform float4x4 gbufferModelViewInverse;
 
-vec3 FetchWorldVector(vec3 v) {
+float3 FetchWorldVector(float3 v) {
 	#if defined(NORMALS_ARE_IN_WORLD_SPACE)
 		// If gl_Normal is already in world space, then skip two matrix-vector
 		// multiplies that are otherwise completely unnecessary!
@@ -171,10 +171,10 @@ vec3 FetchWorldVector(vec3 v) {
 		// transpose(inverse(gbufferModelViewInverse))
 		// = transpose(gbufferModelView)
 		//
-		// Note that the transpose & mat3 operations are cheap because they are
+		// Note that the transpose & float3x3 operations are cheap because they are
 		// just renaming / excluding variables used for the underlying matrix
 		// multiplication.
-		vec3 world = transpose(mat3(gbufferModelView)) * (gl_NormalMatrix * v);
+		float3 world = transpose(float3x3(gbufferModelView)) * (gl_NormalMatrix * v);
 
 		// If the transformed vector and the original vector are approximately
 		// the same, then it was probably already in world space. In that case,
@@ -192,13 +192,13 @@ vec3 FetchWorldVector(vec3 v) {
 	#endif
 }
 
-vec3 FetchWorldNormal() {
+float3 FetchWorldNormal() {
 	return FetchWorldVector(gl_Normal);
 }
 
-in vec4 at_tangent;
+in float4 at_tangent;
 
-vec3 FetchWorldTangent() {
+float3 FetchWorldTangent() {
 	return FetchWorldVector(at_tangent.xyz);
 }
 
@@ -207,7 +207,7 @@ bool FetchTangentHandedness() {
 }
 
 #if !defined(NEVER_RECEIVES_SHADOWS)
-	vec3 ShadowMapPosition(vec4 cameraRelativePos, vec3 worldNormal) {
+	float3 ShadowMapPosition(float4 cameraRelativePos, float3 worldNormal) {
 		float NdotL = dot(worldNormal, worldLightVector);
 
 		// Shadow bias method inspired by:
@@ -232,8 +232,8 @@ bool FetchTangentHandedness() {
 		// same length calculation, but depart by keeping this variable term
 		// separate. Multiplying it by 1.5 was a hack necessary to remove acne
 		// on far-away mountain tops.
-		vec4 shadowViewPosDistort = shadowModelView * cameraRelativePos;
-		vec3 shadowPosDistort = (shadowProjection * shadowViewPosDistort).xyz;
+		float4 shadowViewPosDistort = shadowModelView * cameraRelativePos;
+		float3 shadowPosDistort = (shadowProjection * shadowViewPosDistort).xyz;
 		float distanceFactor = 1.5 * length(shadowPosDistort.xy);
 
 		// However, for the fixed term, we decrease it for faces towards the
@@ -245,11 +245,11 @@ bool FetchTangentHandedness() {
 		// normal, accounting for distortion effects and the facing. This allows
 		// us to have an adaptive shadow bias that gives us the best of both
 		// worlds - no acne, but also no peter panning.
-		vec4 shadowBias = vec4(worldNormal * distanceFactor, 0.0);
+		float4 shadowBias = float4(worldNormal * distanceFactor, 0.0);
 
 		// Project to NDC space
-		vec4 shadowViewPos = shadowModelView * (cameraRelativePos + shadowBias);
-		vec3 shadowPos = (shadowProjection * shadowViewPos).xyz;
+		float4 shadowViewPos = shadowModelView * (cameraRelativePos + shadowBias);
+		float3 shadowPos = (shadowProjection * shadowViewPos).xyz;
 
 		// Distort relative to the center of the shadow map
 		shadowPos = distort(shadowPos);
@@ -278,7 +278,7 @@ bool FetchTangentHandedness() {
 uniform int currentRenderedItemId;
 
 void main() {
-	vec4 viewPos = gl_ModelViewMatrix * gl_Vertex;
+	float4 viewPos = gl_ModelViewMatrix * gl_Vertex;
 
 	// This is effectively as if we multiplied with the model matrix, because we
 	// do not get the model matrix separate from the model view matrix.
@@ -288,7 +288,7 @@ void main() {
 	// 
 	// So the inverse of the view matrix times the model view matrix is the
 	// model matrix, which gives us camera-relative coordinates.
-	vec4 cameraRelativePos = gbufferModelViewInverse * viewPos;
+	float4 cameraRelativePos = gbufferModelViewInverse * viewPos;
 
 	// Colorwheel passes its own copies of these values and provides them for us
 	// in the material shader we evaluate in the fragment shader, so there is no
@@ -302,8 +302,8 @@ void main() {
 		texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	#endif
 
-	vec3 worldNormal = FetchWorldNormal();
-	vec3 worldTangent = FetchWorldTangent();
+	float3 worldNormal = FetchWorldNormal();
+	float3 worldTangent = FetchWorldTangent();
 	bool handedness = FetchTangentHandedness();
 	uint materialID = FetchMaterialID(worldNormal, currentRenderedItemId);
 
@@ -437,7 +437,7 @@ void main() {
 		) {
 			// Then use clipping to stretch this face downward across the
 			// screen, vertically.
-			gl_Position.yz = vec2(-1000.0, -gl_Position.w);
+			gl_Position.yz = float2(-1000.0, -gl_Position.w);
 		}
 	#endif
 }

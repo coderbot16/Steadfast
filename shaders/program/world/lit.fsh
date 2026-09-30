@@ -24,7 +24,7 @@
 #include "/environment/water/absorption_settings.glsl"
 
 // Used to covert viewPos to worldPos.
-uniform vec3 cameraPosition;
+uniform float3 cameraPosition;
 
 // Water waves and caustics scrolling
 uniform float frameTimeCounter;
@@ -45,7 +45,7 @@ uniform float frameTimeCounter;
 
 #if defined(REAL_TIME_SHADOWS)
 	#include "/environment/lighting/shadowmap.glsl"
-	in vec3 shadowPos;
+	in float3 shadowPos;
 #endif
 
 #include "/environment/lighting/diffuse.glsl"
@@ -67,15 +67,15 @@ uniform float frameTimeCounter;
 	uniform sampler2D depthtex1;
 #endif
 
-uniform mat4 gbufferProjection;
-uniform mat4 gbufferProjectionInverse;
-uniform mat4 gbufferModelViewInverse;
+uniform float4x4 gbufferProjection;
+uniform float4x4 gbufferProjectionInverse;
+uniform float4x4 gbufferModelViewInverse;
 
 // Distant Horizons terrain is rendered with a different projection matrix, and
 // we must be aware of it in our transformations.
 #if defined(DH_TERRAIN)
-	uniform mat4 dhProjection;
-	uniform mat4 dhProjectionInverse;
+	uniform float4x4 dhProjection;
+	uniform float4x4 dhProjectionInverse;
 	uniform sampler2D dhDepthTex1;
 
 	// Workaround for an apparent Iris bug:
@@ -96,8 +96,8 @@ uniform mat4 gbufferModelViewInverse;
 	#define opaqueDepth depthtex1
 
 	#ifdef DISTANT_HORIZONS
-		uniform mat4 dhProjection;
-		uniform mat4 dhProjectionInverse;
+		uniform float4x4 dhProjection;
+		uniform float4x4 dhProjectionInverse;
 		uniform sampler2D dhDepthTex1;
 
 		// TODO: It seems like this is still not correct and leads to
@@ -111,7 +111,7 @@ uniform mat4 gbufferModelViewInverse;
 	#endif
 #endif
 
-uniform vec2 windowToNdc;
+uniform float2 windowToNdc;
 
 // Note: using #if defined instead of #ifdef to prevent this from being picked
 // up as a shader configuration option.
@@ -123,7 +123,6 @@ uniform vec2 windowToNdc;
 	// Needed for stippling between vanilla and distant terrain during the
 	// transition between the two near the edge of vanilla render distance.
 	uniform float far;
-	#include "/lib/unslang.glsl"
 	#include "/common/lib/bayer8.slang"
 #endif
 
@@ -133,13 +132,13 @@ uniform vec2 windowToNdc;
 
 #if !defined(COLORWHEEL)
 	// The interpolated vertex color directly from the vertex buffer.
-	in vec4 tinting;
+	in float4 tinting;
 
 	// The lightmap texture coordinates, ranging from 0.03125 to 0.96875.
 	// The x / "s" component is the block light, and the y / "t" component is
 	// the sky light. The block light will be negative when this face can be
 	// emissive.
-	in vec2 lightMap;
+	in float2 lightMap;
 
 	// Note: using #if defined instead of #ifdef to prevent this from being
 	// picked up as a shader configuration option.
@@ -162,7 +161,7 @@ uniform vec2 windowToNdc;
 		// Commit: f0f6a27453d44a18e1c655880dca0baf2de03c9a
 		// /src/main/java/net/coderbot/iris/pipeline/transform/transformer
 		// /AttributeTransformer.java#L139-L229
-		uniform vec4 entityColor;
+		uniform float4 entityColor;
 	#endif
 #endif
 
@@ -187,7 +186,7 @@ uniform vec2 windowToNdc;
 	#endif
 
 	// The interpolated texture coordinate directly from the vertex buffer.
-	in vec2 texcoord;
+	in float2 texcoord;
 #endif
 
 #define STANDARD 1
@@ -221,10 +220,11 @@ void main() {
 	// the fragment shader rather than passing these positions as varyings from
 	// the vertex shader, as the cost of buffering and interpolating is more
 	// expensive than the following matrix math.
-	vec3 ndcPos = gl_FragCoord.xyz * vec3(windowToNdc, 2.0) - 1.0;
-	vec4 viewPosH = inverseProjectionMatrix * vec4(ndcPos, 1.0);
-	vec3 viewPos = viewPosH.xyz / viewPosH.w;
-	vec3 cameraRelativePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+	float3 ndcPos = gl_FragCoord.xyz * float3(windowToNdc, 2.0) - 1.0;
+	float4 viewPosH = inverseProjectionMatrix * float4(ndcPos, 1.0);
+	float3 viewPos = viewPosH.xyz / viewPosH.w;
+	float3 cameraRelativePos =
+		(gbufferModelViewInverse * float4(viewPos, 1.0)).xyz;
 
 	// Distant Horizons translucent terrain needs a manual depth test against
 	// the non distant depth buffer.
@@ -232,13 +232,13 @@ void main() {
 	// It is rendered after all opaque objects but before translucent normal
 	// terrain, but uses the depth buffer for distant terrain.
 	#if defined(EXPLICIT_OPAQUE_DEPTH_TEST)
-		float opaqueDepth = texelFetch(depthtex1, ivec2(gl_FragCoord), 0).r;
+		float opaqueDepth = texelFetch(depthtex1, int2(gl_FragCoord), 0).r;
 
 		if (opaqueDepth != 1.0) {
 			// Project back to view space from the fragment coordinates
-			vec3 ndcPosOpaque = vec3(ndcPos.xy, opaqueDepth * 2.0 - 1.0);
-			vec4 ndcPosHOpaque = vec4(ndcPosOpaque, 1.0);
-			vec4 viewPosOpaque = gbufferProjectionInverse * ndcPosHOpaque;
+			float3 ndcPosOpaque = float3(ndcPos.xy, opaqueDepth * 2.0 - 1.0);
+			float4 ndcPosHOpaque = float4(ndcPosOpaque, 1.0);
+			float4 viewPosOpaque = gbufferProjectionInverse * ndcPosHOpaque;
 
 			if (viewPosOpaque.z / viewPosOpaque.w > viewPos.z) {
 				discard;
@@ -248,21 +248,21 @@ void main() {
 	#endif
 
 	uint materialID = DecodePerFaceMaterialID(perFace);
-	vec3 worldNormal = DecodePerFaceWorldNormal(perFace);
-	mat3 worldTBN = DecodePerFaceWorldTBN(perFace, worldNormal);
+	float3 worldNormal = DecodePerFaceWorldNormal(perFace);
+	float3x3 worldTBN = DecodePerFaceWorldTBN(perFace, worldNormal);
 
-	vec4 surfaceColor;
-	vec4 sampledColor;
+	float4 surfaceColor;
+	float4 sampledColor;
 
 	#if defined(COLORWHEEL)
-		vec4 entityColor;
-		vec2 lightMap;
+		float4 entityColor;
+		float2 lightMap;
 		float ignoredAo;
 
 		sampledColor = texture(gtexture, texcoord);
 
 		#if SURFACE_COLORS == VERTEX_COLOR
-			sampledColor.rgb = vec3(1.0);
+			sampledColor.rgb = float3(1.0);
 		#endif
 
 		clrwl_computeFragment(
@@ -279,9 +279,9 @@ void main() {
 			// Output: equivalent to entityColor.
 			entityColor);
 	#else
-		sampledColor = vec4(1.0);
+		sampledColor = float4(1.0);
 		#if defined(HAS_AMBIENT_OCCLUSION)
-			surfaceColor = vec4(tinting.rgb, 1.0);
+			surfaceColor = float4(tinting.rgb, 1.0);
 		#else
 			surfaceColor = tinting;
 		#endif
@@ -344,8 +344,8 @@ void main() {
 				//#define VANILLA_ISH_WATER 
 				#ifndef VANILLA_ISH_WATER
 					// TODO: Use dedicated water color uniform?
-					sampledColor = vec4(1.0);
-					surfaceColor.rgb = mix(
+					sampledColor = float4(1.0);
+					surfaceColor.rgb = lerp(
 						surfaceColor.rgb,
 						skyAmbient,
 						reflectionStrength);
@@ -372,7 +372,7 @@ void main() {
 	#endif
 
 	#if SURFACE_COLORS == NONE
-		surfaceColor.rgb = vec3(1.0);
+		surfaceColor.rgb = float3(1.0);
 	#elif SURFACE_COLORS == VERTEX_COLOR && !defined(COLORWHEEL)
 		surfaceColor.rgb = tinting.rgb;
 	#elif SURFACE_COLORS == WORLD_POSITION
@@ -380,7 +380,7 @@ void main() {
 		// relative to the block grid. Then, offsetting with the normal vector
 		// gives us consistent results for the positions that exactly on the
 		// grid.
-		vec3 worldPosOffset = fract(cameraPosition) - 0.025 * worldNormal;
+		float3 worldPosOffset = fract(cameraPosition) - 0.025 * worldNormal;
 		surfaceColor.rgb = fract(cameraRelativePos + worldPosOffset);
 	#elif SURFACE_COLORS == WORLD_NORMAL
 		surfaceColor.rgb = 0.5 * worldNormal + 0.5;
@@ -395,7 +395,7 @@ void main() {
 		materialID = WATER;
 
 		if (materialID == WATER) {
-			surfaceColor = vec4(0.0);
+			surfaceColor = float4(0.0);
 			reflectionStrength = 1.0;
 		}
 	#else
@@ -412,7 +412,7 @@ void main() {
 	
 	#if defined(MIX_ENTITY_COLOR)
 		// Apply hurt flash / tnt flash on entities.
-		surfaceColor.rgb = mix(
+		surfaceColor.rgb = lerp(
 			surfaceColor.rgb, entityColor.rgb, entityColor.a);
 	#endif
 
@@ -504,7 +504,7 @@ void main() {
 		surfaceColor.a *= 1.0 - smoothstep(far - 2, far, fragDistance);
 	#endif
 
-	vec4 fragmentColor = vec4(vec3(0.0), surfaceColor.a);
+	float4 fragmentColor = float4(float3(0.0), surfaceColor.a);
 
 	// Apply sRGB to linear conversion
 	//
@@ -515,7 +515,7 @@ void main() {
 	surfaceColor.rgb = SrgbToLinear(surfaceColor.rgb);
 
 	float blockLight = LightMapToLight(lightMap.x);
-	vec3 blockLightColor = BLOCKLIGHT_COLOR;
+	float3 blockLightColor = BLOCKLIGHT_COLOR;
 	float ao = 1.0;
 
 	#if defined(HAS_AMBIENT_OCCLUSION)
@@ -525,7 +525,7 @@ void main() {
 	#if defined(PBR_NORMALS_TEXTURE)
 		// TODO: Measure performance and consider limiting render distance here.
 
-		vec4 normalsSample = texture(normals, texcoord);
+		float4 normalsSample = texture(normals, texcoord);
 
 		#ifdef PBR_NORMAL_MAPPING
 			// Decoding from:
@@ -534,8 +534,8 @@ void main() {
 			// However, seusPBR / oldPBR also stores normal X/Y here, so this is
 			// the one feature that's automatically compatible with all PBR
 			// resource packs.
-			vec2 mappedNormal = normalsSample.xy * 2.0 - 1.0;
-			worldNormal = worldTBN * vec3(
+			float2 mappedNormal = normalsSample.xy * 2.0 - 1.0;
+			worldNormal = worldTBN * float3(
 				mappedNormal,
 				sqrt(max(0.0, 1.0 - dot(mappedNormal, mappedNormal)))
 			);
@@ -577,7 +577,7 @@ void main() {
 			// Apply before lighting so that the glints receive environment light,
 			// so that glints are not too bright in dark areas.
 			if (mc_hasGlint()) {
-				vec3 glint = mc_sampleGlint();
+				float3 glint = mc_sampleGlint();
 				surfaceColor.rgb += glint * glint;
 			}
 		#endif
@@ -638,9 +638,9 @@ void main() {
 		// optimization where we skip the atmospheric fog (requiring the sky
 		// color) at low fog strengths.
 		float skyFogStrength;
-		vec4 fog = FogV2(skyFogStrength, fogDistance, fogDistance, skyLight);
+		float4 fog = FogV2(skyFogStrength, fogDistance, fogDistance, skyLight);
 
-		fragmentColor.rgb = mix(fragmentColor.rgb, fog.rgb, fog.a);
+		fragmentColor.rgb = lerp(fragmentColor.rgb, fog.rgb, fog.a);
 
 		// FogV2 instead just tells us the amount of sky color to add in to the
 		// final fogged fragment color, so we can skip computing the sky color
@@ -653,7 +653,7 @@ void main() {
 		skyFogStrength *= fog.a;
 
 		if (skyFogStrength > 0.0) {
-			vec3 sky = SkyDither(
+			float3 sky = SkyDither(
 				gl_FragCoord.xy, 
 				SkyColor(normalize(cameraRelativePos)));
 			fragmentColor.rgb += sky * skyFogStrength;
@@ -662,20 +662,20 @@ void main() {
 			// color
 			// #define DEBUG_FOG_OPTIMIZATION
 			#ifdef DEBUG_FOG_OPTIMIZATION
-				fragmentColor.rb = vec2(0.0);
+				fragmentColor.rb = float2(0.0);
 			#endif
 		}
 
 		// We also fade away the background (effectively, because we need to
 		// blend it with the fog, too) based on the same factor used to fade
 		// away the fragment color.
-		fragmentColor.a = mix(fragmentColor.a, 1.0, fog.a);
+		fragmentColor.a = lerp(fragmentColor.a, 1.0, fog.a);
 	#endif
 
 	gl_FragData[0] = fragmentColor;
 
 	#if !defined(AFTER_DEFERRED)
-		gl_FragData[1] = vec4(skyLight);
+		gl_FragData[1] = float4(skyLight);
 		/* DRAWBUFFERS:02 */
 	#else
 		/* DRAWBUFFERS:0 */

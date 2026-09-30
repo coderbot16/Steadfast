@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-in vec2 texcoord;
+in float2 texcoord;
 in float waterHeight;
 
 uniform sampler2D gtexture;
@@ -26,7 +26,7 @@ const int R16_SNORM = 0;
 const int shadowcolor0Format = R16_SNORM;
 
 void main() {
-	vec4 surfaceColor = texture(gtexture, texcoord);
+	float4 surfaceColor = texture(gtexture, texcoord);
 
 	if (surfaceColor.a < alphaTestRef) { 
 		discard;
@@ -34,5 +34,5 @@ void main() {
 	}
 
 /* DRAWBUFFERS:0 */
-	gl_FragData[0] = vec4(waterHeight, 1.0, 1.0, 1.0);
+	gl_FragData[0] = float4(waterHeight, 1.0, 1.0, 1.0);
 }

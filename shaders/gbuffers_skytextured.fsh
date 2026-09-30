@@ -15,6 +15,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #version 150 compatibility
+
+#include "/lib/unslang.glsl"
 #include "/environment/tonemap_settings.glsl"
 // The Uchimura and Uncharted 2 tonemaps have a much different white point, so
 // for the sun and moon we need a bit of hardcoding per tonemap for now.

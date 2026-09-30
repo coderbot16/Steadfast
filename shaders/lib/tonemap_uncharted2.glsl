@@ -19,7 +19,7 @@
 //#define SATURATED_TONEMAP
 
 // Uncharted 2 Tonemap from https://64.github.io/tonemapping/#uncharted-2
-vec3 Uncharted2TonemapPartial(vec3 x) {
+float3 Uncharted2TonemapPartial(float3 x) {
 	#ifdef SATURATED_TONEMAP
 		// These are the tonemapping parameters from John Hable's original
 		// presentation at GDC:
@@ -53,11 +53,11 @@ vec3 Uncharted2TonemapPartial(vec3 x) {
 	return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
 }
 
-vec3 Uncharted2Tonemap(vec3 v) {
+float3 Uncharted2Tonemap(float3 v) {
 	float exposure_bias = 2.0;
-	vec3 curr = Uncharted2TonemapPartial(v * exposure_bias);
+	float3 curr = Uncharted2TonemapPartial(v * exposure_bias);
 
-	vec3 W = vec3(11.2);
-	vec3 white_scale = vec3(1.0) / Uncharted2TonemapPartial(W);
+	float3 W = float3(11.2);
+	float3 white_scale = float3(1.0) / Uncharted2TonemapPartial(W);
 	return curr * white_scale;
 }

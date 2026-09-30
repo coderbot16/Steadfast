@@ -30,13 +30,13 @@ const float noisePixel = 1.0 / noiseTextureResolution;
 	uniform sampler2D noisetex;
 #endif
 
-float noise(vec3 noiseChannel, in vec2 pos) {
+float noise(float3 noiseChannel, in float2 pos) {
 	return dot(texture(noisetex, pos).xyz, noiseChannel);
 }
 
 // Helper function for the below smoothed noise function, this is taken from
 // Perlin noise.
-vec2 fade(vec2 t) {
+float2 fade(float2 t) {
 	// 6t^5 - 15t^4 + 10t^3
 	return t * t * t * (t * (t * 6 - 15) + 10);
 }
@@ -66,13 +66,13 @@ vec2 fade(vec2 t) {
 //        quadrant covers the input coordinates (0.0, 0.0) to (1.0, 1.0).
 //
 // Output: 3 coherent noise values in the range [0.0, 1.0]
-vec3 smoothNoise2Dx3(vec2 at) {
+float3 smoothNoise2Dx3(float2 at) {
 	// Determine the corner of the grid cell this coordinate lies in.
-	vec2 corner = floor(at);
+	float2 corner = floor(at);
 
 	// Per OpenGL reference pages, fract(x) is calculated by x - floor(x).
 	// Since we have floor(x) anyways, we can skip the call to fract(x).
-	vec2 offset = at - corner;
+	float2 offset = at - corner;
 
 	// The critical component of value noise that makes it smooth (other than
 	// the interpolation) is the smoothstep / fade function that we apply to the
@@ -114,7 +114,7 @@ vec3 smoothNoise2Dx3(vec2 at) {
 }
 
 // Same as the function above, but only returns a single value noise result.
-float smoothNoise2D(vec2 at) {
+float smoothNoise2D(float2 at) {
 	// TODO: This could be even faster if we used a 1-component texture instead
 	// of sampling an RGB/RGBA texture and throwing away the other components.
 	return smoothNoise2Dx3(at).x;
@@ -123,7 +123,7 @@ float smoothNoise2D(vec2 at) {
 // Same as the function above, but instead of returning the x component, it
 // allows you to create your own noise channels dynamically - the noiseChannel
 // parameter contains the weights of each noise channel.
-float smoothNoise2D(vec3 noiseChannel, vec2 at) {
+float smoothNoise2D(float3 noiseChannel, float2 at) {
 	return dot(smoothNoise2Dx3(at), noiseChannel);
 }
 

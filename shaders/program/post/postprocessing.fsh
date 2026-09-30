@@ -31,7 +31,7 @@ const int R11F_G11F_B10F = 0;
 // By default, Iris clears colortex0 specifically to the fog color. We do not
 // need this behavior, so clear to zero. On some drivers this is supposedly
 // faster, though I noticed no difference.
-const vec4 colortex0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
+const float4 colortex0ClearColor = float4(0.0, 0.0, 0.0, 0.0);
 const int colortex0Format = R11F_G11F_B10F;
 
 // Godrays format is just a single color channel, 8 bits is enough.
@@ -46,14 +46,13 @@ const int colortex1Format = R8;
 
 // For consistency, also clear colortex1 to zero. This in particular has no
 // performance difference but it is unusual compared to all other textures
-const vec4 colortex1ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
+const float4 colortex1ClearColor = float4(0.0, 0.0, 0.0, 0.0);
 
 #include "/lib/tonemap_uncharted2.glsl"
 #include "/lib/tonemap_uchimura.glsl"
 #include "/lib/srgb.glsl"
 
 // GODRAYS BEGIN
-#include "/lib/unslang.glsl"
 #include "/common/lib/bayer8.slang"
 
 #define GODRAYS_SAMPLE_DEFINED

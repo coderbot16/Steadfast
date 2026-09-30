@@ -38,21 +38,21 @@ float pow4(float x) {
 //#define HARDER_HORIZON_NIGHT
 
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
-	uniform vec3 worldSunVector;
+	uniform float3 worldSunVector;
 
 	uniform float sunrise;
-	uniform vec3 skyZenithDay;
-	uniform vec3 skyHorizonDay;
-	uniform vec3 skyLightDay;
+	uniform float3 skyZenithDay;
+	uniform float3 skyHorizonDay;
+	uniform float3 skyLightDay;
 
 	uniform float moonrise;
-	uniform vec3 skyZenithNight;
-	uniform vec3 skyHorizonNight;
-	uniform vec3 skyLightNight;
+	uniform float3 skyZenithNight;
+	uniform float3 skyHorizonNight;
+	uniform float3 skyLightNight;
 #endif
 
 // Returns an HDR sky color at the given world-space vector
-vec3 SkyColor(vec3 worldDir) {
+float3 SkyColor(float3 worldDir) {
 	// Cosine/dot product with horizon. Gradually transitions to 0 above the 
 	// horizon, always 1 below the horizon.
 	#if defined(HARDER_HORIZON_DAY) || defined(HARDER_HORIZON_NIGHT)
@@ -104,12 +104,12 @@ vec3 SkyColor(vec3 worldDir) {
 	float moonriseScatter = moonrise * dotHorizonNight * pow4(dotLightNight);
 
 	// Base sky gradient transitioning from horizon color to zenith color
-	vec3 daySkyBase   = mix(skyZenithDay,   skyHorizonDay,   baseScatterDay);
-	vec3 nightSkyBase = mix(skyZenithNight, skyHorizonNight, baseScatterNight);
+	float3 daySkyBase   = lerp(skyZenithDay,   skyHorizonDay,   baseScatterDay);
+	float3 nightSkyBase = lerp(skyZenithNight, skyHorizonNight, baseScatterNight);
 
 	// Sunlight scattered into the sky gradient
-	vec3 daySky =   mix(daySkyBase,   skyLightDay,    sunriseScatter);
-	vec3 nightSky = mix(nightSkyBase, skyLightNight, moonriseScatter);
+	float3 daySky =   lerp(daySkyBase,   skyLightDay,    sunriseScatter);
+	float3 nightSky = lerp(nightSkyBase, skyLightNight, moonriseScatter);
 
 	return daySky + nightSky;
 }

@@ -30,14 +30,14 @@
 // This function relies solely on a previously-defined WaterHeight function of
 // the form:
 //
-// float WaterHeight(vec2 worldPos, float time);
+// float WaterHeight(float2 worldPos, float time);
 //
 // The height returned from that function MUST be in the range 0.0 to 1.0.
-vec2 WaterSurfaceParallaxMapping(
-	vec2 worldPos,
-	vec2 ddxWorldPos,
-	vec2 ddyWorldPos,
-	vec3 viewVector
+float2 WaterSurfaceParallaxMapping(
+	float2 worldPos,
+	float2 ddxWorldPos,
+	float2 ddyWorldPos,
+	float3 viewVector
 ) {
 	// We are tracing through a surface that is 1 meter thick. One factor that
 	// is slightly modified from traditional parallax mapping is that we work
@@ -64,7 +64,7 @@ vec2 WaterSurfaceParallaxMapping(
 	// tracing into the surface! And since this fragment is on-screen and from
 	// a face that faces the camera, we certainly must be tracing into the
 	// surface.
-	vec2 posStep = viewVector.xy / abs(viewVector.z);
+	float2 posStep = viewVector.xy / abs(viewVector.z);
 
 	for (uint i = uint(0); i < uint(ITERATIONS); i++) {
 		// Determine the height of the surface at the current position.

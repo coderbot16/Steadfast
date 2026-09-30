@@ -98,13 +98,13 @@ const float refinementDecelerationFactor = (REFINEMENT_DISTANCE
 //    distance
 bool Raytrace(
 	sampler2D depthBuffer,
-	mat4 gbufferProjection,
-	mat4 gbufferProjectionInverse,
-	vec3 viewPos,
-	vec3 reflectDirection,
-	vec2 thicknessControl,
-	out vec2 hitPos,
-	out vec3 hitViewPos
+	float4x4 gbufferProjection,
+	float4x4 gbufferProjectionInverse,
+	float3 viewPos,
+	float3 reflectDirection,
+	float2 thicknessControl,
+	out float2 hitPos,
+	out float3 hitViewPos
 ) {
 	// State variables for refinement
 	uint refinementRounds = 0u;
@@ -112,9 +112,9 @@ bool Raytrace(
 
 	// Initial velocity and thickness
 	//
-	// Stored together in case the shader compiler likes a single vec4
-	// better than a vec3 + float.
-	vec4 velocityAndThickness = vec4(reflectDirection, thicknessControl.x);
+	// Stored together in case the shader compiler likes a single float4
+	// better than a float3 + float.
+	float4 velocityAndThickness = float4(reflectDirection, thicknessControl.x);
 
 	// If the reflection is towards the viewer, immediately reject it since no
 	// good reflection is really feasible here.
@@ -134,8 +134,8 @@ bool Raytrace(
 		//
 		// Starting small and then increasing prevents tree fragments above you
 		// from being reflected in water in front of you.
-		velocityAndThickness *= vec4(
-			vec3(ACCELERATION_FACTOR),
+		velocityAndThickness *= float4(
+			float3(ACCELERATION_FACTOR),
 			ACCELERATION_FACTOR * thicknessControl.y);
 
 		// Prevent thickness from getting too large as that will mean far
@@ -155,13 +155,13 @@ bool Raytrace(
 		float maxZ = viewPos.z - thicknessM;
 
 		// Convert view position to NDC (-1.0 to 1.0) coordinates.
-		vec4 clipPos = gbufferProjection * vec4(viewPos, 1.0);
-		vec3 ndcPos = clipPos.xyz / clipPos.w;
+		float4 clipPos = gbufferProjection * float4(viewPos, 1.0);
+		float3 ndcPos = clipPos.xyz / clipPos.w;
 
 		// Check if the NDC coordinates still lie within the screen.
 		// If any coordinate goes below -1 or above 1, it's definitely
 		// outside of the screen.
-		vec3 absNdcPos = abs(ndcPos);
+		float3 absNdcPos = abs(ndcPos);
 		float maxNdc = max(max(absNdcPos.x, absNdcPos.y), absNdcPos.z);
 		if (maxNdc > 1.0) {
 			// We escaped the screen, reject the raytracing.
@@ -172,9 +172,9 @@ bool Raytrace(
 		// this 2D screen position. We need the screen position to sample the
 		// depth buffer, but otherwise we can remain in NDC space as much as
 		// possible as we need the NDC position to get the view position.
-		vec2 screenPos2D = ndcPos.xy * 0.5 + 0.5;
+		float2 screenPos2D = ndcPos.xy * 0.5 + 0.5;
 		ndcPos.z = texture(depthBuffer, screenPos2D).x * 2.0 - 1.0;
-		vec4 homogenousPos = gbufferProjectionInverse * vec4(ndcPos, 1.0);
+		float4 homogenousPos = gbufferProjectionInverse * float4(ndcPos, 1.0);
 		float sampledViewZ = homogenousPos.z / homogenousPos.w;
 
 		// Intersections are odd because the Z values are all negative. What we
@@ -197,7 +197,7 @@ bool Raytrace(
 			// return this hit if we don't find a better one.
 			hasHitPos = true;
 			hitPos = screenPos2D;
-			hitViewPos = vec3(homogenousPos.xy / homogenousPos.w, sampledViewZ);
+			hitViewPos = float3(homogenousPos.xy / homogenousPos.w, sampledViewZ);
 
 			// Undo the last raymarch and decelerate so we can try to trace a
 			// more precise hit.

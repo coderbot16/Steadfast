@@ -30,9 +30,9 @@
 	uniform float viewHeight;
 #endif
 
-// Returns a vec2 containing the minimum depth (x) and maximum depth (y) at the
-// given position in the depth buffer.
-vec2 depthRange(sampler2D depthBuffer, vec2 at) {
+// Returns a float2 containing the minimum depth (x) and maximum depth (y) at
+// the given position in the depth buffer.
+float2 depthRange(sampler2D depthBuffer, float2 at) {
 	#if defined(REFRACTION_REJECT_MODE_GATHER)
 		// We need to be careful with exactly HOW we determine if the hit is
 		// closer - this is because the position is not necessarily centered on
@@ -46,7 +46,7 @@ vec2 depthRange(sampler2D depthBuffer, vec2 at) {
 		// NOTE: We are using textureGather from the ARB extension, which does
 		// not support the optional "component" argument. Since we just need the
 		// "x" component, this is OK since that is the default!
-		vec4 refractDepthX4 = textureGather(depthBuffer, at);
+		float4 refractDepthX4 = textureGather(depthBuffer, at);
 
 		// We got 4 depth values, so pick the minimum one as the comparison
 		// below is a greater-than check. Since depth is nonlinear, we cannot do
@@ -62,25 +62,25 @@ vec2 depthRange(sampler2D depthBuffer, vec2 at) {
 			max(refractDepthX4.z, refractDepthX4.w)
 		);
 
-		return vec2(minDepth, maxDepth);
+		return float2(minDepth, maxDepth);
 	#else
 		// Fallback approach - if we cannot use textureGather, force nearest
 		// filtering by using texelFetch. Maybe we could just set nearest 
 		// filtering on depthBuffer globally, but I am not sure if that matters
 		// for performance?
-		return vec2(texelFetch(
+		return float2(texelFetch(
 			depthBuffer,
-			ivec2(at * vec2(viewWidth, viewHeight)),
+			int2(at * float2(viewWidth, viewHeight)),
 			0
 		).x);
 	#endif
 }
 
-float min_depth(vec2 range) {
+float min_depth(float2 range) {
 	return range.x;
 }
 
-float max_depth(vec2 range) {
+float max_depth(float2 range) {
 	return range.y;
 }
 
@@ -100,24 +100,24 @@ float max_depth(vec2 range) {
 // jump to that depth along the ray. While the actual distance along the ray
 // will be greater or less, since the refracted position and background
 // position are usually close enough, this looks acceptable most of the time.
-vec3 RefractTrace(
+float3 RefractTrace(
 	sampler2D depthBuffer,
-	mat4 gbufferProjection,
-	mat4 gbufferProjectionInverse,
-	vec3 viewPos,
-	vec3 refractDirection,
+	float4x4 gbufferProjection,
+	float4x4 gbufferProjectionInverse,
+	float3 viewPos,
+	float3 refractDirection,
 	float maxRefractDistance
 ) {
 	// First part: Determine the depth of the background at this point
 	// (copied from reflection code)
 	// TODO: Don't repeat yourself
 	// TODO: Start off with gl_FragCoord instead?
-	vec4 clipPos = gbufferProjection * vec4(viewPos, 1.0);
-	vec3 ndcPos = clipPos.xyz / clipPos.w;
-	vec2 backgroundPos2D = ndcPos.xy * 0.5 + 0.5;
+	float4 clipPos = gbufferProjection * float4(viewPos, 1.0);
+	float3 ndcPos = clipPos.xyz / clipPos.w;
+	float2 backgroundPos2D = ndcPos.xy * 0.5 + 0.5;
 	float backgroundDepth = max_depth(depthRange(depthBuffer, backgroundPos2D));
 	ndcPos.z = backgroundDepth * 2.0 - 1.0;
-	vec4 homogenousPos = gbufferProjectionInverse * vec4(ndcPos, 1.0);
+	float4 homogenousPos = gbufferProjectionInverse * float4(ndcPos, 1.0);
 	float backgroundViewPosZ = homogenousPos.z / homogenousPos.w;
 
 	// Second part: Advance by that distance along the refracted ray, to get the
@@ -127,7 +127,7 @@ vec3 RefractTrace(
 	float refractDistance = min(
 		abs(viewPos.z - backgroundViewPosZ),
 		maxRefractDistance);
-	vec3 viewPosRefracted = viewPos + refractDirection * refractDistance;
+	float3 viewPosRefracted = viewPos + refractDirection * refractDistance;
 
 	// Given that refracted position in view space, we want to then sample to
 	// get a fragment visible on-screen. While that is already almost certainly
@@ -141,14 +141,14 @@ vec3 RefractTrace(
 	//
 	// Combined with the tuned refraction direction calculation, this makes the
 	// limitations of the screen-space method here nearly invisible.
-	vec4 refractedClipPos = gbufferProjection * vec4(viewPosRefracted, 1.0);
-	vec2 refractedPosNdc = refractedClipPos.xy / refractedClipPos.w;
-	vec2 hitPosAbs = abs(refractedPosNdc);
+	float4 refractedClipPos = gbufferProjection * float4(viewPosRefracted, 1.0);
+	float2 refractedPosNdc = refractedClipPos.xy / refractedClipPos.w;
+	float2 hitPosAbs = abs(refractedPosNdc);
 	float hitPosMax = max(hitPosAbs.x, hitPosAbs.y);
 	float visibility = min(1.0, (1.0 - hitPosMax) / 0.10);
 
-	vec2 refractedPos2D = refractedPosNdc * 0.5 + 0.5;
-	refractedPos2D = mix(backgroundPos2D, refractedPos2D, visibility);
+	float2 refractedPos2D = refractedPosNdc * 0.5 + 0.5;
+	refractedPos2D = lerp(backgroundPos2D, refractedPos2D, visibility);
 
 	// Rare case - if our refract hit is closer to us than where we are
 	// refracting from, it's definitely not a valid hit. This happens near the
@@ -157,7 +157,7 @@ vec3 RefractTrace(
 	//
 	// Note: Use if defined(...) to avoid this getting picked up as a
 	// configurable option.
-	vec2 refractDepthRange = depthRange(depthBuffer, refractedPos2D);
+	float2 refractDepthRange = depthRange(depthBuffer, refractedPos2D);
 	float refractDepth = max_depth(refractDepthRange);
 
 	if (gl_FragCoord.z > min_depth(refractDepthRange)) {
@@ -165,12 +165,12 @@ vec3 RefractTrace(
 		refractDepth = backgroundDepth;
 	}
 
-	return vec3(refractedPos2D, refractDepth);
+	return float3(refractedPos2D, refractDepth);
 }
 
 // Samples the given texture at a given position, with the right sampling mode
 // to avoid bleeding from texels that are not behind the refractive surface.
-vec4 RefractionSafeSample(sampler2D colorBuffer, vec2 at) {
+float4 RefractionSafeSample(sampler2D colorBuffer, float2 at) {
 	#if defined(REFRACTION_REJECT_MODE_GATHER)
 		// Bilinear interpolation is safe because we previously confirmed that
 		// all 4 texels pass our depth check.
@@ -178,6 +178,6 @@ vec4 RefractionSafeSample(sampler2D colorBuffer, vec2 at) {
 	#else
 		// Fall back to nearest filtering when textureGather is unavailable.
 		return texelFetch(colorBuffer,
-			ivec2(at * vec2(viewWidth, viewHeight)), 0);
+			int2(at * float2(viewWidth, viewHeight)), 0);
 	#endif
 }

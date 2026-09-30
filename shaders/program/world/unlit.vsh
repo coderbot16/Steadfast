@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-out vec4 tinting;
-out vec2 texcoord;
+out float4 tinting;
+out float2 texcoord;
 
 void main() {
 	tinting = gl_Color;
@@ -27,6 +27,6 @@ void main() {
 	// 
 	// Always keep this in sync with the transformations in
 	// that file!
-	vec4 viewPos = gl_ModelViewMatrix * gl_Vertex;
+	float4 viewPos = gl_ModelViewMatrix * gl_Vertex;
 	gl_Position = gl_ProjectionMatrix * viewPos;
 }

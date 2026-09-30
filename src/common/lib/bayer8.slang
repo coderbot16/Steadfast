@@ -35,12 +35,12 @@ float Bayer4(float2 a) {
 // Mathematically equivalent to:
 //
 // return dot(
-// 	vec3(
+// 	float3(
 // 		0.0625,
 // 		0.25,
 // 		1.0
 // 	),
-// 	vec3(
+// 	float3(
 // 		Bayer2(a * 0.25),
 // 		Bayer2(a * 0.5),
 // 		Bayer2(a)

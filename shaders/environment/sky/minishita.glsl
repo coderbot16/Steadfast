@@ -210,22 +210,29 @@ float RayleighPhase(float mu) {
 // reverse = dot(direction, origin)
 //     + sqrt(dot(direction, origin) * dot(direction, origin)
 //            + 1 - dot(origin, origin))
-float RayIntersectUnitSphereBi(vec3 origin, vec3 direction, out float reverse) {
+struct RaySphereIntersect {
+	float forward;
+	float reverse;
+};
+
+RaySphereIntersect RayIntersectUnitSphere(float3 origin, float3 direction) {
 	// Cost: 5 FLOPs (2x dot, 1x subtract, 1x fma, 1x sqrt)
 	float od = dot(origin, direction);
 	float oo = dot(origin, origin);
 	float sq = sqrt(od * od + (1.0 - oo));
 
 	// Cost: 2 FLOPs (1x subtract, 1x add)
-	reverse = sq + od;
-	return sq - od;
+	float forward = sq - od;
+	float reverse = sq + od;
+
+	return RaySphereIntersect(forward, reverse);
 }
 
 // Rayleigh scatteing coefficient as used by Bruneton, given wavelengths
 // of 680 nm (red), 550 nm (green), and 440 nm (blue)
 //
 // Expressed with the unit (10^-6)*(m^-1), aka "per 1000km"
-const vec3 RAYLEIGH_SCATTER_COEFFICIENTS = vec3(5.8, 13.5, 33.1);
+static const float3 RAYLEIGH_SCATTER_COEFFICIENTS = float3(5.8, 13.5, 33.1);
 
 // Mie scattering coefficient. Bruneton uses 20.0, but because we take a
 // shortcut of using the same scale height for Rayleigh and Mie scattering in
@@ -233,7 +240,7 @@ const vec3 RAYLEIGH_SCATTER_COEFFICIENTS = vec3(5.8, 13.5, 33.1);
 // from becoming excessively dominant.
 //
 // Expressed with the unit (10^-6)*(m^-1), aka "per 1000km"
-const float MIE_SCATTER_COEFFICIENT = 5.0;
+static const float MIE_SCATTER_COEFFICIENT = 5.0;
 
 // The radius of the planet (Earth) used by Bruneton.
 //
@@ -241,7 +248,7 @@ const float MIE_SCATTER_COEFFICIENT = 5.0;
 // 6357 km, but this is not far off of the equatorial radius of 6378 km.
 // 
 // https://en.wikipedia.org/wiki/Earth_radius
-const float PLANET_RADIUS_KM = 6360.0;
+static const float PLANET_RADIUS_KM = 6360.0;
 
 // These values are somewhat arbitrary though are inspired by Earth-like values.
 // I mostly selected them by tweaking them incrementally over time. They are not
@@ -257,8 +264,8 @@ const float PLANET_RADIUS_KM = 6360.0;
 // (8 km for Rayleigh, 1.2 km for Mie). However, in our atmosphere the primary
 // contribution in the scattering integral is from Rayleigh scattering, so
 // we can skip some calculations by using the same height for Mie scattering.
-const float ATMOSPHERE_THICKNESS_KM = 100.0;
-const float SCALE_HEIGHT_KM = 25.0;
+static const float ATMOSPHERE_THICKNESS_KM = 100.0;
+static const float SCALE_HEIGHT_KM = 25.0;
 
 // We measure lengths in a space where the atmosphere radius is 1.0, that is,
 // the atmosphere is a unit sphere.
@@ -267,10 +274,11 @@ const float SCALE_HEIGHT_KM = 25.0;
 // elsewhere outside of changing the constants in use. It is therefore a free
 // reduction in computation because computing intersections against a unit
 // sphere involves simpler calculations.
-const float ATMOSPHERE_RADIUS_KM = PLANET_RADIUS_KM + ATMOSPHERE_THICKNESS_KM;
-const float KM_TO_UNIT = 1.0 / ATMOSPHERE_RADIUS_KM;
-const float PLANET_RADIUS_UNIT = KM_TO_UNIT * (PLANET_RADIUS_KM);
-const float SCALE_HEIGHT_UNIT = KM_TO_UNIT * (SCALE_HEIGHT_KM);
+static const float ATMOSPHERE_RADIUS_KM =
+	PLANET_RADIUS_KM + ATMOSPHERE_THICKNESS_KM;
+static const float KM_TO_UNIT = 1.0 / ATMOSPHERE_RADIUS_KM;
+static const float PLANET_RADIUS_UNIT = KM_TO_UNIT * (PLANET_RADIUS_KM);
+static const float SCALE_HEIGHT_UNIT = KM_TO_UNIT * (SCALE_HEIGHT_KM);
 
 // Scattering coefficients scaled to work with a unit sphere when calculating
 // optical depth.
@@ -283,9 +291,10 @@ const float SCALE_HEIGHT_UNIT = KM_TO_UNIT * (SCALE_HEIGHT_KM);
 // We can multiply by (1 megameter / 1000 km) such that the coefficients are
 // "per km", then multiply by the atmosphere radius divided by the unit radius.
 // Numerically, the unit radius is 1, hence we get the following:
-const float COEFFICIENT_TO_UNIT = ATMOSPHERE_RADIUS_KM * (1.0 / 1000.0);
-const vec3 RAYLEIGH_UNIT = COEFFICIENT_TO_UNIT * RAYLEIGH_SCATTER_COEFFICIENTS;
-const float MIE_UNIT = COEFFICIENT_TO_UNIT * MIE_SCATTER_COEFFICIENT;
+static const float COEFFICIENT_TO_UNIT = ATMOSPHERE_RADIUS_KM * (1.0 / 1000.0);
+static const float3 RAYLEIGH_UNIT =
+	COEFFICIENT_TO_UNIT * RAYLEIGH_SCATTER_COEFFICIENTS;
+static const float MIE_UNIT = COEFFICIENT_TO_UNIT * MIE_SCATTER_COEFFICIENT;
 
 // In normal atmospheric scattering, we would set the eye height at the real
 // height compared to sea level, which would be close to zero in our case.
@@ -297,8 +306,9 @@ const float MIE_UNIT = COEFFICIENT_TO_UNIT * MIE_SCATTER_COEFFICIENT;
 //
 // 5 km is not a fixed value, but worked well in my testing. Otherwise, the
 // unit height scaling is the same as above.
-const float EYE_HEIGHT_KM = 5.0;
-const float EYE_HEIGHT_UNIT = KM_TO_UNIT * (PLANET_RADIUS_KM + EYE_HEIGHT_KM);
+static const float EYE_HEIGHT_KM = 5.0;
+static const float EYE_HEIGHT_UNIT =
+	KM_TO_UNIT * (PLANET_RADIUS_KM + EYE_HEIGHT_KM);
 
 // Typically, Nishita scattering involves sampling multiple (4-8) points
 // along the light ray per each view sample. Because each view sample would
@@ -324,9 +334,9 @@ const float EYE_HEIGHT_UNIT = KM_TO_UNIT * (PLANET_RADIUS_KM + EYE_HEIGHT_KM);
 // need to divide by the number of samples, as there is only one.
 //
 // Cost: 12 FLOPs
-float OpticalDepthLight(vec3 samplePos, vec3 worldLightDir, float distance) {
+float OpticalDepthLight(float3 samplePos, float3 lightDir, float distance) {
 	// Cost: 7 FLOPs (2x mul + 5x fma + 1x sqrt + 1x subtract)
-	vec3 lightSamplePos = worldLightDir * (0.15 * distance) + samplePos;
+	float3 lightSamplePos = lightDir * (0.15 * distance) + samplePos;
 	float lightHeight = length(lightSamplePos) - PLANET_RADIUS_UNIT;
 
 	// Cost: 3 FLOPs (2x mul, 1x exp)
@@ -335,25 +345,25 @@ float OpticalDepthLight(vec3 samplePos, vec3 worldLightDir, float distance) {
 
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
 	// Scattering coefficients and exposure multiplied together.
-	uniform vec3 rayleighStrengthSun;
+	uniform float3 rayleighStrengthSun;
 	uniform float mieStrengthSun;
-	uniform vec3 rayleighStrengthMoon;
+	uniform float3 rayleighStrengthMoon;
 	uniform float mieStrengthMoon;
 
 	// These are two colors multiplied with the luminance of the day / night sky
 	// respectively and blended with the alpha value. This allows recoloring the
 	// sky stylistically, which is currently done during rain (gray) and at
 	// night (blue-gray).
-	uniform vec4 daySkyOverridePremultiplied;
-	uniform vec4 nightSkyOverridePremultiplied;
+	uniform float4 daySkyOverridePremultiplied;
+	uniform float4 nightSkyOverridePremultiplied;
 
 	// The ambient sky color is added to the physically-based sky model and is
 	// generally a blue color during the day.
-	uniform vec3 ambientSkyColor;
+	uniform float3 ambientSkyColor;
 
 	// The direction of the sun in world space. We can assume the moon lies in
 	// the exact opposite direction.
-	uniform vec3 worldSunVector;
+	uniform float3 worldSunVector;
 #endif
 
 // This is the actual implementation of the sky color calculation utilizing
@@ -386,7 +396,7 @@ float OpticalDepthLight(vec3 samplePos, vec3 worldLightDir, float distance) {
 // using 16 view traces and 8 light traces per view trace could cost 2000 - 4000
 // FLOPs per pixel, which would be significantly more difficult to utilize in
 // real-time rendering.
-vec3 SkyColor(vec3 worldDir) {
+float3 SkyColor(float3 worldDir) {
 	// Compute the cosine of the angle of the view vector with the sun and moon
 	// using the dot product. The Rayleigh phase function is the same when
 	// negating the cosine, so there is no need to recompute it for the moon.
@@ -402,8 +412,8 @@ vec3 SkyColor(vec3 worldDir) {
 	// Cost: 30 FLOPs (2x 11 FLOPs per CornetteShanks, 2x mul, 2x3 fma)
 	float scatterMieSun = CornetteShanks(muSun) * mieStrengthSun;
 	float scatterMieMoon = CornetteShanks(muMoon) * mieStrengthMoon;
-	vec3 scatterSun = rayleighPhase * rayleighStrengthSun + scatterMieSun;
-	vec3 scatterMoon = rayleighPhase * rayleighStrengthMoon + scatterMieMoon;
+	float3 scatterSun = rayleighPhase * rayleighStrengthSun + scatterMieSun;
+	float3 scatterMoon = rayleighPhase * rayleighStrengthMoon + scatterMieMoon;
 
 	// The color of the atmosphere below the horizon has no clear definition
 	// in physically-based atmosphere models, as you cannot actually see that
@@ -428,7 +438,7 @@ vec3 SkyColor(vec3 worldDir) {
 	// The distance from the eye position to the edge of the atmosphere in the
 	// provided view direction.
 	//
-	// This is the same as RayIntersectUnitSphereBi(eyePos, worldDir), but
+	// This is the same as RayIntersectUnitSphere(eyePos, worldDir), but
 	// specialized from the eye positioned at (0, EYE_HEIGHT_UNIT, 0) as we can
 	// assume in this function, and only caring about the forward intersection.
 	//
@@ -450,9 +460,9 @@ vec3 SkyColor(vec3 worldDir) {
 	// point.
 	//
 	// Cost: 18 FLOPs (4x mul + 2x5 fma + 2x sqrt + 2x subtract)
-	const vec3 eyePos = vec3(0.0, EYE_HEIGHT_UNIT, 0.0);
-	vec3 samplePos1 = worldDir * (0.15 * atmosphereDistance) + eyePos;
-	vec3 samplePos2 = worldDir * (0.65 * atmosphereDistance) + eyePos;
+	const float3 eyePos = float3(0.0, EYE_HEIGHT_UNIT, 0.0);
+	float3 samplePos1 = worldDir * (0.15 * atmosphereDistance) + eyePos;
+	float3 samplePos2 = worldDir * (0.65 * atmosphereDistance) + eyePos;
 	float vHeight1 = length(samplePos1) - PLANET_RADIUS_UNIT;
 	float vHeight2 = length(samplePos2) - PLANET_RADIUS_UNIT;
 
@@ -491,10 +501,13 @@ vec3 SkyColor(vec3 worldDir) {
 	// function, where it cancels out for a further simplification. All that is
 	// the "bidirectional" part of the ray-sphere intersection.
 	//
-	// Cost: 14 FLOPs (7 FLOPs per RayIntersectUnitSphereBi)
-	float dM1, dM2;
-	float dS1 = RayIntersectUnitSphereBi(samplePos1, worldSunVector, dM1);
-	float dS2 = RayIntersectUnitSphereBi(samplePos2, worldSunVector, dM2);
+	// Cost: 14 FLOPs (7 FLOPs per RayIntersectUnitSphere)
+	RaySphereIntersect d1 = RayIntersectUnitSphere(samplePos1, worldSunVector);
+	RaySphereIntersect d2 = RayIntersectUnitSphere(samplePos2, worldSunVector);
+	float dS1 = d1.forward;
+	float dM1 = d1.reverse;
+	float dS2 = d2.forward;
+	float dM2 = d2.reverse;
 
 	// We compute the change in optical depth identically to the view traces,
 	// but we only have one sample along each light trace.
@@ -517,10 +530,10 @@ vec3 SkyColor(vec3 worldDir) {
 	// probably does not work well because the two samples are so far apart.
 	//
 	// Cost: 8 FLOPs (4x fma, 4x mul)
-	float opticalDepthS1 = dot(vec2(depthLightSun1, depthV1), vec2(0.5, 0.05));
-	float opticalDepthS2 = dot(vec2(depthLightSun2, depthV2), vec2(0.5, 3.0));
-	float opticalDepthM1 = dot(vec2(depthLightMoon1, depthV1), vec2(0.5, 0.05));
-	float opticalDepthM2 = dot(vec2(depthLightMoon2, depthV2), vec2(0.5, 3.0));
+	float opticalDepthS1 = (depthLightSun1  * 0.5) + (depthV1 * 0.05);
+	float opticalDepthS2 = (depthLightSun2  * 0.5) + (depthV2 * 3.0);
+	float opticalDepthM1 = (depthLightMoon1 * 0.5) + (depthV1 * 0.05);
+	float opticalDepthM2 = (depthLightMoon2 * 0.5) + (depthV2 * 3.0);
 
 	// The final step of the integral is to sum up, along each view sample
 	// position, the density ratio, the change in path distance, and the actual
@@ -531,10 +544,10 @@ vec3 SkyColor(vec3 worldDir) {
 	// hence why we re-use it here.
 	//
 	// Cost: 36 FLOPs (4x3 mul + 4x3 exp + 4x3 mul)
-	vec3 tmSun  = depthV1 * exp(opticalDepthS1 * (-(RAYLEIGH_UNIT + MIE_UNIT)))
-	            + depthV2 * exp(opticalDepthS2 * (-(RAYLEIGH_UNIT + MIE_UNIT)));
-	vec3 tmMoon = depthV1 * exp(opticalDepthM1 * (-(RAYLEIGH_UNIT + MIE_UNIT)))
-	            + depthV2 * exp(opticalDepthM2 * (-(RAYLEIGH_UNIT + MIE_UNIT)));
+	float3 tmS = depthV1 * exp(opticalDepthS1 * (-(RAYLEIGH_UNIT + MIE_UNIT)))
+	           + depthV2 * exp(opticalDepthS2 * (-(RAYLEIGH_UNIT + MIE_UNIT)));
+	float3 tmM = depthV1 * exp(opticalDepthM1 * (-(RAYLEIGH_UNIT + MIE_UNIT)))
+	           + depthV2 * exp(opticalDepthM2 * (-(RAYLEIGH_UNIT + MIE_UNIT)));
 
 	// Multiply transmittance and scattering to get the atmosphere color.
 	//
@@ -542,24 +555,24 @@ vec3 SkyColor(vec3 worldDir) {
 	// calculate the luminance of the atmosphere color.
 	//
 	// Cost: 12 FLOPs (2x3 mul, 2x2 fma, 2x mul)
-	vec3 day = tmSun * scatterSun;
-	vec3 night = tmMoon * scatterMoon;
-	float luminanceDay = dot(day, vec3(0.2126, 0.7152, 0.0722));
-	float luminanceNight = dot(night, vec3(0.2126, 0.7152, 0.0722));
+	float3 day = tmS * scatterSun;
+	float3 night = tmM * scatterMoon;
+	float luminanceDay = dot(day, float3(0.2126, 0.7152, 0.0722));
+	float luminanceNight = dot(night, float3(0.2126, 0.7152, 0.0722));
 
 	// Micro-optimized variant of the following, allowing tweaking the color
 	// of the sky while retaining its luminance:
 	//
-	// day = mix(day, luminanceDay * daySkyOverride.rgb, daySkyOverride.a);
-	// night = mix(night, luminanceNight * nightSkyOverride.rgb, 
+	// day = lerp(day, luminanceDay * daySkyOverride.rgb, daySkyOverride.a);
+	// night = lerp(night, luminanceNight * nightSkyOverride.rgb, 
 	//                                                      nightSkyOverride.a);
-	// vec3 sky = day + night + ambientSkyColor;
+	// float3 sky = day + night + ambientSkyColor;
 	//
 	// We also pre-multiply the alpha value into the day and night sky override,
 	// and move the subtraction as well.
 	//
 	// Cost: 12 FLOPs (4x3 fma)
-	vec3 sky = day * daySkyOverridePremultiplied.a + ambientSkyColor;
+	float3 sky = day * daySkyOverridePremultiplied.a + ambientSkyColor;
 	sky += night * nightSkyOverridePremultiplied.a;
 	sky += luminanceDay * daySkyOverridePremultiplied.rgb;
 	sky += luminanceNight * nightSkyOverridePremultiplied.rgb;

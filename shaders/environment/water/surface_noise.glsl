@@ -131,19 +131,19 @@ const float GRADIENT_STRENGTH = 0.15;
 
 // Generated wave definitions passed in via custom uniforms.
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
-	uniform vec4 waterScrollRippleAB;
-	uniform vec4 waterScrollRippleCD;
-	uniform vec4 waterScrollCrestAB;
+	uniform float4 waterScrollRippleAB;
+	uniform float4 waterScrollRippleCD;
+	uniform float4 waterScrollCrestAB;
 
-	uniform vec3 waterStretchRippleA;
-	uniform vec3 waterStretchRippleB;
-	uniform vec3 waterStretchRippleC;
-	uniform vec3 waterStretchRippleD;
-	uniform vec3 waterStretchCrestA;
-	uniform vec3 waterStretchCrestB;
+	uniform float3 waterStretchRippleA;
+	uniform float3 waterStretchRippleB;
+	uniform float3 waterStretchRippleC;
+	uniform float3 waterStretchRippleD;
+	uniform float3 waterStretchCrestA;
+	uniform float3 waterStretchCrestB;
 
-	uniform vec4 waterMagnitudeRipple;
-	uniform vec2 waterMagnitudeCrest;
+	uniform float4 waterMagnitudeRipple;
+	uniform float2 waterMagnitudeCrest;
 #endif
 
 // Avoiding excessive aliasing in our procedural water surface:
@@ -196,24 +196,24 @@ const float GRADIENT_STRENGTH = 0.15;
 // - If we support cone-traced rough/glossy reflections in the future, we can
 //   forward some sort of roughness value out of here instead of just fading
 //   away to perfectly smooth mirror-like reflections.
-float antialiasFactor(vec2 ddxWorldPos, vec2 ddyWorldPos, vec3 stretch) {
+float antialiasFactor(float2 ddxWorldPos, float2 ddyWorldPos, float3 stretch) {
 	// Because the wave noise sampling position is just a uniform scroll plus
 	// the stretched coordinate, its partial derivatives are the same as the
 	// partial derivates of the stretched coordinate, therefore:
 	//
-	// * dFdx(at) = dFdx(stretched)
-	// * dFdy(at) = dFdy(stretched)
+	// * ddx(at) = ddx(stretched)
+	// * ddy(at) = ddy(stretched)
 	//
 	// And, because we define stretched as:
 	//
-	//     stretched = vec2(worldPos.x * stretch.x, dot(worldPos, stretch.zy))
+	//     stretched = float2(worldPos.x * stretch.x, dot(worldPos, stretch.zy))
 	//
 	// Its partial derivatives are just the same operations on the partial
 	// derivatives of the world position, for example for dFdx (same for dFdy):
 	//
-	// dFdx(stretched) = vec2(
-	//     dFdx(worldPos).x * stretch.x,
-	//     dot(dFdx(worldPos), stretch.zy));
+	// ddx(stretched) = float2(
+	//     ddx(worldPos).x * stretch.x,
+	//     dot(ddx(worldPos), stretch.zy));
 	//
 	//
 	// Per the following, each partial derivative operation is basically 3 ALUs:
@@ -224,8 +224,8 @@ float antialiasFactor(vec2 ddxWorldPos, vec2 ddyWorldPos, vec3 stretch) {
 	// our goal is to beat or match that. Since our replacement is 2 multiplies,
 	// 2 dots (which are an fma + multiple each), we just replaced 12 ALUs with
 	// 6 ALUs, so the analytical derivative way is actually faster!
-	vec2 ddxAt = vec2(ddxWorldPos.x * stretch.x, dot(ddxWorldPos, stretch.zy));
-	vec2 ddyAt = vec2(ddyWorldPos.x * stretch.x, dot(ddyWorldPos, stretch.zy));
+	float2 ddxAt = float2(ddxWorldPos.x * stretch.x, dot(ddxWorldPos, stretch.zy));
+	float2 ddyAt = float2(ddyWorldPos.x * stretch.x, dot(ddyWorldPos, stretch.zy));
 
 	// How this actually works:
 	//
@@ -253,7 +253,7 @@ float antialiasFactor(vec2 ddxWorldPos, vec2 ddyWorldPos, vec3 stretch) {
 	// "Detail Synthesis for Image-based Texturing" by Ismert/Bala/Greenberg
 	// https://www.cs.cornell.edu/~kb/publications
 	// /DetailSynthesis_I3D03_cameraready_WithHeader.pdf
-	vec2 maxes = max(abs(ddxAt), abs(ddyAt));
+	float2 maxes = max(abs(ddxAt), abs(ddyAt));
 	float ratio = max(maxes.x, maxes.y);
 
 	// We will allow users to choose their preferred tradeoff between aliasing &
@@ -293,7 +293,7 @@ float antialiasFactor(vec2 ddxWorldPos, vec2 ddyWorldPos, vec3 stretch) {
 // function at a given position. This fades the height to 0.5 as needed to avoid
 // aliasing.
 float antialiasHeight(float aa, float height) {
-	return mix(height, 0.5, aa);
+	return lerp(height, 0.5, aa);
 }
 
 // Assuming antialiasFactor returns a factor f, from the perspective of
@@ -303,22 +303,22 @@ float antialiasHeight(float aa, float height) {
 // We can assume that f remains constant in the small local area around the
 // point we are sampling, and therefore, (1.0 - f) is a constant factor in the
 // multitplication that we can peel out and multiply by the gradient.
-vec2 antialiasGradient(float aa, vec2 gradient) {
+float2 antialiasGradient(float aa, float2 gradient) {
 	return gradient * (1.0 - aa);
 }
 
 float waterRippleHeight(
-	vec2 worldPos,
-	vec2 ddxWorldPos,
-	vec2 ddyWorldPos,
+	float2 worldPos,
+	float2 ddxWorldPos,
+	float2 ddyWorldPos,
 	uint i,
-	vec3 stretch,
-	vec2 scroll
+	float3 stretch,
+	float2 scroll
 ) {
-	vec2 stretched = vec2(
+	float2 stretched = float2(
 		worldPos.x * stretch.x,
 		dot(worldPos, stretch.zy));
-	vec2 at = scroll + stretched;
+	float2 at = scroll + stretched;
 	float aa = antialiasFactor(ddxWorldPos, ddyWorldPos, stretch);
 
 	return waterMagnitudeRipple[i] * antialiasHeight(aa, smoothNoise2D(at));
@@ -332,9 +332,9 @@ float waterRippleHeight(
 //
 // Inputs: horizontal world position in meters and partial derivatives
 float WaterHeight(
-	vec2 worldPos,
-	vec2 ddxWorldPos,
-	vec2 ddyWorldPos,
+	float2 worldPos,
+	float2 ddxWorldPos,
+	float2 ddyWorldPos,
 	bool approximate
 ) {
 	float height = 0.0;
@@ -369,13 +369,13 @@ float WaterHeight(
 	}
 
 	for (uint i = uint(0); i < 2u; i++) {
-		vec3 stretch = i == 0u ? waterStretchCrestA : waterStretchCrestB;
-		vec2 scroll = i == 0u ? waterScrollCrestAB.xy : waterScrollCrestAB.zw;
+		float3 stretch = i == 0u ? waterStretchCrestA : waterStretchCrestB;
+		float2 scroll = i == 0u ? waterScrollCrestAB.xy : waterScrollCrestAB.zw;
 		
-		vec2 stretched = vec2(
+		float2 stretched = float2(
 			worldPos.x * stretch.x,
 			dot(worldPos, stretch.zy));
-		vec2 at = scroll + stretched;
+		float2 at = scroll + stretched;
 		float aa = antialiasFactor(ddxWorldPos, ddyWorldPos, stretch);
 
 		height += waterMagnitudeCrest[i] * crest(
@@ -386,39 +386,39 @@ float WaterHeight(
 }
 
 float WaterHeight(
-	vec2 worldPos,
-	vec2 ddxWorldPos,
-	vec2 ddyWorldPos
+	float2 worldPos,
+	float2 ddxWorldPos,
+	float2 ddyWorldPos
 ) {
 	return WaterHeight(worldPos, ddxWorldPos, ddyWorldPos, false);
 }
 
 float WaterHeightApproximate(
-	vec2 worldPos,
-	vec2 ddxWorldPos,
-	vec2 ddyWorldPos
+	float2 worldPos,
+	float2 ddxWorldPos,
+	float2 ddyWorldPos
 ) {
 	return WaterHeight(worldPos, ddxWorldPos, ddyWorldPos, true);
 }
 
 #if !defined(USE_FDM_GRADIENT)
 
-vec2 waterRippleGradient(
-	vec2 worldPos,
-	vec2 ddxWorldPos,
-	vec2 ddyWorldPos,
+float2 waterRippleGradient(
+	float2 worldPos,
+	float2 ddxWorldPos,
+	float2 ddyWorldPos,
 	uint i,
-	vec3 stretch,
-	vec2 scroll
+	float3 stretch,
+	float2 scroll
 ) {
 	// Same notes here as in the WaterHeight function
-	vec2 stretched = vec2(
+	float2 stretched = float2(
 		worldPos.x * stretch.x,
 		dot(worldPos, stretch.zy));
-	vec2 at = scroll + stretched;
+	float2 at = scroll + stretched;
 	float aa = antialiasFactor(ddxWorldPos, ddyWorldPos, stretch);
 
-	vec2 waveGradient = (GRADIENT_STRENGTH * waterMagnitudeRipple[i])
+	float2 waveGradient = (GRADIENT_STRENGTH * waterMagnitudeRipple[i])
 		* gradSmoothNoise2D(at);
 
 	// This part is the main tricky part of the analytic gradient - we have
@@ -446,7 +446,7 @@ vec2 waterRippleGradient(
 	// Finally, as this is the negative gradient, we subtract when
 	// accumulating.
 	return antialiasGradient(aa,
-		vec2(dot(stretch.xz, waveGradient), waveGradient.y * stretch.y));
+		float2(dot(stretch.xz, waveGradient), waveGradient.y * stretch.y));
 }
 
 // Computes the negative gradient of the water surface using analytic
@@ -458,12 +458,12 @@ vec2 waterRippleGradient(
 // This function returns -gradient (negative gradient) since the normal is
 // perpendicular to the actual gradient, and we can bake the multiplication by
 // -1 into one of the existing multiplies so that it is free.
-vec2 WaterNGradientAnalytic(
-	vec2 worldPos,
-	vec2 ddxWorldPos,
-	vec2 ddyWorldPos
+float2 WaterNGradientAnalytic(
+	float2 worldPos,
+	float2 ddxWorldPos,
+	float2 ddyWorldPos
 ) {
-	vec2 gradient = vec2(0.0);
+	float2 gradient = float2(0.0);
 
 	// Ripple waves - Scrolled and stretched smooth value noise
 	gradient -= waterRippleGradient(worldPos, ddxWorldPos, ddyWorldPos,
@@ -478,13 +478,13 @@ vec2 WaterNGradientAnalytic(
 	// Crest waves - Like ripple waves, but we use crest around the result of
 	// the smoothed value noise.
 	for (uint i = uint(0); i < 2u; i++) {
-		vec3 stretch = i == 0u ? waterStretchCrestA : waterStretchCrestB;
-		vec2 scroll = i == 0u ? waterScrollCrestAB.xy : waterScrollCrestAB.zw;
+		float3 stretch = i == 0u ? waterStretchCrestA : waterStretchCrestB;
+		float2 scroll = i == 0u ? waterScrollCrestAB.xy : waterScrollCrestAB.zw;
 		
-		vec2 stretched = vec2(
+		float2 stretched = float2(
 			worldPos.x * stretch.x,
 			dot(worldPos, stretch.zy));
-		vec2 at = scroll + stretched;
+		float2 at = scroll + stretched;
 		float aa = antialiasFactor(ddxWorldPos, ddyWorldPos, stretch);
 
 		// Antialiasing is a bit more involved in the gradients of these crest
@@ -495,19 +495,19 @@ vec2 WaterNGradientAnalytic(
 		// need to apply antialiasing to the returned gradient. Since we use
 		// antialiasFactor twice, we have inlined antialiasHeight and
 		// antialiasGradient here.
-		float heightAt = mix(smoothNoise2D(at), 0.5, aa);
+		float heightAt = lerp(smoothNoise2D(at), 0.5, aa);
 
 		// The main complexity here is that we need to apply the chain rule due
 		// to the crest function.
 		//
 		// Other than that, this is fairly similar to above.
-		vec2 waveGradient = (GRADIENT_STRENGTH * waterMagnitudeCrest[i])
+		float2 waveGradient = (GRADIENT_STRENGTH * waterMagnitudeCrest[i])
 			* gradSmoothNoise2D(at) * crestDerivative(heightAt);
 
 		// Same notes apply as above, note that we have inlined the
 		// functionality of antialiasGradient here.
 		gradient -= (1.0 - aa) * 
-			vec2(dot(stretch.xz, waveGradient), waveGradient.y * stretch.y);
+			float2(dot(stretch.xz, waveGradient), waveGradient.y * stretch.y);
 	}
 
 	return gradient;
@@ -533,10 +533,10 @@ vec2 WaterNGradientAnalytic(
 //
 // But, for something widely-distributed in production, it makes sense to use
 // the more efficient analytical method to get maximum performance.
-vec2 WaterNGradientFDM(
-	vec2 worldPos,
-	vec2 ddxWorldPos,
-	vec2 ddyWorldPos
+float2 WaterNGradientFDM(
+	float2 worldPos,
+	float2 ddxWorldPos,
+	float2 ddyWorldPos
 ) {
 	// This is about the lowest I could go without major artifacts. The lower
 	// you can go the better, but at some point we run out of floating-point
@@ -544,13 +544,13 @@ vec2 WaterNGradientFDM(
 	// wave funciton. Play around with this as needed.
 	const float delta = 0.05;
 
-	vec2 ddxPos = ddxWorldPos;
-	vec2 ddyPos = ddyWorldPos;
+	float2 ddxPos = ddxWorldPos;
+	float2 ddyPos = ddyWorldPos;
 	float h00 = WaterHeight(worldPos                   , ddxPos, ddyPos);
-	float hX0 = WaterHeight(worldPos + vec2(delta, 0.0), ddxPos, ddyPos);
-	float h0Y = WaterHeight(worldPos + vec2(0.0, delta), ddxPos, ddyPos);
+	float hX0 = WaterHeight(worldPos + float2(delta, 0.0), ddxPos, ddyPos);
+	float h0Y = WaterHeight(worldPos + float2(0.0, delta), ddxPos, ddyPos);
 
-	return (-GRADIENT_STRENGTH / delta) * (vec2(hX0, h0Y) - vec2(h00));
+	return (-GRADIENT_STRENGTH / delta) * (float2(hX0, h0Y) - float2(h00));
 }
 
 // Returns the normal map for the water surface computed from the gradient of
@@ -559,19 +559,19 @@ vec2 WaterNGradientFDM(
 // Inputs: horizontal world position in meters and partial derivatives
 // Output: normal vector in tangent space (X/Y = in-plane, Z = up out of the
 // plane)
-vec3 WaterNormal(
-	vec2 worldPos,
-	vec2 ddxWorldPos,
-	vec2 ddyWorldPos,
+float3 WaterNormal(
+	float2 worldPos,
+	float2 ddxWorldPos,
+	float2 ddyWorldPos,
 	float time
 ) {
 	#if defined(USE_FDM_GRADIENT)
-		vec2 minusGradient = WaterNGradientFDM(
+		float2 minusGradient = WaterNGradientFDM(
 			worldPos, ddxWorldPos, ddyWorldPos);
 	#else
-		vec2 minusGradient = WaterNGradientAnalytic(
+		float2 minusGradient = WaterNGradientAnalytic(
 			worldPos, ddxWorldPos, ddyWorldPos);
 	#endif
 
-	return normalize(vec3(minusGradient, 1.0));
+	return normalize(float3(minusGradient, 1.0));
 }

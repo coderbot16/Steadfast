@@ -61,7 +61,7 @@ const float entityShadowDistanceMul = 0.25;
 // Samples the shadow map additional times to soften shadows.
 #define SOFTER_SHADOWS
 #ifdef SOFTER_SHADOWS
-	float SampleShadows(vec3 shadowPos) {
+	float SampleShadows(float3 shadowPos) {
 		// Controls softness and pixelation of shadows
 		#define SHADOW_SOFTNESS 0.5 // [0.05 0.10 0.25 0.33 0.5 0.66]
 		const float spread = SHADOW_SOFTNESS / shadowMapResolution;
@@ -70,10 +70,10 @@ const float entityShadowDistanceMul = 0.25;
 		// accelerated 2x2 PCF tap, ending up with sampling up to 16 different
 		// texels in the shadowmap. However, at low values of shadow softness,
 		// the taps overlap.
-		vec3 tap1 = vec3(shadowPos.xy + vec2(spread, spread), shadowPos.z);
-		vec3 tap2 = vec3(shadowPos.xy + vec2(-spread, spread), shadowPos.z);
-		vec3 tap3 = vec3(shadowPos.xy + vec2(spread, -spread), shadowPos.z);
-		vec3 tap4 = vec3(shadowPos.xy + vec2(-spread, -spread), shadowPos.z);
+		float3 tap1 = float3(shadowPos.xy + float2(spread, spread), shadowPos.z);
+		float3 tap2 = float3(shadowPos.xy + float2(-spread, spread), shadowPos.z);
+		float3 tap3 = float3(shadowPos.xy + float2(spread, -spread), shadowPos.z);
+		float3 tap4 = float3(shadowPos.xy + float2(-spread, -spread), shadowPos.z);
 
 		return 0.25 * texture(shadowSampler, tap1)
 		     + 0.25 * texture(shadowSampler, tap2)
@@ -81,7 +81,7 @@ const float entityShadowDistanceMul = 0.25;
 		     + 0.25 * texture(shadowSampler, tap4);
 	}
 #else
-	float SampleShadows(vec3 shadowPos) {
+	float SampleShadows(float3 shadowPos) {
 		return texture(shadowSampler, shadowPos);
 	}
 #endif
@@ -92,8 +92,8 @@ const float entityShadowDistanceMul = 0.25;
 float SampleWaterCaustics(
 	float shadowSample,
 	float withinShadowMap,
-	vec2 shadowPos,
-	vec3 cameraRelativePos
+	float2 shadowPos,
+	float3 cameraRelativePos
 ) {
 	// Distance in meters to apply parallax mapping to the water surface.
 	#define WATER_CAUSTICS_DISTANCE 48.0 // [8.0 16.0 24.0 32.0 48.0 64.0]
@@ -126,7 +126,7 @@ float SampleWaterCaustics(
 		// Using textureGather allows us to access the height values of
 		// neighboring texels, so we can use a gradual, almost un-noticeable
 		// fade-out.
-		vec4 encodedWaterHeights = textureGather(shadowWaterSampler, shadowPos);
+		float4 encodedWaterHeights = textureGather(shadowWaterSampler, shadowPos);
 		float encodedWaterHeight = min(
 			min(encodedWaterHeights.x, encodedWaterHeights.y),
 			min(encodedWaterHeights.z, encodedWaterHeights.w)
@@ -134,7 +134,7 @@ float SampleWaterCaustics(
 	#else
 		// If textureGather is not available, then just use nearest-neighbor
 		// sampling, and a less ideal fade-out down below.
-		ivec2 texel = ivec2(shadowMapResolution * shadowPos);
+		int2 texel = int2(shadowMapResolution * shadowPos);
 		float encodedWaterHeight = texelFetch(shadowWaterSampler, texel, 0).r;
 	#endif
 
@@ -174,7 +174,7 @@ float SampleWaterCaustics(
 		shadowSample
 	);
 
-	vec3 worldPos = cameraRelativePos + cameraPosition;
+	float3 worldPos = cameraRelativePos + cameraPosition;
 	float caustics = WaterCaustics(worldPos, timeSeconds);
 	return shadowSample * max(0.0, 1.0 + causticsStrength * caustics);
 }
@@ -186,8 +186,8 @@ float ShadowMapping(
 	float shadowSample,
 	bool subsurfaceScatter,
 	float directLightStrength,
-	vec3 shadowPos,
-	vec3 cameraRelativePos,
+	float3 shadowPos,
+	float3 cameraRelativePos,
 	float ao
 ) {
 	// The culling enabled by shadowDistanceRenderMul takes the form of an
@@ -228,16 +228,16 @@ float ShadowMapping(
 	// More specifically, cos(pi/4) ~= 0.7071, ie, a 45 degree angle with the
 	// light.
 	if (subsurfaceScatter) {
-		directLightStrength = mix(directLightStrength, 0.7071, withinShadowMap);
+		directLightStrength = lerp(directLightStrength, 0.7071, withinShadowMap);
 	}
 
-	float shadowMapSample = mix(1.0, SampleShadows(shadowPos), withinShadowMap);
+	float shadowMapSample = lerp(1.0, SampleShadows(shadowPos), withinShadowMap);
 
 	if (subsurfaceScatter) {
 		shadowMapSample *= ao;
 	} else {
 		#define DIRECT_LIGHT_AMBIENT_OCCLUSION 0.3 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
-		shadowMapSample *= mix(1.0, ao, DIRECT_LIGHT_AMBIENT_OCCLUSION);
+		shadowMapSample *= lerp(1.0, ao, DIRECT_LIGHT_AMBIENT_OCCLUSION);
 	}
 
 	shadowSample = min(shadowSample, shadowMapSample);

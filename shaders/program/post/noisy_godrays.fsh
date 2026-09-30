@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "/lib/unslang.glsl"
-
 #define GODRAYS_SAMPLE_DEFINED
 #define GodraysSampler sampler2D
 
@@ -27,8 +25,8 @@ float godraysSample(GodraysSampler sampler, float2 uv) {
 
 #include "/common/post/godrays.slang"
 
-uniform vec2 windowToScreenHalf;
-uniform vec4 screenLightVector;
+uniform float2 windowToScreenHalf;
+uniform float4 screenLightVector;
 uniform GodraysSampler depthtex0;
 
 /* DRAWBUFFERS:1 */

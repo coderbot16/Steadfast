@@ -72,7 +72,7 @@
 	uniform float skyAmbientLuminance;
 #endif
 
-vec3 WaterScattering(float skyLight, float waterDepth) {
+float3 WaterScattering(float skyLight, float waterDepth) {
 	float scatter = (1.0 - exp(WATER_SCATTER_BY_DEPTH * waterDepth));
 	// Fade out water scattering below 25% skylight
 	scatter *= max(0.0, skyLight * 1.25 - 0.25);
@@ -91,7 +91,7 @@ vec3 WaterScattering(float skyLight, float waterDepth) {
 
 	// We need to use the view matrix to convert between world-space and
 	// view-space.
-	uniform mat4 gbufferModelView;
+	uniform float4x4 gbufferModelView;
 #endif
 
 #if !defined(DH_TERRAIN)
@@ -107,18 +107,18 @@ vec3 WaterScattering(float skyLight, float waterDepth) {
 	#define WATER_REFRACTION_SAMPLE
 #endif
 
-vec3 parallaxWaterNormal(
-	vec3 incident,
-	vec3 cameraRelativePos,
-	vec2 ddxWorldPos,
-	vec2 ddyWorldPos,
+float3 parallaxWaterNormal(
+	float3 incident,
+	float3 cameraRelativePos,
+	float2 ddxWorldPos,
+	float2 ddyWorldPos,
 	bool verticalNormal,
-	vec3 worldNormal,
-	vec3 worldTangent,
-	vec3 worldBinormal
+	float3 worldNormal,
+	float3 worldTangent,
+	float3 worldBinormal
 ) {
-	mat3 worldTBN = mat3(worldTangent, worldBinormal, worldNormal);
-	vec2 waterWorldPos = cameraRelativePos.xz + cameraPosition.xz;
+	float3x3 worldTBN = float3x3(worldTangent, worldBinormal, worldNormal);
+	float2 waterWorldPos = cameraRelativePos.xz + cameraPosition.xz;
 
 	// If the normal vector is facing down instead of up, we need to flip the
 	// results of our non-TBN calculations.
@@ -142,17 +142,17 @@ vec3 parallaxWaterNormal(
 		if (parallaxStrength > 0.0001) {
 			// Note: this is safe instead of using (worldTBN * incident) because
 			// we already checked that the normal vector wasn't horizontal.
-			vec3 viewDirTangent = facing * incident.xzy;
-			vec2 offsetPos = WaterSurfaceParallaxMapping(
+			float3 viewDirTangent = facing * incident.xzy;
+			float2 offsetPos = WaterSurfaceParallaxMapping(
 				waterWorldPos,
 				ddxWorldPos,
 				ddyWorldPos,
 				viewDirTangent);
-			waterWorldPos = mix(waterWorldPos, offsetPos, parallaxStrength);
+			waterWorldPos = lerp(waterWorldPos, offsetPos, parallaxStrength);
 		}
 	#endif
 
-	vec3 waterNormal = WaterNormal(
+	float3 waterNormal = WaterNormal(
 		waterWorldPos,
 		ddxWorldPos,
 		ddyWorldPos,
@@ -165,8 +165,8 @@ vec3 parallaxWaterNormal(
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
 	// These are the view-space vectors that represent a one-pixel offset along
 	// the X and Y axis in screen-space, respectively.
-	uniform vec3 viewOffsetPixelX;
-	uniform vec3 viewOffsetPixelY;
+	uniform float3 viewOffsetPixelX;
+	uniform float3 viewOffsetPixelY;
 #endif
 
 // This function is a method of computing the partial derivative of the world
@@ -187,20 +187,20 @@ vec3 parallaxWaterNormal(
 // intersection test that simplifies the resulting derivative calculations.
 void dWorldPosdxdy(
 	// View position of the fragment
-	vec3 viewPos,
-	vec3 worldTangent,
-	vec3 worldBinormal,
-	// dFdx(worldPos), computed with the finite distance method
-	out vec3 ddxWorldPos,
-	// dFdy(worldPos), computed with the finite distance method
-	out vec3 ddyWorldPos
+	float3 viewPos,
+	float3 worldTangent,
+	float3 worldBinormal,
+	// ddx(worldPos), computed with the finite distance method
+	out float3 ddxWorldPos,
+	// ddy(worldPos), computed with the finite distance method
+	out float3 ddyWorldPos
 ) {
 	// Form a triangle in view-space with edge lengths of 1 with a plane that is
 	// parallel to and overlapping the triangle plane that this fragment came
 	// from. This "hypothetical triangle" is just to make our calculations more
 	// straightforward but does not change their results.
-	vec3 edge1 = mat3(gbufferModelView) * worldTangent;
-	vec3 edge2 = mat3(gbufferModelView) * worldBinormal;
+	float3 edge1 = float3x3(gbufferModelView) * worldTangent;
+	float3 edge2 = float3x3(gbufferModelView) * worldBinormal;
 
 	// This is the Möller–Trumbore intersection algorithm:
 	// https://en.wikipedia.org/wiki/Möller–Trumbore_intersection_algorithm
@@ -253,26 +253,26 @@ void dWorldPosdxdy(
 	//
 	// q = cross(viewPos, edge1)
 	// p = cross(D, edge2)
-	vec3 q = cross(viewPos, edge1);
+	float3 q = cross(viewPos, edge1);
 
 	// These directions set up the intersection calculation we are using to find
 	// the screen-space partial derivatives. We trace towards the triangle in
 	// the direction of the current fragment, but then add one pixel up and one
 	// pixel to the side for each trace.
-	vec3 incident = normalize(viewPos);
-	vec3 offsetX = incident + viewOffsetPixelX;
-	vec3 offsetY = incident + viewOffsetPixelY;
+	float3 incident = normalize(viewPos);
+	float3 offsetX = incident + viewOffsetPixelX;
+	float3 offsetY = incident + viewOffsetPixelY;
 
 	// Intersection for the trace along the screen in the X direction, in
 	// barycentric coordinates.
-	vec3 pdx = cross(offsetX, edge2);
+	float3 pdx = cross(offsetX, edge2);
 	float invdetdx = 1.0f / dot(pdx, edge1);
 	float dudx = invdetdx * dot(pdx, viewPos);
 	float dvdx = invdetdx * dot(offsetX, q);
 
 	// Intersection for the trace along the screen in the Y direction, in
 	// barycentric coordinates.
-	vec3 pdy = cross(offsetY, edge2);
+	float3 pdy = cross(offsetY, edge2);
 	float invdetdy = 1.0f / dot(pdy, edge1);
 	float dudy = invdetdy * dot(pdy, viewPos);
 	float dvdy = invdetdy * dot(offsetY, q);
@@ -285,12 +285,12 @@ void dWorldPosdxdy(
 	ddyWorldPos = worldTangent * dudy + worldBinormal * dvdy;
 }
 
-vec4 TranslucentLighting(
-	vec4 fragmentColor,
-	vec3 worldNormal,
-	mat3 worldTBN,
-	vec3 cameraRelativePos,
-	vec3 viewPos,
+float4 TranslucentLighting(
+	float4 fragmentColor,
+	float3 worldNormal,
+	float3x3 worldTBN,
+	float3 cameraRelativePos,
+	float3 viewPos,
 	float reflectionStrength,
 	float skyLight,
 	uint materialID
@@ -304,17 +304,17 @@ vec4 TranslucentLighting(
 	// glBlendFunc(sfactor=GL_SRC_ALPHA, dfactor=GL_ONE_MINUS_SRC_ALPHA)
 	float srcAlpha = 1.0 - fragmentColor.a;
 	fragmentColor.rgb *= fragmentColor.a;
-	vec3 normal = worldNormal;
+	float3 normal = worldNormal;
 
 	// We can get the view-space incident vector (needed for reflection and
 	// refraction) from normalizing the view position as the incident vector
 	// from our view is necessarily the direction of the fragment in view space!
-	vec3 incident = normalize(cameraRelativePos);
+	float3 incident = normalize(cameraRelativePos);
 
-	vec3 worldTangent  = worldTBN[0];
-	vec3 worldBinormal = worldTBN[1];
+	float3 worldTangent  = worldTBN[0];
+	float3 worldBinormal = worldTBN[1];
 
-	// Compute ddxWorldPos = dFdx(worldPos) and ddyWorldPos = dFdy(worldPos)
+	// Compute ddxWorldPos = ddx(worldPos) and ddyWorldPos = ddy(worldPos)
 	// without actually requiring the screen-space partial derivative functions
 	// dFdx or dFdy, which are not compatible with discarded fragments or any
 	// other form of non-uniform control flow. This is primarily a limitation in
@@ -325,8 +325,8 @@ vec4 TranslucentLighting(
 	// both each other and the normal vector for correct results, hence by
 	// definition they must be the tangent and binormal vectors, but their
 	// order does not matter.
-	vec3 ddxWorldPos;
-	vec3 ddyWorldPos;
+	float3 ddxWorldPos;
+	float3 ddyWorldPos;
 	dWorldPosdxdy(
 		// Inputs
 		viewPos, worldTangent, worldBinormal,
@@ -383,7 +383,7 @@ vec4 TranslucentLighting(
 		// view space is warped and skewed, and these sorts of calculations
 		// give wacky results, while doing them in world space leads to
 		// correct reflection results.
-		vec3 reflected = reflect(incident, normal);
+		float3 reflected = reflect(incident, normal);
 
 		// TODO: This is a hack. Sometimes, we hit the "back" of a wave we
 		// technically should not be able to see, and the reflected direction
@@ -414,8 +414,8 @@ vec4 TranslucentLighting(
 		// Very basic reflections using the sky gradient. There is no need to
 		// apply fog to the sky reflection, as we apply fog at the very end for
 		// the overall fragment (reflection + refraction + its own color.)
-		vec3 skyReflection = SkyDither(gl_FragCoord.xy, SkyColor(reflected));
-		vec3 reflectedColor = skyReflection;
+		float3 skyReflection = SkyDither(gl_FragCoord.xy, SkyColor(reflected));
+		float3 reflectedColor = skyReflection;
 
 		// Allows water and ice to reflect the world in addition to the sky.
 		#define SCREENSPACE_REFLECTIONS
@@ -427,8 +427,8 @@ vec4 TranslucentLighting(
 			// 
 			// As a result, reflections are reserved for outdoors, not caves and
 			// indoors.
-			vec2 hitPos;
-			vec3 hitViewPos;
+			float2 hitPos;
+			float3 hitViewPos;
 
 			// Controls the base thickness and increase in thickness over
 			// distance during raytracing, effectively the tolerance of
@@ -438,16 +438,16 @@ vec4 TranslucentLighting(
 			// X: initial thickness in meters
 			// Y: additional increase in meters per raytracing step not directly
 			//    related to distance
-			vec2 thicknessControl;
+			float2 thicknessControl;
 
 			// The mirror-like reflection of ice makes it harder to hide the
 			// stretching aspect caused by thickness, so use a low thickness for
 			// that. However, the wavy reflection of water easily hides the
 			// stretching, and reflecting something looks better than nothing in
 			// that case.
-			thicknessControl = vec2(materialID == ICE ? 0.5 : 1.0, 1.0);
+			thicknessControl = float2(materialID == ICE ? 0.5 : 1.0, 1.0);
 			
-			vec3 reflectedView = mat3(gbufferModelView) * reflected;
+			float3 reflectedView = float3x3(gbufferModelView) * reflected;
 
 			bool hit = Raytrace(
 				opaqueDepth,
@@ -478,7 +478,7 @@ vec4 TranslucentLighting(
 			#endif
 
 			if (hit) {
-				vec2 hitPosAbs = abs(hitPos * 2.0 - 1.0);
+				float2 hitPosAbs = abs(hitPos * 2.0 - 1.0);
 				float hitPosMax = max(hitPosAbs.x, hitPosAbs.y);
 				float visibility = min(1.0, (1.0 - hitPosMax) / 0.10);
 
@@ -493,11 +493,11 @@ vec4 TranslucentLighting(
 				// This transformation is just getting the Z component of
 				// the normal in view space.
 				float viewNormalZ = dot(gbufferModelView[2].xyz, worldNormal);
-				visibility = mix(1.0, visibility, clamp(viewNormalZ, 0.0, 1.0));
+				visibility = lerp(1.0, visibility, clamp(viewNormalZ, 0.0, 1.0));
 
-				vec3 terrainReflection = texture(colortex4, hitPos).rgb;
-				vec3 cameraRelativePosW = 
-					(gbufferModelViewInverse * vec4(hitViewPos, 1.0)).xyz;
+				float3 terrainReflection = texture(colortex4, hitPos).rgb;
+				float3 cameraRelativePosW = 
+					(gbufferModelViewInverse * float4(hitViewPos, 1.0)).xyz;
 				float fragDistanceW = max(
 					abs(cameraRelativePosW.y),
 					length(cameraRelativePosW.xz)
@@ -507,7 +507,7 @@ vec4 TranslucentLighting(
 				// reflecting - this could look odd with caves reflecting, but
 				// I have not noticed any issue and loading the sky light
 				// texture would not be free.
-				vec4 fogForWater = Fog(
+				float4 fogForWater = Fog(
 					skyReflection,
 					fragDistanceW,
 					fragDistanceW,
@@ -518,7 +518,7 @@ vec4 TranslucentLighting(
 				// direction - that is, we are fading the terrain reflection
 				// into its background, even if the water the reflection will be
 				// applied to is in a different situation fog-wise.
-				reflectedColor = mix(
+				reflectedColor = lerp(
 					reflectedColor,
 					terrainReflection * fogForWater.a + fogForWater.rgb,
 					visibility);
@@ -530,7 +530,7 @@ vec4 TranslucentLighting(
 		//
 		// The short version is that we need to reduce the visibility of the
 		// terrain behind the water even more when incorporating reflections.
-		fragmentColor.rgb = mix(fragmentColor.rgb, reflectedColor, fresnel);
+		fragmentColor.rgb = lerp(fragmentColor.rgb, reflectedColor, fresnel);
 		srcAlpha *= 1.0 - fresnel;
 	}
 
@@ -589,22 +589,22 @@ vec4 TranslucentLighting(
 			// the original incident vector, which means that the incident
 			// vector and refracted vector are close enough to make some
 			// important approximations.
-			vec3 refractedDir = normalize(incident + normal - worldNormal);
+			float3 refractedDir = normalize(incident + normal - worldNormal);
 			float maxRefractDistance = 32.0;
 
-			vec3 refractedDirView = mat3(gbufferModelView) * refractedDir;
+			float3 refractedDirView = float3x3(gbufferModelView) * refractedDir;
 
 			// TODO: Simplify this or perhaps make refraction not care about
 			//       the depth buffer at all.
-			vec3 refractedScreenPos = RefractTrace(
+			float3 refractedScreenPos = RefractTrace(
 				opaqueDepth, projectionMatrix, inverseProjectionMatrix,
 			 	viewPos, refractedDirView, maxRefractDistance
 			);
-			vec3 ndcPosRefracted = refractedScreenPos * 2.0 - 1.0;
-			vec4 viewPosHRefracted =
-				inverseProjectionMatrix * vec4(ndcPosRefracted, 1.0);
-			vec3 viewPosRefracted =
-				vec3(viewPosHRefracted.xyz / viewPosHRefracted.w);
+			float3 ndcPosRefracted = refractedScreenPos * 2.0 - 1.0;
+			float4 viewPosHRefracted =
+				inverseProjectionMatrix * float4(ndcPosRefracted, 1.0);
+			float3 viewPosRefracted =
+				float3(viewPosHRefracted.xyz / viewPosHRefracted.w);
 
 			#if defined(DISTANT_HORIZONS) && !defined(DH_TERRAIN)
 				if (refractedScreenPos.z == 1.0) {
@@ -619,19 +619,19 @@ vec4 TranslucentLighting(
 
 					ndcPosRefracted = refractedScreenPos * 2.0 - 1.0;
 					viewPosHRefracted = inverseProjectionMatrixDistant
-						* vec4(ndcPosRefracted, 1.0);
+						* float4(ndcPosRefracted, 1.0);
 					viewPosRefracted =
-						vec3(viewPosHRefracted.xyz / viewPosHRefracted.w);
+						float3(viewPosHRefracted.xyz / viewPosHRefracted.w);
 				}
 			#endif
 
-			vec3 dstColor = RefractionSafeSample(
+			float3 dstColor = RefractionSafeSample(
 				colortex4, 
 				refractedScreenPos.xy
 			).rgb;
 
 			#ifdef ROUGH_REFRACTION
-				dstColor = mix(
+				dstColor = lerp(
 					dstColor,
 					texture(colortex6, refractedScreenPos.xy).rgb,
 					ROUGH_REFRACTION_STRENGTH);
@@ -651,7 +651,7 @@ vec4 TranslucentLighting(
 				// space.
 				//
 				// TODO: This leads to inaccurate results during nausea
-				vec3 upVector = gbufferModelView[1].xyz;
+				float3 upVector = gbufferModelView[1].xyz;
 
 				float waterDepth;
 
@@ -694,5 +694,5 @@ vec4 TranslucentLighting(
 		}
 	#endif
 
-	return vec4(fragmentColor.rgb, 1.0 - srcAlpha);
+	return float4(fragmentColor.rgb, 1.0 - srcAlpha);
 }

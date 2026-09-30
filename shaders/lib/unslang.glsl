@@ -43,4 +43,32 @@
 #define float4x4 mat4
 #define float4x4 mat4x4
 
+float lerp(float x, float y, float a) {
+	return mix(x, y, a);
+}
+
+float2 lerp(float2 x, float2 y, float a) {
+	return mix(x, y, a);
+}
+
+float3 lerp(float3 x, float3 y, float a) {
+	return mix(x, y, a);
+}
+
+float4 lerp(float4 x, float4 y, float a) {
+	return mix(x, y, a);
+}
+
+float2 lerp(float2 x, float2 y, float2 a) {
+	return mix(x, y, a);
+}
+
+float3 lerp(float3 x, float3 y, float3 a) {
+	return mix(x, y, a);
+}
+
+float4 lerp(float4 x, float4 y, float4 a) {
+	return mix(x, y, a);
+}
+
 #define static

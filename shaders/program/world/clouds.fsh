@@ -18,24 +18,24 @@
 #include "/lib/srgb.glsl"
 
 // The interpolated vertex color directly from the vertex buffer.
-in vec4 tinting;
+in float4 tinting;
 
 // The base material (block/entity/etc) texture
 uniform sampler2D gtexture;
 
 // The interpolated texture coordinate directly from the vertex buffer.
-in vec2 texcoord;
+in float2 texcoord;
 
-in vec4 fog;
+in float4 fog;
 
-uniform vec3 cloudColor;
+uniform float3 cloudColor;
 
 // Alpha test threshold - any pixels with an alpha less than this will be
 // discarded.
 uniform float alphaTestRef;
 
 void main() {
-	vec4 surfaceColor = tinting * texture(gtexture, texcoord);
+	float4 surfaceColor = tinting * texture(gtexture, texcoord);
 
 	// Run the alpha test immediately to avoid shading fragments
 	// that would fail the alpha test.
@@ -63,5 +63,5 @@ void main() {
 	// Multiply in cloud color / fog and write out to the primary color
 	// buffer.
 /* DRAWBUFFERS:0 */
-	gl_FragData[0] = vec4(surfaceColor.rgb * cloudColor * fog.a + fog.rgb, 0.2);
+	gl_FragData[0] = float4(surfaceColor.rgb * cloudColor * fog.a + fog.rgb, 0.2);
 }

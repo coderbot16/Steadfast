@@ -15,5 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #version 150 compatibility
+
+#include "/lib/unslang.glsl"
 #define UNLIT_BRIGHTNESS 2.0
 #include "/program/world/unlit.fsh"

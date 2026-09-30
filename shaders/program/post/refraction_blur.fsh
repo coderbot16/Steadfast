@@ -16,7 +16,7 @@
 
 #include "/lib/kernels/jimenez_downsample.glsl"
 
-uniform vec2 windowToScreenHalf;
+uniform float2 windowToScreenHalf;
 uniform sampler2D colortex4;
 
 /* DRAWBUFFERS:6 */
@@ -24,7 +24,7 @@ const int R11F_G11F_B10F = 0;
 const int colortex6Format = R11F_G11F_B10F;
 
 void main() {
-	vec2 uv = gl_FragCoord.xy * windowToScreenHalf;
-	vec3 blur = JimenezDownsampleBlur(colortex4, uv, windowToScreenHalf);
-	gl_FragData[0] = vec4(blur, 1.0);
+	float2 uv = gl_FragCoord.xy * windowToScreenHalf;
+	float3 blur = JimenezDownsampleBlur(colortex4, uv, windowToScreenHalf);
+	gl_FragData[0] = float4(blur, 1.0);
 }

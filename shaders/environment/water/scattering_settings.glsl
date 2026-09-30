@@ -11,7 +11,7 @@ const float waterScatterColorLuminance =
 const float waterScatterColorScale = waterScatterColorLuminance < 0.001 ? 0.0 :
 	1.0 / waterScatterColorLuminance;
 
-const vec3 waterScattering = vec3(
+const float3 waterScattering = float3(
 	WATER_SCATTER_COLOR_R * (WATER_SCATTER_LUMINANCE * waterScatterColorScale),
 	WATER_SCATTER_COLOR_G * (WATER_SCATTER_LUMINANCE * waterScatterColorScale),
 	WATER_SCATTER_COLOR_B * (WATER_SCATTER_LUMINANCE * waterScatterColorScale));

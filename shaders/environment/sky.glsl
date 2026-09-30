@@ -25,7 +25,6 @@
 	#include "sky/minishita.glsl"
 #endif
 
-#include "/lib/unslang.glsl"
 #include "/common/lib/bayer8.slang"
 
 // Returns a darkening or brightening factor for the given fragment / pixel
@@ -33,7 +32,7 @@
 //
 // Credit to MakeUp Ultra Fast for the idea of dithering the sky gradient -
 // it really helped fix the otherwise obvious banding.
-vec3 SkyDither(vec2 fragCoord, vec3 skyColor) {
+float3 SkyDither(float2 fragCoord, float3 skyColor) {
 	// Intensity of sky dithering.
 	#define SKY_DITHER 0.075 // [0.0 0.025 0.05 0.075 0.1 0.125 0.15]
 
@@ -48,7 +47,7 @@ vec3 SkyDither(vec2 fragCoord, vec3 skyColor) {
 		// This isn't perfect but seems to be an OK workaround for the only case
 		// where this happens, the Retro profile at night, without impacting any
 		// other situation.
-		float skyColorLuminance = dot(skyColor, vec3(0.2126, 0.7152, 0.0722));
+		float skyColorLuminance = dot(skyColor, float3(0.2126, 0.7152, 0.0722));
 		ditherFactor *=
 			1.0 + 3.0 * (1.0 - smoothstep(0.0, 0.5, skyColorLuminance));
 	#endif

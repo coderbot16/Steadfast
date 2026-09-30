@@ -24,7 +24,7 @@
 #define VALUE_NOISE_DERIVATIVES_INCLUDED
 
 // Derivative of the fade function from above, see details below.
-vec2 gradFade(vec2 t) {
+float2 gradFade(float2 t) {
 	// 30t^4 - 60t^3 + 30t^2
 	return 30.0 * t * t * (t * (t - 2) + 1);
 }
@@ -40,7 +40,7 @@ vec2 gradFade(vec2 t) {
 // https://en.wikipedia.org/wiki/Chain_rule
 // 
 // In other words, if you wish for the gradient for N(F(x), G(y)), then that
-// will be given by gradN(F(x), G(y)) * vec2(F'(x), G'(y)), NOT just a trivial
+// will be given by gradN(F(x), G(y)) * float2(F'(x), G'(y)), NOT just a trivial
 // gradN(F(x), G(y)). You need to make sure F and G are differentiable and know
 // how to compute their derivative. Keep that in mind!
 // 
@@ -71,8 +71,8 @@ vec2 gradFade(vec2 t) {
 // Also equivalently:
 // Fade'(t) = 30.0 * t * t * (t * (t - 2) + 1)
 //
-// Note that mix(C, D, f) is just C + (D-C) * f, dMix/dt is then just
-// (D - C) * f', ie, D-C times the derivative of f. So, mix(C, D, Fade(t)) is
+// Note that lerp(C, D, f) is just C + (D-C) * f, dMix/dt is then just
+// (D - C) * f', ie, D-C times the derivative of f. So, lerp(C, D, Fade(t)) is
 // (D - C) * (30t^4 - 60t^3 + 30t^2).
 //
 // As for the whole function, we will first determine dN/dy. We will be able to
@@ -103,13 +103,13 @@ vec2 gradFade(vec2 t) {
 //                ) * Fade'(fract(x)).
 // 
 // Combining these values gives us the gradient.
-vec2 gradSmoothNoise2D(vec2 at) {
+float2 gradSmoothNoise2D(float2 at) {
 	const float centerTexelOffset = 0.5 / noiseTextureResolution;
 
 	// Determine the center of this grid cell in the texture
-	vec2 corner = floor(at);
-	vec2 center = corner * (1.0 / noiseTextureResolution) + centerTexelOffset;
-	vec2 offset = at - corner;
+	float2 corner = floor(at);
+	float2 center = corner * (1.0 / noiseTextureResolution) + centerTexelOffset;
+	float2 offset = at - corner;
 
 	// Retrieve the corresponding 4 corners of this cell in the texture. In
 	// terms of the analysis above, this is equivalent to returning the 4 values
@@ -122,14 +122,14 @@ vec2 gradSmoothNoise2D(vec2 at) {
 	// textureGather(texture, P, 0) and textureGather(texture, P) return
 	// the value:
 	// 
-	// vec4(Sample_i0_j1(P, base).x,
+	// float4(Sample_i0_j1(P, base).x,
 	//      Sample_i1_j1(P, base).x,
 	//      Sample_i1_j0(P, base).x,
 	//      Sample_i0_j0(P, base).x);
 	//
 	// In our terms:
 	//
-	// vec4(H(x,     y + 1),
+	// float4(H(x,     y + 1),
 	//      H(x + 1, y + 1),
 	//      H(x + 1, y    ),
 	//      H(x,     y    ))
@@ -142,7 +142,7 @@ vec2 gradSmoothNoise2D(vec2 at) {
 	// References:
 	// https://registry.khronos.org/OpenGL-Refpages/gl4/html/textureGather.xhtml
 	// https://registry.khronos.org/OpenGL/extensions/ARB/ARB_texture_gather.txt
-	vec4 corners = textureGather(noisetex, center);
+	float4 corners = textureGather(noisetex, center);
 
 	// Compute the 4 interpolations we require for the partial derivatives:
 	//
@@ -155,7 +155,7 @@ vec2 gradSmoothNoise2D(vec2 at) {
 	//
 	// Z: Mix(H(x + 1, y    ), H(x + 1, y + 1), Fade(fract(y)))
 	// W: Mix(H(x,     y    ), H(x,     y + 1), Fade(fract(y)))
-	vec4 mixes = mix(corners.xwzw, corners.yzyx, fade(offset).xxyy);
+	float4 mixes = lerp(corners.xwzw, corners.yzyx, fade(offset).xxyy);
 
 	// Finally, use those interpolations to compute the partial derivative:
 	// 

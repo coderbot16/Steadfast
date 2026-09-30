@@ -38,11 +38,11 @@ uniform float cloudDensityThreshold;
 
 #define PLANAR_CLOUD_COVERAGE 2.0 // [1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
 
-float cirrusCloudPlane(float seconds, vec3 channel, vec2 at) {
+float cirrusCloudPlane(float seconds, float3 channel, float2 at) {
 	// Distort the sampling position with time and noise so that we don't have
 	// completely straight lines of cloud noise. This approximates all the sorts
 	// of wind effects that normally induce this sort of chaos.
-	vec2 distorted = at;
+	float2 distorted = at;
 
 	// at is only used to compute distorted from this point on. This makes the
 	// clouds sway side-to-side as they move as this causes the distortion
@@ -66,14 +66,14 @@ float cirrusCloudPlane(float seconds, vec3 channel, vec2 at) {
 	// overall density, it is also used to offset all the other sampling
 	// positions accordingly to fight value noise artifacts and add some
 	// critical chaos to the sampling.
-	float primary = noise(channel, distorted * (noisePixel * vec2(0.2, 1.0)));
+	float primary = noise(channel, distorted * (noisePixel * float2(0.2, 1.0)));
 
 	// In addition to the higher-frequency noise used to define the clouds,
 	// use some much lower-frequency noise to decide what parts of the sky will
 	// have clouds at all. This breaks up the uniformly random clouds, which
 	// otherwise look unnatural and repetitive.
 	float coverage = PLANAR_CLOUD_COVERAGE;
-	float coverageNoise = noise(channel, at * (vec2(0.05, 0.2) * noisePixel));
+	float coverageNoise = noise(channel, at * (float2(0.05, 0.2) * noisePixel));
 	primary *= min(1.0, pow(coverage * coverageNoise, 4.0));
 
 	// The three midrange noise contributions. They all come of the same form:
@@ -100,21 +100,21 @@ float cirrusCloudPlane(float seconds, vec3 channel, vec2 at) {
 	float density = 0.56 * primary;
 
 	density += 0.28 * noise(channel,
-		distorted * (noisePixel * vec2(0.4,   2.0))
-		+ seconds * (noisePixel * vec2(0.008, 0.0))
-		+ primary * (noisePixel * vec2(0.5,   1.5))
+		distorted * (noisePixel * float2(0.4,   2.0))
+		+ seconds * (noisePixel * float2(0.008, 0.0))
+		+ primary * (noisePixel * float2(0.5,   1.5))
 	);
 	
 	density += 0.08 * noise(channel,
 		distorted * (noisePixel * 3.3               )
-		+ seconds * (noisePixel * vec2(0.064, 0.002))
-		+ primary * (noisePixel * vec2(6.0,   3.0  ))
+		+ seconds * (noisePixel * float2(0.064, 0.002))
+		+ primary * (noisePixel * float2(6.0,   3.0  ))
 	);
 
 	density += 0.04 * noise(channel,
 		distorted * (noisePixel * 10.0             )
-		+ seconds * (noisePixel * vec2( 0.32, 0.02))
-		+ primary * (noisePixel * vec2(18.0,  9.0 ))
+		+ seconds * (noisePixel * float2( 0.32, 0.02))
+		+ primary * (noisePixel * float2(18.0,  9.0 ))
 	);
 
 	// Add in some final high-frequency details. Their contributions are subtle,
@@ -130,8 +130,8 @@ float cirrusCloudPlane(float seconds, vec3 channel, vec2 at) {
 	// the value noise is visible against a background of painting-like clouds,
 	// but not too slow such that the painting-like clouds are visible against
 	// a background of value noise.
-	vec2 offset = seconds * (noisePixel * vec2(0.64, 0.04))
-	            + primary * (noisePixel * vec2(64.0, 32.0));
+	float2 offset = seconds * (noisePixel * float2(0.64, 0.04))
+	            + primary * (noisePixel * float2(64.0, 32.0));
 
 	density += 0.02 * noise(channel, distorted * (noisePixel *  32.0) + offset);
 	density += 0.01 * noise(channel, distorted * (noisePixel * 128.0) + offset);
@@ -180,11 +180,11 @@ float cirrusCloudPlane(float seconds, vec3 channel, vec2 at) {
 // For a given 2D position in the noise texture, we have 3 random values. This
 // means we can construct our own pseudorandom values by computing the dot
 // product with a given "noise channel".
-const vec3[4] noiseChannels = vec3[4](
-	vec3(1, 0, 0),
-	vec3(0, 1, 0),
-	vec3(0, 0, 1),
-	vec3(0.33, 0.33, 0.34)
+const float3[4] noiseChannels = float3[4](
+	float3(1, 0, 0),
+	float3(0, 1, 0),
+	float3(0, 0, 1),
+	float3(0.33, 0.33, 0.34)
 );
 
 // This can appear in any order. Normally, translucent blending requires strict
@@ -193,10 +193,10 @@ const vec3[4] noiseChannels = vec3[4](
 const float[4] scales = float[4](-5, -2, -7.5, -1);
 
 // A few control parameters for mixing in the final cloud color
-uniform vec3 cloudColor;
+uniform float3 cloudColor;
 uniform float cloudFade;
 
-vec3 blendCirrusClouds(vec3 skyColor, vec2 intersectPos) {
+float3 blendCirrusClouds(float3 skyColor, float2 intersectPos) {
 	// Fade clouds out with distance
 	float fade = cloudFade * max(0.0, 1.0 - length(intersectPos) / 4.0);
 
@@ -220,8 +220,8 @@ vec3 blendCirrusClouds(vec3 skyColor, vec2 intersectPos) {
 	// However, because we are using the same cloud color each time, we can 
 	// simplify like so:
 	//
-	// 1. mix(mix(skyColor, cloudColor, A), cloudColor, B)
-	// 2. (1.0 - B) * (mix(skyColor, cloudColor, A)) + cloudColor * B
+	// 1. lerp(lerp(skyColor, cloudColor, A), cloudColor, B)
+	// 2. (1.0 - B) * (lerp(skyColor, cloudColor, A)) + cloudColor * B
 	// 3. (1.0 - B) * ((1.0 - A) * skyColor +  cloudColor * A) + cloudColor * B
 	// 4. (1.0 - B) * (1.0 - A) * skyColor + cloudColor * (1.0 - B) * A
 	//    + cloudColor * B
@@ -258,7 +258,7 @@ vec3 blendCirrusClouds(vec3 skyColor, vec2 intersectPos) {
 
 // Given the background sky color and a world-space ray for this position in the
 // sky, return a blended cloud color.
-vec3 BlendClouds(vec3 skyColor, vec3 worldSpaceRay) {
+float3 BlendClouds(float3 skyColor, float3 worldSpaceRay) {
 	// Ray-plane intersection based on this linear algebra StackExchange post:
 	// https://math.stackexchange.com/a/4402157
 	//
@@ -281,8 +281,8 @@ vec3 BlendClouds(vec3 skyColor, vec3 worldSpaceRay) {
 	// where H is the cloud height.
 	//
 	//   intersectionDistance =
-	//       dot(vec3(0, 1, 0), vec3(0, H, 0))
-	//     / dot(vec3(0, 1, 0), rayDirection)
+	//       dot(float3(0, 1, 0), float3(0, H, 0))
+	//     / dot(float3(0, 1, 0), rayDirection)
 	//
 	// This simplifies to:
 	//

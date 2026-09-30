@@ -15,6 +15,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #version 150 compatibility
+
+#include "/lib/unslang.glsl"
 #define SKIP_ALPHA_TEST
 #define HAS_AMBIENT_OCCLUSION
 #include "/program/world/lit.fsh"

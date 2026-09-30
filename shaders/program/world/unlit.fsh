@@ -18,12 +18,12 @@
 
 uniform sampler2D gtexture;
 
-in vec4 tinting;
-in vec2 texcoord;
+in float4 tinting;
+in float2 texcoord;
 
 void main() {
-	vec4 srgb = tinting * texture(gtexture, texcoord);
-	vec4 fragmentColor = SrgbToLinear(srgb);
+	float4 srgb = tinting * texture(gtexture, texcoord);
+	float4 fragmentColor = SrgbToLinear(srgb);
 	fragmentColor.rgb *= UNLIT_BRIGHTNESS;
 
 /* DRAWBUFFERS:0 */

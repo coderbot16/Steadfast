@@ -15,13 +15,13 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Apply a water absorption heuristic using the results of a refraction trace.
-vec3 RefractionBasedWaterAbsorption(
-	vec3 refractedScreenPos,
-	vec3 viewPosRefracted,
-	vec3 upVector,
-	vec3 viewPos,
+float3 RefractionBasedWaterAbsorption(
+	float3 refractedScreenPos,
+	float3 viewPosRefracted,
+	float3 upVector,
+	float3 viewPos,
 	bool verticalNormal,
-	vec3 background,
+	float3 background,
 	sampler2D skylightBuffer,
 	out float waterDepth
 ) {

@@ -16,23 +16,23 @@
 
 // This is an analog of JimenezDownsampleBlur that returns the minimum depth
 // of any color sample considered by the downsampling filter at this UV.
-float JimenezMinTappedDepth(sampler2D source, vec2 uv, vec2 pxToUv) {
-	vec4 depth = vec4(1.0);
+float JimenezMinTappedDepth(sampler2D source, float2 uv, float2 pxToUv) {
+	float4 depth = float4(1.0);
 
 	// Top row
-	depth = min(depth, textureGather(source, vec2(-2.0, -2.0) * pxToUv + uv));
-	depth = min(depth, textureGather(source, vec2( 0.0, -2.0) * pxToUv + uv));
-	depth = min(depth, textureGather(source, vec2( 2.0, -2.0) * pxToUv + uv));
+	depth = min(depth, textureGather(source, float2(-2.0, -2.0) * pxToUv + uv));
+	depth = min(depth, textureGather(source, float2( 0.0, -2.0) * pxToUv + uv));
+	depth = min(depth, textureGather(source, float2( 2.0, -2.0) * pxToUv + uv));
 
 	// Middle row
-	depth = min(depth, textureGather(source, vec2(-2.0,  0.0) * pxToUv + uv));
-	depth = min(depth, textureGather(source, vec2( 0.0,  0.0) * pxToUv + uv));
-	depth = min(depth, textureGather(source, vec2( 2.0,  0.0) * pxToUv + uv));
+	depth = min(depth, textureGather(source, float2(-2.0,  0.0) * pxToUv + uv));
+	depth = min(depth, textureGather(source, float2( 0.0,  0.0) * pxToUv + uv));
+	depth = min(depth, textureGather(source, float2( 2.0,  0.0) * pxToUv + uv));
 
 	// Bottom row
-	depth = min(depth, textureGather(source, vec2(-2.0,  2.0) * pxToUv + uv));
-	depth = min(depth, textureGather(source, vec2( 0.0,  2.0) * pxToUv + uv));
-	depth = min(depth, textureGather(source, vec2( 2.0,  2.0) * pxToUv + uv));
+	depth = min(depth, textureGather(source, float2(-2.0,  2.0) * pxToUv + uv));
+	depth = min(depth, textureGather(source, float2( 0.0,  2.0) * pxToUv + uv));
+	depth = min(depth, textureGather(source, float2( 2.0,  2.0) * pxToUv + uv));
 
 	return min(
 		min(depth.x, depth.y),

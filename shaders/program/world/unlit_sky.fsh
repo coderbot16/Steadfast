@@ -18,14 +18,14 @@
 
 uniform sampler2D gtexture;
 
-in vec4 tinting;
-in vec2 texcoord;
+in float4 tinting;
+in float2 texcoord;
 
-uniform mat4 gbufferModelViewInverse;
-uniform mat4 gbufferProjectionInverse;
-uniform vec2 windowToNdc;
+uniform float4x4 gbufferModelViewInverse;
+uniform float4x4 gbufferProjectionInverse;
+uniform float2 windowToNdc;
 
-uniform vec3 worldSunVector;
+uniform float3 worldSunVector;
 
 #ifdef MC_RENDER_STAGE_SUN
 	uniform int renderStage;
@@ -36,16 +36,16 @@ void main() {
 	// it is easier to start off with a position on the far plane and then
 	// normalize to a vector than to try to get a vector out of the screen
 	// position directly.
-	vec2 ndcPos = gl_FragCoord.xy * vec2(windowToNdc) - 1.0;
-	vec4 viewVecH = gbufferProjectionInverse * vec4(ndcPos, 1.0, 1.0);
-	vec3 viewVec = normalize(viewVecH.xyz / viewVecH.w);
+	float2 ndcPos = gl_FragCoord.xy * float2(windowToNdc) - 1.0;
+	float4 viewVecH = gbufferProjectionInverse * float4(ndcPos, 1.0, 1.0);
+	float3 viewVec = normalize(viewVecH.xyz / viewVecH.w);
 
 	// Note: w must be 0.0 in homogenous coordinates, as 1.0 means a point in
 	// space rather than a vector.
-	vec3 worldSpaceVector = (gbufferModelViewInverse * vec4(viewVec, 0.0)).xyz;
+	float3 worldSpaceVector = (gbufferModelViewInverse * float4(viewVec, 0.0)).xyz;
 
-	vec4 srgb = tinting * texture(gtexture, texcoord);
-	vec4 fragmentColor = SrgbToLinear(srgb);
+	float4 srgb = tinting * texture(gtexture, texcoord);
+	float4 fragmentColor = SrgbToLinear(srgb);
 	fragmentColor.rgb *= UNLIT_BRIGHTNESS;
 
 	#ifdef MC_RENDER_STAGE_SUN

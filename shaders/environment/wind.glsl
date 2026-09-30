@@ -17,9 +17,9 @@
 // Straightforward & fast but visually appealing displacement implementation.
 // Utilizes custom uniforms defined in shaders.properties.
 uniform float windStrengthHalf;
-uniform vec4 windTheta;
+uniform float4 windTheta;
 
-vec3 WindDisplacement(vec3 worldPos) {
+float3 WindDisplacement(float3 worldPos) {
 	// Wind magnitude is given by a sine wave with a positional phase shift.
 	// In other words, it cycles between 0 and the wind strength, and varies
 	// with the block position, but in a continuous manner such that wind
@@ -31,7 +31,7 @@ vec3 WindDisplacement(vec3 worldPos) {
 	// the phase based on position. In the vertical direction (y), we halve the
 	// phase shift, as wind is horizontal, and making columns of leaves appear
 	// to move as a more continuous unit makes the wind more convincing.
-	vec2 windPhaseShift = (worldPos.x + worldPos.z) * vec2(1.5, 0.75);
+	float2 windPhaseShift = (worldPos.x + worldPos.z) * float2(1.5, 0.75);
 
 	// Finally, compute the displacement vector as magnitude times direction.
 	// The direction is given by 3 sine waves with a position-dependent phase
@@ -39,6 +39,6 @@ vec3 WindDisplacement(vec3 worldPos) {
 	//
 	// To similarly make wind appear horizontal, the vertical magnitude is
 	// halved.
-	vec3 direction = sin(windTheta.xyz + windPhaseShift.xyx);
-	return vec3(magnitude, magnitude * 0.5, magnitude) * direction;
+	float3 direction = sin(windTheta.xyz + windPhaseShift.xyx);
+	return float3(magnitude, magnitude * 0.5, magnitude) * direction;
 }

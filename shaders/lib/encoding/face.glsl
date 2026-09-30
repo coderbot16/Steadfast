@@ -54,7 +54,7 @@
 // edges of the other diamond within the square.
 //
 // Applying this function again reverses it. In other words, fold(fold(v)) = v.
-vec2 fold(vec2 octahedral) {
+float2 fold(float2 octahedral) {
 	// With the diamond shape, we can fill a square by using the 4 triangles
 	// on the edges of the diamond within the square.
 	//
@@ -81,7 +81,7 @@ vec2 fold(vec2 octahedral) {
 	// face. Instead, we need to end up at R, which swapping Y and X does.
 	//
 	// This gives us our wrapping algorithm:
-	vec2 mirrored = 1.0 - abs(octahedral.yx);
+	float2 mirrored = 1.0 - abs(octahedral.yx);
 
 	// Annoyingly, we cannot actually use the sign function here, as sign(0)
 	// gives 0, when we actually need 1. But this is just a "compare" and a
@@ -89,7 +89,7 @@ vec2 fold(vec2 octahedral) {
 	//
 	// When we have zeroes, we aren't selecting a quadrant but rather are
 	// just creating a singularity at the center. This needs to be -1 or 1.
-	vec2 quadrant = vec2(
+	float2 quadrant = float2(
 		octahedral.x >= 0.0 ? 1.0 : -1.0,
 		octahedral.y >= 0.0 ? 1.0 : -1.0
 	);
@@ -99,11 +99,11 @@ vec2 fold(vec2 octahedral) {
 
 // Given a normalized unit vector, returns the octahedral encoding of that
 // vector with each component in the 0 to 1 range.
-vec2 EncodeUnitVector(vec3 v) {
+float2 EncodeUnitVector(float3 v) {
 	// Project the vector on to an octahedron using the 1-norm. In this step,
 	// we have projected the vector assuming that it is pointing upward, and it
 	// occupies a diamond shape on a flat plane from [-1, -1] to [1, 1].
-	vec2 octahedral = v.xy / dot(abs(v), vec3(1.0));
+	float2 octahedral = v.xy / dot(abs(v), float3(1.0));
 
 	// To store both the bottom and top diamonds of the octahedron, we can fold
 	// the bottom octahedron outwards to fill in the gaps between the diamond
@@ -120,7 +120,7 @@ vec2 EncodeUnitVector(vec3 v) {
 // to 1 range, returns a vector codirectional to that unit vector.
 //
 // If you desire the same unit vector, use normalize() on the result.
-vec3 DecodeCodirectionalVector(vec2 octahedral) {
+float3 DecodeCodirectionalVector(float2 octahedral) {
 	// Scale to the -1 to 1 range
 	octahedral = octahedral * 2.0 - 1.0;
 
@@ -135,7 +135,7 @@ vec3 DecodeCodirectionalVector(vec2 octahedral) {
 
 	// We now have a vector normalized at the 1-norm.
 	// The caller calls normalize to normalize it with the 2-norm.
-	return vec3(octahedral, z);
+	return float3(octahedral, z);
 }
 
 // "Building an Orthonormal Basis, Revisited"
@@ -145,14 +145,14 @@ vec3 DecodeCodirectionalVector(vec2 octahedral) {
 // For values very close to zero the caller is mostly free to select 1.0 or -1.0
 // arbitrarily, but it must select a consistent result after accounting for
 // rounding and any encoding.
-mat2x3 OrthonormalBasisOf(vec3 normal, float signZ) {
+float3x2 OrthonormalBasisOf(float3 normal, float signZ) {
 	float sign = signZ;
 	float a = -1.0 / (sign + normal.z);
 	float b = normal.x * normal.y * a;
 
-	return mat2x3(
-		vec3(1.0 + sign * normal.x * normal.x * a, sign * b, -sign * normal.x),
-		vec3(b, sign + normal.y * normal.y * a, -normal.y)
+	return float3x2(
+		float3(1.0 + sign * normal.x * normal.x * a, sign * b, -sign * normal.x),
+		float3(b, sign + normal.y * normal.y * a, -normal.y)
 	);
 }
 
@@ -163,7 +163,7 @@ mat2x3 OrthonormalBasisOf(vec3 normal, float signZ) {
 //
 // While we could use transcendental functions to store it as an angle, those
 // functions are more costly than diamond encoding.
-float EncodeUnitVector(vec2 v) {
+float EncodeUnitVector(float2 v) {
 	// Project to the unit diamond (1-norm)
 	float x = v.x / (abs(v.x) + abs(v.y));
 
@@ -186,7 +186,7 @@ float EncodeUnitVector(vec2 v) {
 // to 1 range, returns a vector codirectional to that unit vector.
 //
 // If you desire the same unit vector, use normalize() on the result.
-vec2 DecodeCodirectionalVector(float diamond) {
+float2 DecodeCodirectionalVector(float diamond) {
 	// To decode the above mapping, we have two cases.
 	//
 	// When diamond <= 0.5 (y >= 0):
@@ -205,7 +205,7 @@ vec2 DecodeCodirectionalVector(float diamond) {
 
 	// We now have a vector normalized at the 1-norm.
 	// The caller calls normalize to normalize it with the 2-norm.
-	return vec2(
+	return float2(
 		x,
 		sign * (1.0 - abs(x))
 	);
@@ -222,13 +222,13 @@ const uint TANGENT_BITS = 9u;
 const uint TANGENT_SHIFT = 4u + OCT_BITS + OCT_BITS;
 
 uint EncodePerFace(
-	vec3 worldNormal,
-	vec3 worldTangent,
+	float3 worldNormal,
+	float3 worldTangent,
 	bool handedness,
 	uint materialID
 ) {
 	// Pack the floating point normal using fixed-point octahedral encoding
-	vec2 worldNormalOct = EncodeUnitVector(worldNormal);
+	float2 worldNormalOct = EncodeUnitVector(worldNormal);
 	uint octFixedX = uint(worldNormalOct.x * float((1u << OCT_BITS) - 1u));
 	uint octFixedY = uint(worldNormalOct.y * float((1u << OCT_BITS) - 1u));
 	uint normalBits = (octFixedX << (OCT_BITS + 4u)) | (octFixedY << 4u);
@@ -256,12 +256,12 @@ uint EncodePerFace(
 	//
 	// Without this roundtrip, the derived basis vectors during decoding would
 	// be inconsistent with what this encoding function selected.
-	float basisSign = DecodeCodirectionalVector(vec2(
+	float basisSign = DecodeCodirectionalVector(float2(
 		float(octFixedX) * (1.0 / float((1u << OCT_BITS) - 1u)),
 		float(octFixedY) * (1.0 / float((1u << OCT_BITS) - 1u))
 	)).z >= 0.0 ? 1.0 : -1.0;
 
-	mat2x3 basis = OrthonormalBasisOf(worldNormal, basisSign);
+	float3x2 basis = OrthonormalBasisOf(worldNormal, basisSign);
 
 	// Since the tangent vector is inherently orthogonal with the normal vector,
 	// and these two basis vectors are both orthogonal with the normal vector,
@@ -269,7 +269,7 @@ uint EncodePerFace(
 	//
 	// It follows that we can express the tangent vector as a linear combination
 	// of the two basis vectors.
-	vec2 plane = normalize(worldTangent) * basis;
+	float2 plane = normalize(worldTangent) * basis;
 
 	// Further, since the length of the basis vectors are both 1, and the length
 	// of the tangent is 1, the length of the 2D vector used to express this
@@ -294,22 +294,22 @@ uint DecodePerFaceMaterialID(uint perFace) {
 	return perFace & 0xFu;
 }
 
-vec3 DecodePerFaceWorldNormal(uint perFace) {
+float3 DecodePerFaceWorldNormal(uint perFace) {
 	uint octFixedX = ((1u << OCT_BITS) - 1u) & (perFace >> (4u + OCT_BITS));
 	uint octFixedY = ((1u << OCT_BITS) - 1u) & (perFace >> 4u);
 
-	return normalize(DecodeCodirectionalVector(vec2(
+	return normalize(DecodeCodirectionalVector(float2(
 		float(octFixedX) * (1.0 / float((1u << OCT_BITS) - 1u)),
 		float(octFixedY) * (1.0 / float((1u << OCT_BITS) - 1u))
 	)));
 }
 
-mat3 DecodePerFaceWorldTBN(uint perFace, vec3 worldNormal) {
+float3x3 DecodePerFaceWorldTBN(uint perFace, float3 worldNormal) {
 #ifndef TBN_MATRIX
 	// Default for upwards facing normal
-	return mat3(
-		vec3(1.0, 0.0, 0.0),
-		vec3(0.0, 0.0, 1.0),
+	return float3x3(
+		float3(1.0, 0.0, 0.0),
+		float3(0.0, 0.0, 1.0),
 		worldNormal
 	);
 #else
@@ -317,7 +317,7 @@ mat3 DecodePerFaceWorldTBN(uint perFace, vec3 worldNormal) {
 
 	// Determine the basis vectors the tangent was expressed with
 	float basisSign = worldNormal.z >= 0.0 ? 1.0 : -1.0;
-	mat2x3 basis = OrthonormalBasisOf(worldNormal, basisSign);
+	float3x2 basis = OrthonormalBasisOf(worldNormal, basisSign);
 
 	// Unpack the diamond-encoded tangent from fixed point
 	uint tangentBits = perFace >> TANGENT_SHIFT;
@@ -326,14 +326,14 @@ mat3 DecodePerFaceWorldTBN(uint perFace, vec3 worldNormal) {
 
 	// Decode the tangent and bitangent using a linear combination of the
 	// octahedral basis unit vectors.
-	vec2 plane = normalize(DecodeCodirectionalVector(tangentEncoded));
-	vec3 worldTangent = basis * plane;
+	float2 plane = normalize(DecodeCodirectionalVector(tangentEncoded));
+	float3 worldTangent = basis * plane;
 
 	// Reconstruct the bitangent using the handedness. We can skip most of the
 	// typical cross product math, since we already have these basis vectors.
 	float handedness = (perFace >> 31u) > 0u ? 1.0 : -1.0;
-	vec3 worldBitangent = basis * vec2(plane.y, -plane.x) * handedness;
+	float3 worldBitangent = basis * float2(plane.y, -plane.x) * handedness;
 
-	return mat3(worldTangent, worldBitangent, worldNormal);
+	return float3x3(worldTangent, worldBitangent, worldNormal);
 #endif
 }
