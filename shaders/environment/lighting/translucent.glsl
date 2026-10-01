@@ -159,7 +159,7 @@ float3 parallaxWaterNormal(
 		timeSeconds);
 
 
-	return worldTBN * waterNormal;
+	return mul(worldTBN, waterNormal);
 }
 
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
@@ -199,8 +199,8 @@ void dWorldPosdxdy(
 	// parallel to and overlapping the triangle plane that this fragment came
 	// from. This "hypothetical triangle" is just to make our calculations more
 	// straightforward but does not change their results.
-	float3 edge1 = float3x3(gbufferModelView) * worldTangent;
-	float3 edge2 = float3x3(gbufferModelView) * worldBinormal;
+	float3 edge1 = mul(gbufferModelView, float4(worldTangent, 0.0)).xyz;
+	float3 edge2 = mul(gbufferModelView, float4(worldBinormal, 0.0)).xyz;
 
 	// This is the Möller–Trumbore intersection algorithm:
 	// https://en.wikipedia.org/wiki/Möller–Trumbore_intersection_algorithm
@@ -446,8 +446,11 @@ float4 TranslucentLighting(
 			// stretching, and reflecting something looks better than nothing in
 			// that case.
 			thicknessControl = float2(materialID == ICE ? 0.5 : 1.0, 1.0);
-			
-			float3 reflectedView = float3x3(gbufferModelView) * reflected;
+
+			float3 reflectedView = mul(
+				gbufferModelView,
+				float4(reflected, 0.0)
+			).xyz;
 
 			bool hit = Raytrace(
 				opaqueDepth,
@@ -497,7 +500,7 @@ float4 TranslucentLighting(
 
 				float3 terrainReflection = texture(colortex4, hitPos).rgb;
 				float3 cameraRelativePosW = 
-					(gbufferModelViewInverse * float4(hitViewPos, 1.0)).xyz;
+					mul(gbufferModelViewInverse, float4(hitViewPos, 1.0)).xyz;
 				float fragDistanceW = max(
 					abs(cameraRelativePosW.y),
 					length(cameraRelativePosW.xz)
@@ -592,7 +595,10 @@ float4 TranslucentLighting(
 			float3 refractedDir = normalize(incident + normal - worldNormal);
 			float maxRefractDistance = 32.0;
 
-			float3 refractedDirView = float3x3(gbufferModelView) * refractedDir;
+			float3 refractedDirView = mul(
+				gbufferModelView,
+				float4(refractedDir, 0.0)
+			).xyz;
 
 			// TODO: Simplify this or perhaps make refraction not care about
 			//       the depth buffer at all.
@@ -602,7 +608,7 @@ float4 TranslucentLighting(
 			);
 			float3 ndcPosRefracted = refractedScreenPos * 2.0 - 1.0;
 			float4 viewPosHRefracted =
-				inverseProjectionMatrix * float4(ndcPosRefracted, 1.0);
+				mul(inverseProjectionMatrix, float4(ndcPosRefracted, 1.0));
 			float3 viewPosRefracted =
 				float3(viewPosHRefracted.xyz / viewPosHRefracted.w);
 
@@ -618,8 +624,8 @@ float4 TranslucentLighting(
 					);
 
 					ndcPosRefracted = refractedScreenPos * 2.0 - 1.0;
-					viewPosHRefracted = inverseProjectionMatrixDistant
-						* float4(ndcPosRefracted, 1.0);
+					viewPosHRefracted = mul(inverseProjectionMatrixDistant,
+						float4(ndcPosRefracted, 1.0));
 					viewPosRefracted =
 						float3(viewPosHRefracted.xyz / viewPosHRefracted.w);
 				}

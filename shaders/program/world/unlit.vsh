@@ -19,7 +19,7 @@ out float2 texcoord;
 
 void main() {
 	tinting = gl_Color;
-	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	texcoord = mul(gl_TextureMatrix[0], gl_MultiTexCoord0).xy;
 
 	// Compressed version of the transforms from lit.vsh
 	// We must use the EXACT same order of operations or else
@@ -27,6 +27,6 @@ void main() {
 	// 
 	// Always keep this in sync with the transformations in
 	// that file!
-	float4 viewPos = gl_ModelViewMatrix * gl_Vertex;
-	gl_Position = gl_ProjectionMatrix * viewPos;
+	float4 viewPos = mul(gl_ModelViewMatrix, gl_Vertex);
+	gl_Position = mul(gl_ProjectionMatrix, viewPos);
 }

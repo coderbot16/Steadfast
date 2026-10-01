@@ -269,7 +269,7 @@ uint EncodePerFace(
 	//
 	// It follows that we can express the tangent vector as a linear combination
 	// of the two basis vectors.
-	float2 plane = normalize(worldTangent) * basis;
+	float2 plane = mul(transpose(basis), normalize(worldTangent));
 
 	// Further, since the length of the basis vectors are both 1, and the length
 	// of the tangent is 1, the length of the 2D vector used to express this
@@ -327,7 +327,7 @@ float3x3 DecodePerFaceWorldTBN(uint perFace, float3 worldNormal) {
 	// Decode the tangent and bitangent using a linear combination of the
 	// octahedral basis unit vectors.
 	float2 plane = normalize(DecodeCodirectionalVector(tangentEncoded));
-	float3 worldTangent = basis * plane;
+	float3 worldTangent = mul(basis, plane);
 
 	// Reconstruct the bitangent using the handedness. We can skip most of the
 	// typical cross product math, since we already have these basis vectors.

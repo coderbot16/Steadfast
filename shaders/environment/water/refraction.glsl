@@ -112,12 +112,12 @@ float3 RefractTrace(
 	// (copied from reflection code)
 	// TODO: Don't repeat yourself
 	// TODO: Start off with gl_FragCoord instead?
-	float4 clipPos = gbufferProjection * float4(viewPos, 1.0);
+	float4 clipPos = mul(gbufferProjection, float4(viewPos, 1.0));
 	float3 ndcPos = clipPos.xyz / clipPos.w;
 	float2 backgroundPos2D = ndcPos.xy * 0.5 + 0.5;
 	float backgroundDepth = max_depth(depthRange(depthBuffer, backgroundPos2D));
 	ndcPos.z = backgroundDepth * 2.0 - 1.0;
-	float4 homogenousPos = gbufferProjectionInverse * float4(ndcPos, 1.0);
+	float4 homogenousPos = mul(gbufferProjectionInverse, float4(ndcPos, 1.0));
 	float backgroundViewPosZ = homogenousPos.z / homogenousPos.w;
 
 	// Second part: Advance by that distance along the refracted ray, to get the
@@ -141,7 +141,8 @@ float3 RefractTrace(
 	//
 	// Combined with the tuned refraction direction calculation, this makes the
 	// limitations of the screen-space method here nearly invisible.
-	float4 refractedClipPos = gbufferProjection * float4(viewPosRefracted, 1.0);
+	float4 refractedClipPos =
+		mul(gbufferProjection, float4(viewPosRefracted, 1.0));
 	float2 refractedPosNdc = refractedClipPos.xy / refractedClipPos.w;
 	float2 hitPosAbs = abs(refractedPosNdc);
 	float hitPosMax = max(hitPosAbs.x, hitPosAbs.y);

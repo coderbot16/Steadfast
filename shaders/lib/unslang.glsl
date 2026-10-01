@@ -71,4 +71,20 @@ float4 lerp(float4 x, float4 y, float4 a) {
 	return mix(x, y, a);
 }
 
+float4 mul(float4x4 m, float4 v) {
+	return m * v;
+}
+
+float3 mul(float3x3 m, float3 v) {
+	return m * v;
+}
+
+float3 mul(float3x2 m, float2 v) {
+	return m * v;
+}
+
+float2 mul(float2x3 m, float3 v) {
+	return m * v;
+}
+
 #define static

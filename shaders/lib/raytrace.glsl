@@ -155,7 +155,7 @@ bool Raytrace(
 		float maxZ = viewPos.z - thicknessM;
 
 		// Convert view position to NDC (-1.0 to 1.0) coordinates.
-		float4 clipPos = gbufferProjection * float4(viewPos, 1.0);
+		float4 clipPos = mul(gbufferProjection, float4(viewPos, 1.0));
 		float3 ndcPos = clipPos.xyz / clipPos.w;
 
 		// Check if the NDC coordinates still lie within the screen.
@@ -174,7 +174,8 @@ bool Raytrace(
 		// possible as we need the NDC position to get the view position.
 		float2 screenPos2D = ndcPos.xy * 0.5 + 0.5;
 		ndcPos.z = texture(depthBuffer, screenPos2D).x * 2.0 - 1.0;
-		float4 homogenousPos = gbufferProjectionInverse * float4(ndcPos, 1.0);
+		float4 homogenousPos =
+			mul(gbufferProjectionInverse, float4(ndcPos, 1.0));
 		float sampledViewZ = homogenousPos.z / homogenousPos.w;
 
 		// Intersections are odd because the Z values are all negative. What we

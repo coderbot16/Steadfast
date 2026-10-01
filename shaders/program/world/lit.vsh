@@ -171,10 +171,13 @@ float3 FetchWorldVector(float3 v) {
 		// transpose(inverse(gbufferModelViewInverse))
 		// = transpose(gbufferModelView)
 		//
-		// Note that the transpose & float3x3 operations are cheap because they are
+		// Note that the transpose operations are cheap because they are
 		// just renaming / excluding variables used for the underlying matrix
-		// multiplication.
-		float3 world = transpose(float3x3(gbufferModelView)) * (gl_NormalMatrix * v);
+		// multiplication, and the multiplies by 0.0 will be optimized out.
+		float3 world = mul(
+			transpose(gbufferModelView),
+			float4(mul(gl_NormalMatrix, v), 0.0)
+		).xyz;
 
 		// If the transformed vector and the original vector are approximately
 		// the same, then it was probably already in world space. In that case,
@@ -232,8 +235,9 @@ bool FetchTangentHandedness() {
 		// same length calculation, but depart by keeping this variable term
 		// separate. Multiplying it by 1.5 was a hack necessary to remove acne
 		// on far-away mountain tops.
-		float4 shadowViewPosDistort = shadowModelView * cameraRelativePos;
-		float3 shadowPosDistort = (shadowProjection * shadowViewPosDistort).xyz;
+		float4 shadowViewPosDistort = mul(shadowModelView, cameraRelativePos);
+		float3 shadowPosDistort =
+			mul(shadowProjection, shadowViewPosDistort).xyz;
 		float distanceFactor = 1.5 * length(shadowPosDistort.xy);
 
 		// However, for the fixed term, we decrease it for faces towards the
@@ -248,8 +252,9 @@ bool FetchTangentHandedness() {
 		float4 shadowBias = float4(worldNormal * distanceFactor, 0.0);
 
 		// Project to NDC space
-		float4 shadowViewPos = shadowModelView * (cameraRelativePos + shadowBias);
-		float3 shadowPos = (shadowProjection * shadowViewPos).xyz;
+		float4 shadowViewPos =
+			mul(shadowModelView, (cameraRelativePos + shadowBias));
+		float3 shadowPos = mul(shadowProjection, shadowViewPos).xyz;
 
 		// Distort relative to the center of the shadow map
 		shadowPos = distort(shadowPos);
@@ -278,7 +283,7 @@ bool FetchTangentHandedness() {
 uniform int currentRenderedItemId;
 
 void main() {
-	float4 viewPos = gl_ModelViewMatrix * gl_Vertex;
+	float4 viewPos = mul(gl_ModelViewMatrix, gl_Vertex);
 
 	// This is effectively as if we multiplied with the model matrix, because we
 	// do not get the model matrix separate from the model view matrix.
@@ -288,18 +293,18 @@ void main() {
 	// 
 	// So the inverse of the view matrix times the model view matrix is the
 	// model matrix, which gives us camera-relative coordinates.
-	float4 cameraRelativePos = gbufferModelViewInverse * viewPos;
+	float4 cameraRelativePos = mul(gbufferModelViewInverse, viewPos);
 
 	// Colorwheel passes its own copies of these values and provides them for us
 	// in the material shader we evaluate in the fragment shader, so there is no
 	// need for us to pass our own copy in this case.
 	#if !defined(COLORWHEEL)
 		tinting = gl_Color;
-		lightMap = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
+		lightMap = mul(gl_TextureMatrix[1], gl_MultiTexCoord1).xy;
 	#endif
 
 	#if !defined(NO_GTEXTURE)
-		texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+		texcoord = mul(gl_TextureMatrix[0], gl_MultiTexCoord0).xy;
 	#endif
 
 	float3 worldNormal = FetchWorldNormal();
@@ -324,7 +329,7 @@ void main() {
 
 	#ifdef WAVING_FOLIAGE
 		WaveFoliage(materialID, cameraRelativePos);
-		viewPos = gbufferModelView * cameraRelativePos;
+		viewPos = mul(gbufferModelView, cameraRelativePos);
 	#endif
 
 	#ifdef LOWER_DISTANT_WATER_HEIGHT
@@ -333,12 +338,12 @@ void main() {
 			// leads to a more abrupt transition, so this is a hack to lower the
 			// distant water faces to the same height as normal water faces.
 			cameraRelativePos.y -= 2.0 / 16.0;
-			viewPos = gbufferModelView * cameraRelativePos;
+			viewPos = mul(gbufferModelView, cameraRelativePos);
 		}
 	#endif
 
 	// Transform to clip position.
-	gl_Position = gl_ProjectionMatrix * viewPos;
+	gl_Position = mul(gl_ProjectionMatrix, viewPos);
 
 	#ifdef CLIP_WATER_TO_COVER_SCREEN
 		// This is a fairly novel hack to overcome a minor, but extremely

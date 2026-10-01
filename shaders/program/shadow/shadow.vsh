@@ -27,8 +27,8 @@ uniform float4x4 shadowModelViewInverse;
 #include "/environment/materialIDs.glsl"
 
 void main() {
-	float4 viewPos = gl_ModelViewMatrix * gl_Vertex;
-	float4 cameraRelativePos = shadowModelViewInverse * viewPos;
+	float4 viewPos = mul(gl_ModelViewMatrix, gl_Vertex);
+	float4 cameraRelativePos = mul(shadowModelViewInverse, viewPos);
 	uint materialID = DecodeMaterialID(mc_Entity.x);
 
 	// TODO: Deduplicate this, copied from lit.fsh
@@ -60,7 +60,7 @@ void main() {
 	}
 
 	texcoord = gl_MultiTexCoord0.xy;
-	gl_Position = gl_ProjectionMatrix * viewPos;
+	gl_Position = mul(gl_ProjectionMatrix, viewPos);
 	gl_Position.xyz = distort(gl_Position.xyz);
 
 	// Prevent some blocks from casting shadows for aesthetic reasons.

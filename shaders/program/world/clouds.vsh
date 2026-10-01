@@ -41,19 +41,18 @@ void main() {
 	// 
 	// So the inverse of the view matrix times the model view matrix is the
 	// model matrix, which gives us camera-relative coordinates.
-	float4 viewPos = gl_ModelViewMatrix * gl_Vertex;
-	float4 cameraRelativePos = gbufferModelViewInverse * viewPos;
+	float4 viewPos = mul(gl_ModelViewMatrix, gl_Vertex);
+	float4 cameraRelativePos = mul(gbufferModelViewInverse, viewPos);
 
 	// Fairly standard vertex shader boilerplate here.
 	tinting = gl_Color;
-	float3 normal = gl_NormalMatrix * gl_Normal;
 
 	// Transform from camera-relative position to view position to clip position
-	gl_Position = gl_ProjectionMatrix * (gbufferModelView * cameraRelativePos);
+	gl_Position = mul(gl_ProjectionMatrix, viewPos);
 
 	// Put this at the bottom to make sure nothing else inadvertently depends on
 	// this.
-	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	texcoord = mul(gl_TextureMatrix[0], gl_MultiTexCoord0).xy;
 
 	// Compute fog based on the distance, the sky color, etc.
 	// TODO: SkyDither?

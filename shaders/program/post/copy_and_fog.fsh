@@ -60,10 +60,10 @@ float3 ApplyFog(
 	// Note: w must be 1.0 in these  homogenous coordinates, as 1.0 means a
 	// point in space rather than a vector.
 	float3 ndcPos = float3(fragCoord.xy * windowToNdc, fragCoord.z * 2.0) - 1.0;
-	float4 viewPosH = inverseProjection * float4(ndcPos, 1.0);
+	float4 viewPosH = mul(inverseProjection, float4(ndcPos, 1.0));
 	float3 viewPos = viewPosH.xyz / viewPosH.w;
 	float3 cameraRelativePos =
-		(gbufferModelViewInverse * float4(viewPos, 1.0)).xyz;
+		mul(gbufferModelViewInverse, float4(viewPos, 1.0)).xyz;
 
 	float3 worldSpaceVector = normalize(cameraRelativePos);
 	float3 sky = SkyDither(fragCoord.xy, SkyColor(worldSpaceVector));

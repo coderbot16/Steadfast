@@ -37,12 +37,13 @@ void main() {
 	// normalize to a vector than to try to get a vector out of the screen
 	// position directly.
 	float2 ndcPos = gl_FragCoord.xy * float2(windowToNdc) - 1.0;
-	float4 viewVecH = gbufferProjectionInverse * float4(ndcPos, 1.0, 1.0);
+	float4 viewVecH = mul(gbufferProjectionInverse, float4(ndcPos, 1.0, 1.0));
 	float3 viewVec = normalize(viewVecH.xyz / viewVecH.w);
 
 	// Note: w must be 0.0 in homogenous coordinates, as 1.0 means a point in
 	// space rather than a vector.
-	float3 worldSpaceVector = (gbufferModelViewInverse * float4(viewVec, 0.0)).xyz;
+	float3 worldSpaceVector =
+		mul(gbufferModelViewInverse, float4(viewVec, 0.0)).xyz;
 
 	float4 srgb = tinting * texture(gtexture, texcoord);
 	float4 fragmentColor = SrgbToLinear(srgb);

@@ -141,7 +141,7 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
 
 	#if defined(TRANSLUCENT)
 		float3 ndcPos = gl_FragCoord.xyz * float3(windowToNdc, 2.0) - 1.0;
-		float4 viewPosH = inverseProjectionMatrix * float4(ndcPos, 1.0);
+		float4 viewPosH = mul(inverseProjectionMatrix, float4(ndcPos, 1.0));
 		float3 viewPos = viewPosH.xyz / viewPosH.w;
 		float3 cameraRelativePos =
 			(gbufferModelViewInverse * float4(viewPos, 1.0)).xyz;
