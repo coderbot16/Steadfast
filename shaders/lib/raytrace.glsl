@@ -197,7 +197,8 @@ bool Raytrace(
 			// return this hit if we don't find a better one.
 			hasHitPos = true;
 			hitPos = screenPos2D;
-			hitViewPos = float3(homogenousPos.xy / homogenousPos.w, sampledViewZ);
+			hitViewPos =
+				float3(homogenousPos.xy / homogenousPos.w, sampledViewZ);
 
 			// Undo the last raymarch and decelerate so we can try to trace a
 			// more precise hit.

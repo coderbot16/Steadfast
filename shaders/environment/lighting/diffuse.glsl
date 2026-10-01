@@ -221,7 +221,8 @@ void ApplyWaterAbsorption(
 	float3 blocklightIndirect
 ) {
 	// Beer's law for attenuation to simulate water absorption
-	float3 waterAbsorption = exp(WATER_ATTENUATION_COEFFICIENTS * depthInMeters);
+	float3 waterAbsorption =
+		exp(WATER_ATTENUATION_COEFFICIENTS * depthInMeters);
 
 	float wdepth = depthInMeters * (1.0 / 16.0);
 
