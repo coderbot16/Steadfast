@@ -15,31 +15,31 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Generic material without special effects
-const uint GENERIC = 0u;
+static const uint GENERIC = 0u;
 
 // Connected Waving + Subsurface Scattering (Leaves)
-const uint LEAVES = 1u;
+static const uint LEAVES = 1u;
 
 // Disconnected Waving + Subsurface Scattering (Ground Foliage)
-const uint GROUND_FOLIAGE = 2u;
+static const uint GROUND_FOLIAGE = 2u;
 
 // Subsurface Scattering Only No Waving
-const uint SUBSURFACE_SCATTERING = 3u;
+static const uint SUBSURFACE_SCATTERING = 3u;
 
 // Water
-const uint WATER = 4u;
+static const uint WATER = 4u;
 
 // Ice
-const uint ICE = 5u;
+static const uint ICE = 5u;
 
 // Blocks that do not cast shadows (Glass and translucents)
-const uint GLASS = 6u;
+static const uint GLASS = 6u;
 
-const uint EMITTER_MAGIC = 8u;
+static const uint EMITTER_MAGIC = 8u;
 
 // Geometry selector: Diagonally horizontal geometry
 // Add 16 to any material ID to apply this geometry selector
-const uint GEOMETRY_HORIZONTAL_DIAGONAL_ONLY = 1u;
+static const uint GEOMETRY_HORIZONTAL_DIAGONAL_ONLY = 1u;
 
 // Standard Iris / OptiFine: IDs in block.properties via mc_Entity.x
 uint DecodeMaterialID(float mc_EntityX) {

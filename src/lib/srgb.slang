@@ -19,7 +19,7 @@
 // See http://chilliant.blogspot.com/2012/08/srgb-approximations-for-hlsl.html
 // for more information. We can do better but 2.2 is good enough.
 
-const float SRGB_GAMMA = 2.2;
+static const float SRGB_GAMMA = 2.2;
 
 float SrgbToLinear(float srgb) {
 	return pow(srgb, SRGB_GAMMA);

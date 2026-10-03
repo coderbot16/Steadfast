@@ -33,21 +33,21 @@ float3 Uncharted2TonemapPartial(float3 x) {
 		// Comparison (green is blog parameters, red is GDC parameters):
 		//
 		// https://www.desmos.com/calculator/fxjrgjiepm
-		const float A = 0.22;
-		const float B = 0.30;
-		const float C = 0.10;
-		const float D = 0.20;
-		const float E = 0.01;
-		const float F = 0.30;
+		static const float A = 0.22;
+		static const float B = 0.30;
+		static const float C = 0.10;
+		static const float D = 0.20;
+		static const float E = 0.01;
+		static const float F = 0.30;
 	#else
 		// These are the tonemapping parameters from John Hable's blog post:
 		// http://filmicworlds.com/blog/filmic-tonemapping-operators/
-		const float A = 0.15;
-		const float B = 0.50;
-		const float C = 0.10;
-		const float D = 0.20;
-		const float E = 0.02;
-		const float F = 0.30;
+		static const float A = 0.15;
+		static const float B = 0.50;
+		static const float C = 0.10;
+		static const float D = 0.20;
+		static const float E = 0.02;
+		static const float F = 0.30;
 	#endif
 
 	return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;

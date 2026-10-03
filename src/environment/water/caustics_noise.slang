@@ -36,7 +36,7 @@
 // most of the area is flat and there are raised crests at regular grid
 // transition points.
 float crestCaustics(float h) {
-	const float PI = 3.14159265359;
+	static const float PI = 3.14159265359;
 
 	// 0.5 - 0.5 * cos written out to explicitly have it as
 	// mul -> cos -> fma

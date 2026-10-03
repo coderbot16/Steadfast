@@ -95,7 +95,7 @@
 // most of the area is flat and there are raised crests at regular grid
 // transition points.
 float crest(float h) {
-	const float PI = 3.14159265359;
+	static const float PI = 3.14159265359;
 
 	// 0.5 - 0.5 * cos written out to explicitly have it as
 	// mul -> cos -> fma
@@ -115,7 +115,7 @@ float crest(float h) {
 // Given this, the gradient would be (given N = smoothNoise2D):
 // gradH(x, y) = crestDerivative(smoothNoise2D(x, y)) * gradSmoothNoise2D(x, y)
 float crestDerivative(float h) {
-	const float PI = 3.14159265359;
+	static const float PI = 3.14159265359;
 
 	// mul -> sin -> mul
 	return PI * sin(h * (PI * 2.0));
@@ -127,7 +127,7 @@ float crestDerivative(float h) {
 // TODO: Find a mathematical interpretation of this... I chose this because
 //       it looked good but it is probably not appropriate for all possible
 //       waves.
-const float GRADIENT_STRENGTH = 0.15;
+static const float GRADIENT_STRENGTH = 0.15;
 
 // Generated wave definitions passed in via custom uniforms.
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
@@ -542,7 +542,7 @@ float2 WaterNGradientFDM(
 	// you can go the better, but at some point we run out of floating-point
 	// precision or hit limitations of the underlying sampling going on in the
 	// wave funciton. Play around with this as needed.
-	const float delta = 0.05;
+	static const float delta = 0.05;
 
 	float2 ddxPos = ddxWorldPos;
 	float2 ddyPos = ddyWorldPos;

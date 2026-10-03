@@ -24,7 +24,7 @@
 // We only need 64x64 at most and could probably get away with 32x32 or 48x48 if
 // needed. The smaller the better as that helps maximize memory cache hit rate.
 const int noiseTextureResolution = 64;
-const float noisePixel = 1.0 / noiseTextureResolution;
+static const float noisePixel = 1.0 / noiseTextureResolution;
 
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
 	uniform sampler2D noisetex;

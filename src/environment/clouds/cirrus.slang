@@ -169,8 +169,8 @@ float cirrusCloudPlane(float seconds, float3 channel, float2 at) {
 	// in the following - note that cloudDensityScale and cloudDensityThreshold
 	// here hoist the edge0/edge1 calculations to custom uniforms, leaving a
 	// fused multiply-add operation:
-	const float a = 2.5;
-	const float aInvSqrt = 1.0 / sqrt(a);
+	static const float a = 2.5;
+	static const float aInvSqrt = 1.0 / sqrt(a);
 
 	float scaledDensity = density * cloudDensityScale;
 	float t = clamp(scaledDensity + cloudDensityThreshold, 0.0, aInvSqrt);
@@ -180,7 +180,7 @@ float cirrusCloudPlane(float seconds, float3 channel, float2 at) {
 // For a given 2D position in the noise texture, we have 3 random values. This
 // means we can construct our own pseudorandom values by computing the dot
 // product with a given "noise channel".
-const float3[4] noiseChannels = float3[4](
+static const float3[4] noiseChannels = float3[4](
 	float3(1, 0, 0),
 	float3(0, 1, 0),
 	float3(0, 0, 1),
@@ -190,7 +190,7 @@ const float3[4] noiseChannels = float3[4](
 // This can appear in any order. Normally, translucent blending requires strict
 // ordering, but because the color of clouds is constant we don't need to retain
 // that.
-const float[4] scales = float[4](-5, -2, -7.5, -1);
+static const float[4] scales = float[4](-5, -2, -7.5, -1);
 
 // A few control parameters for mixing in the final cloud color
 uniform float3 cloudColor;

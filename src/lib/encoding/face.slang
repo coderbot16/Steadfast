@@ -215,11 +215,11 @@ float2 DecodeCodirectionalVector(float diamond) {
 //#define TBN_MATRIX
 
 // Bits used for each of the two fixed-point encoded octahedral coordinates
-const uint OCT_BITS = 9u;
+static const uint OCT_BITS = 9u;
 
 // Bits used for the single diamond-encoded tangent vector
-const uint TANGENT_BITS = 9u;
-const uint TANGENT_SHIFT = 4u + OCT_BITS + OCT_BITS;
+static const uint TANGENT_BITS = 9u;
+static const uint TANGENT_SHIFT = 4u + OCT_BITS + OCT_BITS;
 
 uint EncodePerFace(
 	float3 worldNormal,
@@ -313,7 +313,7 @@ float3x3 DecodePerFaceWorldTBN(uint perFace, float3 worldNormal) {
 		worldNormal
 	);
 #else
-	const float fromTangentFixed = 1.0 / float(1u << TANGENT_BITS);
+	static const float fromTangentFixed = 1.0 / float(1u << TANGENT_BITS);
 
 	// Determine the basis vectors the tangent was expressed with
 	float basisSign = worldNormal.z >= 0.0 ? 1.0 : -1.0;

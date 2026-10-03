@@ -115,11 +115,11 @@
 float CornetteShanks(float mu) {
 	// The value of pi approximated as a single-precision (32-bit) float
 	// Copied from https://doc.rust-lang.org/std/f32/consts/constant.PI.html
-	const float PI = 3.14159274;
+	static const float PI = 3.14159274;
 
 	// Mie preferred scattering direction value used by Bruneton. I was not
 	// immediately able to find where he got it from, but it looks fine to me.
-	const float g = 0.76;
+	static const float g = 0.76;
 
 	// Scaling factor used by Bruneton. Most other papers use 3/2, but as it is
 	// a constant multiplied by another constant it can be arbitrary; there is
@@ -139,7 +139,7 @@ float CornetteShanks(float mu) {
 float RayleighPhase(float mu) {
 	// The value of pi approximated as a single-precision (32-bit) float
 	// Copied from https://doc.rust-lang.org/std/f32/consts/constant.PI.html
-	const float PI = 3.14159274;
+	static const float PI = 3.14159274;
 
 	return 3.0 / (16.0 * PI) * (1.0 + mu * mu);
 }
@@ -444,7 +444,7 @@ float3 SkyColor(float3 worldDir) {
 	//
 	// Cost: 4 FLOPs (1x mul, 1x subtract, 1x sqrt, 1x fma)
 	float od = EYE_HEIGHT_UNIT * worldDir.y;
-	const float oo = EYE_HEIGHT_UNIT * EYE_HEIGHT_UNIT;
+	static const float oo = EYE_HEIGHT_UNIT * EYE_HEIGHT_UNIT;
 	float atmosphereDistance = sqrt(od * od + (1.0 - oo)) - od;
 
 	// We select two view sample positions along the view ray. Because typical
@@ -460,7 +460,7 @@ float3 SkyColor(float3 worldDir) {
 	// point.
 	//
 	// Cost: 18 FLOPs (4x mul + 2x5 fma + 2x sqrt + 2x subtract)
-	const float3 eyePos = float3(0.0, EYE_HEIGHT_UNIT, 0.0);
+	static const float3 eyePos = float3(0.0, EYE_HEIGHT_UNIT, 0.0);
 	float3 samplePos1 = worldDir * (0.15 * atmosphereDistance) + eyePos;
 	float3 samplePos2 = worldDir * (0.65 * atmosphereDistance) + eyePos;
 	float vHeight1 = length(samplePos1) - PLANET_RADIUS_UNIT;
@@ -478,7 +478,7 @@ float3 SkyColor(float3 worldDir) {
 	// option of using an OMOD to make the multiply basically free.
 	//
 	// Cost: 6 FLOPs (2x fma, 2x exp, 2x mul)
-	const float unitScale = (-1.0 / SCALE_HEIGHT_UNIT);
+	static const float unitScale = (-1.0 / SCALE_HEIGHT_UNIT);
 	float depthV1 = 0.5 * (atmosphereDistance * exp(unitScale * vHeight1));
 	float depthV2 = 0.5 * (atmosphereDistance * exp(unitScale * vHeight2));
 

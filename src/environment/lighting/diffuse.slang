@@ -95,7 +95,7 @@ float3 AmbientSkyLighting(float skyLightStrength, float ambientStrength) {
 	#ifdef NIGHT_DESATURATION_EFFECT
 		uniform float desaturationIntensity;
 	#else
-		const float desaturationIntensity = 0.0;
+		static const float desaturationIntensity = 0.0;
 	#endif
 #endif
 
@@ -110,8 +110,8 @@ float3 AmbientSkyLighting(float skyLightStrength, float ambientStrength) {
 		uniform float heldLightSuppression;
 	#endif
 #else
-	const float heldLightBaseStrength = 0.0;
-	const float heldLightSuppression = 0.0;
+	static const float heldLightBaseStrength = 0.0;
+	static const float heldLightSuppression = 0.0;
 #endif
 
 float HeldLightStrength(float3 cameraRelativePos) {

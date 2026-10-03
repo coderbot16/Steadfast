@@ -54,7 +54,7 @@ float2 WaterSurfaceParallaxMapping(
 	// use 16-32 iterations and scarcely go below 8 iterations. This is possible
 	// because we are working with a smooth surface and can apply a strong
 	// approximation - details within the loop.
-	const float ITERATIONS = 4;
+	static const float ITERATIONS = 4;
 
 	// Scale the view vector such that the Z component is -1.0. Once we do this,
 	// we can drop the Z component, because it is always -1.0.

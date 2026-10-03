@@ -61,14 +61,14 @@ float3 uchimura(
 }
 
 float3 UchimuraTonemap(float3 x) {
-	const float P = 1.0;	// max display brightness
-	const float a = 1.0;	// contrast
-	const float m = 0.22; // linear section start
-	//const float l = 0.4;	// linear section length
-	const float l = 0.5;	// linear section length
-	//const float c = 1.33; // black
-	const float c = 1.0; // black
-	const float b = 0.0;	// pedestal
+	static const float P = 1.0;	// max display brightness
+	static const float a = 1.0;	// contrast
+	static const float m = 0.22; // linear section start
+	//static const float l = 0.4;	// linear section length
+	static const float l = 0.5;	// linear section length
+	//static const float c = 1.33; // black
+	static const float c = 1.0; // black
+	static const float b = 0.0;	// pedestal
 
 	return uchimura(x, P, a, m, l, c, b);
 }

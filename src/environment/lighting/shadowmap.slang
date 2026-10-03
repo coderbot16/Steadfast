@@ -64,7 +64,7 @@ const float entityShadowDistanceMul = 0.25;
 	float SampleShadows(float3 shadowPos) {
 		// Controls softness and pixelation of shadows
 		#define SHADOW_SOFTNESS 0.5 // [0.05 0.10 0.25 0.33 0.5 0.66]
-		const float spread = SHADOW_SOFTNESS / shadowMapResolution;
+		static const float spread = SHADOW_SOFTNESS / shadowMapResolution;
 
 		// Make 4 taps on the shadowmap, where each tap is itself a hardware
 		// accelerated 2x2 PCF tap, ending up with sampling up to 16 different
