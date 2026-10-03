@@ -24,10 +24,6 @@
 // Uniforms: none
 #include "../../lib/distort.slang"
 
-// Enable PCF (shadowHardwareFiltering) on both shadowmaps
-const bool shadowHardwareFiltering0 = true;
-const bool shadowHardwareFiltering1 = true;
-
 // Whether to enable fancy translucent effects. When disabled, translucents are
 // rendered with the same shading as solids.
 #define FANCY_TRANSLUCENTS 
@@ -48,15 +44,9 @@ const bool shadowHardwareFiltering1 = true;
 	#define shadowWaterSampler shadowcolor0
 #endif
 
-// Higher shadow map resolutions give sharper shadows at the expense of
-// perfomance.
-const int shadowMapResolution = 1536; // [1024 1536 2048 3072 4096]
-
-// Render distance of the shadow map, in blocks. No objects outside of this
-// distance cast or receive real-time shadows.
-const float shadowDistance = 160; // [32 48 64 80 96 112 128 144 160 192 256]
-const float shadowDistanceRenderMul = 1.0;
-const float entityShadowDistanceMul = 0.25;
+// TODO: Both duplicated from pipeline.glsl, should not exist with Aperture!
+static const int shadowMapResolution = 1536; // [1024 1536 2048 3072 4096]
+static const float shadowDistance = 160; // [32 48 64 80 96 112 128 144 160 192 256]
 
 // Samples the shadow map additional times to soften shadows.
 #define SOFTER_SHADOWS

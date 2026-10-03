@@ -21,10 +21,8 @@
 
 // Simple 2D value noise
 
-// We only need 64x64 at most and could probably get away with 32x32 or 48x48 if
-// needed. The smaller the better as that helps maximize memory cache hit rate.
-const int noiseTextureResolution = 64;
-static const float noisePixel = 1.0 / noiseTextureResolution;
+// We sample a 64x64 texture; the size is defined in the pipeline definition.
+static const float noisePixel = 1.0 / 64.0;
 
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
 	uniform sampler2D noisetex;
@@ -107,7 +105,7 @@ float3 smoothNoise2Dx3(float2 at) {
 	// 
 	// We write out the coordinate system change like this to make it another
 	// single-instruction fused multiply-add.
-	at = at * (1.0 / noiseTextureResolution) + (0.5 / noiseTextureResolution);
+	at = at * noisePixel + (0.5 * noisePixel);
 
 	// Finally, sample the texture and choose our desired component.
 	return texture(noisetex, at).xyz;

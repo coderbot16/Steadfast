@@ -24,11 +24,6 @@ uniform float frameTimeCounter;
 
 #include "../../environment/clouds/cirrus.slang"
 
-// #define VANILLA_CLOUDS
-#ifdef VANILLA_CLOUDS
-	// Actual effect in shaders.properties
-#endif
-
 uniform float4x4 gbufferModelViewInverse;
 uniform float4x4 gbufferProjectionInverse;
 uniform float2 windowToNdc;

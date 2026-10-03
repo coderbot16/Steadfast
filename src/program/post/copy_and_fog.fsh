@@ -14,18 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-// We must make a copy of colortex0 for forward-rendered reflections and
-// refraction, as we cannot sample a texture we are rendering into.
-const int R11F_G11F_B10F = 0;
-const int R8 = 0;
-
-// We must write to colortex4, as per OptiFine/Iris specifications, that is the
-// first colortex buffer number that gbuffers shaders can sample. colortex0-3
-// are not bound in gbuffers shaders.
-const int colortex4Format = R11F_G11F_B10F;
-const int colortex2Format = R8;
-const int colortex5Format = R8;
-
 // Water absorption configuration, has wide-reaching impacts across the
 // codebase.
 #include "../../environment/water/absorption_settings.slang"

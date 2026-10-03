@@ -21,16 +21,6 @@ float pow4(float x) {
 	return x;
 }
 
-#define FANTASY 0
-#define SEMI_NATURAL 1
-#define RETRO 2
-
-// The atmosphere (sun) color contribution from the sun during the day.
-#define DAY_ATMOSPHERE SEMI_NATURAL // [FANTASY SEMI_NATURAL RETRO]
-
-// The atmosphere (sun) color contribution from the moon at night.
-#define NIGHT_ATMOSPHERE FANTASY // [FANTASY SEMI_NATURAL RETRO]
-
 // Whether the sky gradient should have a less soft horizon during the day
 #define HARDER_HORIZON_DAY 
 

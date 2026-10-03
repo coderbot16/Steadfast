@@ -19,35 +19,6 @@
 // forward-rendering architecture with most effects implemented directly
 // rather in a deferred pass, this program is very minimal.
 
-// This is a very compact floating-point color format using 32 bits just as
-// RGBA8 does, while permitting HDR colors.
-//
-// Note that even though this format lacks an alpha channel, translucency is
-// still supported, as translucent alpha blending does not actually require
-// writing to the alpha channel as in all cases we are drawing against an opaque
-// background.
-const int R11F_G11F_B10F = 0;
-
-// By default, Iris clears colortex0 specifically to the fog color. We do not
-// need this behavior, so clear to zero. On some drivers this is supposedly
-// faster, though I noticed no difference.
-const float4 colortex0ClearColor = float4(0.0, 0.0, 0.0, 0.0);
-const int colortex0Format = R11F_G11F_B10F;
-
-// Godrays format is just a single color channel, 8 bits is enough.
-//
-// Originally I used 16 bits, but it turns out that if we do not scale the
-// result, since we are smoothing the result anyways and the noise acts as a
-// dither, there is actually zero noticeable difference between 8 bits and 16
-// bits. So switching to 8 bit halves the required memory bandwidth on both ends
-// basically for free, compared to using 16 bits.
-const int R8 = 0;
-const int colortex1Format = R8;
-
-// For consistency, also clear colortex1 to zero. This in particular has no
-// performance difference but it is unusual compared to all other textures
-const float4 colortex1ClearColor = float4(0.0, 0.0, 0.0, 0.0);
-
 #include "../../lib/tonemap_uncharted2.slang"
 #include "../../lib/tonemap_uchimura.slang"
 #include "../../lib/srgb.slang"

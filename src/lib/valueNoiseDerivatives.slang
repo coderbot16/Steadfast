@@ -104,11 +104,11 @@ float2 gradFade(float2 t) {
 // 
 // Combining these values gives us the gradient.
 float2 gradSmoothNoise2D(float2 at) {
-	static const float centerTexelOffset = 0.5 / noiseTextureResolution;
+	static const float centerTexelOffset = 0.5 * noisePixel;
 
 	// Determine the center of this grid cell in the texture
 	float2 corner = floor(at);
-	float2 center = corner * (1.0 / noiseTextureResolution) + centerTexelOffset;
+	float2 center = corner * noisePixel + centerTexelOffset;
 	float2 offset = at - corner;
 
 	// Retrieve the corresponding 4 corners of this cell in the texture. In

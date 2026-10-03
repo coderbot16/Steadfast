@@ -20,11 +20,6 @@ in float waterHeight;
 uniform sampler2D gtexture;
 uniform float alphaTestRef;
 
-// TODO: Pick a better format. R16 is not in OpenGL 3, R16_SNORM is but might
-// not be the best option.
-const int R16_SNORM = 0;
-const int shadowcolor0Format = R16_SNORM;
-
 void main() {
 	float4 surfaceColor = texture(gtexture, texcoord);
 

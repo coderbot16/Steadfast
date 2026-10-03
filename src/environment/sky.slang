@@ -27,6 +27,16 @@
 
 #include "../lib/bayer8.slang"
 
+#define FANTASY 0
+#define SEMI_NATURAL 1
+#define RETRO 2
+
+// The atmosphere (sun) color contribution from the sun during the day.
+#define DAY_ATMOSPHERE SEMI_NATURAL // [FANTASY SEMI_NATURAL RETRO]
+
+// The atmosphere (sun) color contribution from the moon at night.
+#define NIGHT_ATMOSPHERE FANTASY // [FANTASY SEMI_NATURAL RETRO]
+
 // Returns a darkening or brightening factor for the given fragment / pixel
 // coordinate on the screen.
 //

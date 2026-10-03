@@ -20,8 +20,6 @@ uniform float2 windowToScreenHalf;
 uniform sampler2D colortex4;
 
 /* DRAWBUFFERS:6 */
-const int R11F_G11F_B10F = 0;
-const int colortex6Format = R11F_G11F_B10F;
 
 void main() {
 	float2 uv = gl_FragCoord.xy * windowToScreenHalf;

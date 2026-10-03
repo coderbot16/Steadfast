@@ -18,3 +18,7 @@
 
 #include "legacy/unslang.glsl"
 #include "program/post/postprocessing.fsh"
+
+// The pipeline definition consists solely of definitions parsed by Iris
+// and not used in shader code, so include it last in a single file.
+#include "legacy/pipeline.glsl"

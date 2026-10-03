@@ -18,45 +18,6 @@
 // while requiring only shadow mapping. By carefully tweaking ambient lighting,
 // a look similar to indirect lighting can be achieved without the associated
 // complexity and performance cost.
-
-// Whether to use the new direct lighting model with atmospheric scattering.
-#define MINISHITA_LIGHTING
-#ifdef MINISHITA_LIGHTING
-	// Actual effect is in shaders.properties
-#endif
-
-#define STEADFAST BY_CODERBOT // Authorship attribution. [BY_CODERBOT]
-
-#define FANTASY 0
-#define SEMI_NATURAL 1
-#define RETRO 2
-
-// The style of direct and ambient sky lighting to use during the day.
-#define DAY_SKY_LIGHTING SEMI_NATURAL // [FANTASY SEMI_NATURAL RETRO]
-
-// The style of direct and ambient sky lighting to use at night.
-#define NIGHT_SKY_LIGHTING FANTASY // [FANTASY SEMI_NATURAL RETRO]
-
-// Whether real-time shadows using shadow mapping are enabled for entities.
-#define REAL_TIME_ENTITY_SHADOWS
-#ifdef REAL_TIME_ENTITY_SHADOWS
-	// Actual effect is in shaders.properties
-#endif
-
-// Whether real-time shadows using shadow mapping are enabled for block entities
-// (chests, beds, etc).
-// #define REAL_TIME_BLOCK_ENTITY_SHADOWS
-#ifdef REAL_TIME_BLOCK_ENTITY_SHADOWS
-	// Actual effect is in shaders.properties
-#endif
-
-// The strength of Minecraft's baked ambient occlusion. Lower values can look
-// more realistic in some cases but come at the expense of flat lighting.
-//
-// If you're going for the exact SEUS Renewed look, you'll want to lower this
-// down to 0.1 (10%).
-const float ambientOcclusionLevel = 1.0; // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
-
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
 	uniform float3 minAmbient;
 	uniform float3 skyAmbient;
@@ -198,10 +159,6 @@ float4 BlockLighting(
 
 	return float4(lightColor * intensity, emission);
 }
-
-// Tilt the path of the sun sideways. This is a standard shader effect that
-// makes shadows look much better.
-const float	sunPathRotation	= -40.0f;
 
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
 	#if WATER_ABSORPTION_METHOD == REFRACTION_ASSISTED
