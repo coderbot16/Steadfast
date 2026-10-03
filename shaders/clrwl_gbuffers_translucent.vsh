@@ -16,7 +16,7 @@
 
 #version 150 compatibility
 
-#include "/lib/unslang.glsl"
+#include "/legacy/unslang.glsl"
 #define COLORWHEEL
 #define HAS_BLOCK_ATTRIBUTES
 #define NORMALS_ARE_IN_WORLD_SPACE

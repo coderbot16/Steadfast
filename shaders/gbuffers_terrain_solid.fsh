@@ -16,7 +16,7 @@
 
 #version 150 compatibility
 
-#include "/lib/unslang.glsl"
+#include "/legacy/unslang.glsl"
 #define SKIP_ALPHA_TEST
 #define HAS_AMBIENT_OCCLUSION
 #include "/program/world/lit.fsh"

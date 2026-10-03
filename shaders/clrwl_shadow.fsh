@@ -16,7 +16,7 @@
 
 #version 150 compatibility
 
-#include "/lib/unslang.glsl"
+#include "/legacy/unslang.glsl"
 // Note: We ignore Colorwheel's material shader for now since it doesn't
 // contribute much to the shadow pass and we really only care about depth
 // anyhow.

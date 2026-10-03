@@ -30,3 +30,6 @@ cat pipeline/pipeline.properties \
 > shaders/shaders.properties
 
 rm -rf shaders/common && cp -pr src/common shaders/common
+rm -rf shaders/environment && cp -pr src/environment shaders/environment
+rm -rf shaders/lib && cp -pr src/lib shaders/lib
+rm -rf shaders/program && cp -pr src/program shaders/program

@@ -16,7 +16,7 @@
 
 #version 150 compatibility
 
-#include "/lib/unslang.glsl"
+#include "/legacy/unslang.glsl"
 
 #include "/common/post/cover_screen.slang"
 

@@ -16,7 +16,7 @@
 
 #version 150 compatibility
 
-#include "/lib/unslang.glsl"
+#include "/legacy/unslang.glsl"
 #define HAS_BLOCK_ATTRIBUTES
 #define HAS_WAVING_FOLIAGE
 #include "/program/world/lit.vsh"

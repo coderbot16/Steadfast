@@ -1,13 +1,13 @@
 #!/bin/sh
 
 grep '^.\{81\}' \
-  shaders/*.glsl \
-  shaders/**/*.glsl \
-  shaders/**/**/*.glsl \
+  src/*.slang \
+  src/**/*.slang \
+  src/**/**/*.slang \
   shaders/*.fsh \
   shaders/*.vsh \
-  shaders/program/**/*.fsh \
-  shaders/program/**/*.vsh
+  src/program/**/*.fsh \
+  src/program/**/*.vsh
 
 grep '^.\{81\}' \
   shaders/*.properties \

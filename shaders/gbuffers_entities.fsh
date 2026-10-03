@@ -16,6 +16,6 @@
 
 #version 150 compatibility
 
-#include "/lib/unslang.glsl"
+#include "/legacy/unslang.glsl"
 #define MIX_ENTITY_COLOR
 #include "/program/world/lit.fsh"

@@ -16,7 +16,7 @@
 
 #version 150 compatibility
 
-#include "/lib/unslang.glsl"
+#include "/legacy/unslang.glsl"
 #define COLORWHEEL
 #define MIX_ENTITY_COLOR
 // Colorwheel material shaders have their own alpha test, which is evaluated

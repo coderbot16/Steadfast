@@ -1,0 +1,81 @@
+// Steadfast is a fast and high-quality graphical overhaul for Minecraft (JE)
+// Copyright (C) 2026 coderbot
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#include "/lib/srgb.slang"
+
+uniform sampler2D gtexture;
+
+in float4 tinting;
+in float2 texcoord;
+
+uniform float4x4 gbufferModelViewInverse;
+uniform float4x4 gbufferProjectionInverse;
+uniform float2 windowToNdc;
+
+uniform float3 worldSunVector;
+
+#ifdef MC_RENDER_STAGE_SUN
+	uniform int renderStage;
+#endif
+
+void main() {
+	// Project back to view space from the fragment coordinates. For this case,
+	// it is easier to start off with a position on the far plane and then
+	// normalize to a vector than to try to get a vector out of the screen
+	// position directly.
+	float2 ndcPos = gl_FragCoord.xy * float2(windowToNdc) - 1.0;
+	float4 viewVecH = mul(gbufferProjectionInverse, float4(ndcPos, 1.0, 1.0));
+	float3 viewVec = normalize(viewVecH.xyz / viewVecH.w);
+
+	// Note: w must be 0.0 in homogenous coordinates, as 1.0 means a point in
+	// space rather than a vector.
+	float3 worldSpaceVector =
+		mul(gbufferModelViewInverse, float4(viewVec, 0.0)).xyz;
+
+	float4 srgb = tinting * texture(gtexture, texcoord);
+	float4 fragmentColor = SrgbToLinear(srgb);
+	fragmentColor.rgb *= UNLIT_BRIGHTNESS;
+
+	#ifdef MC_RENDER_STAGE_SUN
+		bool sun = renderStage == MC_RENDER_STAGE_SUN;
+		bool moon = renderStage == MC_RENDER_STAGE_MOON;
+	#else
+		bool sun = dot(worldSpaceVector, worldSunVector) > 0.0;
+		bool moon = !sun;
+	#endif
+
+	// Whether the sun fades away as it passes below the horizon
+	#define HORIZON_OCCLUDES_SUN_AND_MOON
+	#ifdef HORIZON_OCCLUDES_SUN_AND_MOON
+		if (sun || moon) {
+			float fade = clamp(5.0 * worldSunVector.y, 0.0, 1.0);
+
+			if (moon) {
+				// Fade in the moon to 10% brightness as the sun fades away,
+				// then fade in the rest of it as it passes over the horizon.
+				fade = 0.1 * (1.0 - fade);
+				fade += 0.9 * clamp(10.0 * -worldSunVector.y, 0.0, 1.0);
+			}
+
+			float horizonOcclusion = clamp(20.0 * worldSpaceVector.y, 0.0, 1.0);
+
+			fragmentColor.rgb *= (fade * horizonOcclusion);
+		}
+	#endif
+
+/* DRAWBUFFERS:0 */
+	gl_FragData[0] = fragmentColor;
+}

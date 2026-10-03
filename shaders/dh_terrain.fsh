@@ -16,7 +16,7 @@
 
 #version 150 compatibility
 
-#include "/lib/unslang.glsl"
+#include "/legacy/unslang.glsl"
 #define NEVER_REALTIME_SHADOWS
 #define DH_TERRAIN
 #define NO_GTEXTURE

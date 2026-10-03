@@ -16,6 +16,6 @@
 
 #version 150 compatibility
 
-#include "/lib/unslang.glsl"
+#include "/legacy/unslang.glsl"
 #define NO_GTEXTURE
 #include "/program/world/lit.vsh"

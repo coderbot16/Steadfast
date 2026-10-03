@@ -16,7 +16,7 @@
 
 #version 150 compatibility
 
-#include "/lib/unslang.glsl"
+#include "/legacy/unslang.glsl"
 #define COLORWHEEL
 #define AFTER_DEFERRED
 #define MIX_ENTITY_COLOR

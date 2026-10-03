@@ -16,7 +16,7 @@
 
 #version 150 compatibility
 
-#include "/lib/unslang.glsl"
+#include "/legacy/unslang.glsl"
 #define NEVER_RECEIVES_SHADOWS
 #define NORMALS_ARE_IN_WORLD_SPACE
 #define NO_GTEXTURE
