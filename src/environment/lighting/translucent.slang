@@ -20,15 +20,15 @@
 // The water surface model. Each option has varying quality and performance.
 #define WATER_SURFACE NOISE // [BASIC NOISE]
 #if WATER_SURFACE == NOISE
-	#include "/environment/water/surface_noise.slang"
+	#include "../water/surface_noise.slang"
 	#define WATER_PARALLAX
 #else /* WATER_SURFACE == BASIC */
-	#include "/environment/water/surface_basic.slang"
+	#include "../water/surface_basic.slang"
 	// TODO: Support water parallax on the basic water surface
 #endif
 
 #ifdef WATER_PARALLAX
-	#include "/environment/water/parallax.slang"
+	#include "../water/parallax.slang"
 
 	// Distance in meters to apply parallax mapping to the water surface.
 	#define WATER_PARALLAX_DISTANCE 48.0 // [8.0 16.0 24.0 32.0 48.0 64.0]
@@ -38,11 +38,11 @@
 #include "/lib/raytrace.slang"
 
 // Screenspace terrain refraction for water
-#include "/environment/water/refraction.slang"
+#include "../water/refraction.slang"
 
 #if WATER_ABSORPTION_METHOD == REFRACTION_ASSISTED
 	// Integration between water absorption and refraction
-	#include "/environment/water/absorption_refraction.slang"
+	#include "../water/absorption_refraction.slang"
 
 	// Sky light buffer for aiding refractive-based water absorption
 	// TODO: This will prevent water absorption from working perfectly with
@@ -66,7 +66,7 @@
 // water scattering scatters light in the direction of the viewer, "adding"
 // light.
 
-#include "/environment/water/scattering_settings.slang"
+#include "../water/scattering_settings.slang"
 
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
 	uniform float skyAmbientLuminance;

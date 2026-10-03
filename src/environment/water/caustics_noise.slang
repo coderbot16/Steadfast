@@ -44,7 +44,7 @@ float crestCaustics(float h) {
 }
 
 // We use the smoothNoise2D variant of our value noise.
-#include "/lib/valueNoise.slang"
+#include "../../lib/valueNoise.slang"
 
 // This is pretty similar to the noise waves code, but adjusted for caustics
 float waterCaustic(float2 worldPos, float3 stretch, float4 scale) {
