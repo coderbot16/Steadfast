@@ -24,13 +24,27 @@
 // We sample a 64x64 texture; the size is defined in the pipeline definition.
 static const float noisePixel = 1.0 / 64.0;
 
-#if !defined(EXTERNALLY_DEFINED_UNIFORMS)
-	uniform sampler2D noisetex;
-#endif
+#if !defined(NO_SLANG)
+	float noise(float2 pos) {
+		return texture(noisetex, irisNoiseSampler, pos).x;
+	}
 
-float noise(float3 noiseChannel, in float2 pos) {
-	return dot(texture(noisetex, pos).xyz, noiseChannel);
-}
+	float noise(float3 noiseChannel, float2 pos) {
+		return dot(texture(noisetex, irisNoiseSampler, pos).xyz, noiseChannel);
+	}
+#else
+	#if !defined(EXTERNALLY_DEFINED_UNIFORMS)
+		uniform sampler2D noisetex;
+	#endif
+
+	float noise(float2 pos) {
+		return texture(noisetex, pos).x;
+	}
+
+	float noise(float3 noiseChannel, float2 pos) {
+		return dot(texture(noisetex, pos).xyz, noiseChannel);
+	}
+#endif
 
 // Helper function for the below smoothed noise function, this is taken from
 // Perlin noise.
@@ -63,8 +77,8 @@ float2 fade(float2 t) {
 //        moves by the size of exactly 1 cell. The lower-left cell in the +X/+Y
 //        quadrant covers the input coordinates (0.0, 0.0) to (1.0, 1.0).
 //
-// Output: 3 coherent noise values in the range [0.0, 1.0]
-float3 smoothNoise2Dx3(float2 at) {
+// Output: a coherent noise value in the range [0.0, 1.0]
+float smoothNoise2D(float2 at) {
 	// Determine the corner of the grid cell this coordinate lies in.
 	float2 corner = floor(at);
 
@@ -108,21 +122,7 @@ float3 smoothNoise2Dx3(float2 at) {
 	at = at * noisePixel + (0.5 * noisePixel);
 
 	// Finally, sample the texture and choose our desired component.
-	return texture(noisetex, at).xyz;
-}
-
-// Same as the function above, but only returns a single value noise result.
-float smoothNoise2D(float2 at) {
-	// TODO: This could be even faster if we used a 1-component texture instead
-	// of sampling an RGB/RGBA texture and throwing away the other components.
-	return smoothNoise2Dx3(at).x;
-}
-
-// Same as the function above, but instead of returning the x component, it
-// allows you to create your own noise channels dynamically - the noiseChannel
-// parameter contains the weights of each noise channel.
-float smoothNoise2D(float3 noiseChannel, float2 at) {
-	return dot(smoothNoise2Dx3(at), noiseChannel);
+	return noise(at);
 }
 
 #endif /* VALUE_NOISE_INCLUDED */

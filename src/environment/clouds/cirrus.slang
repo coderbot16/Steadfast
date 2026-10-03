@@ -19,7 +19,9 @@
 // enabling these is almost free, since this is just a pile of texture sampling,
 // fused multiply-add, and a few other miscellaneous arithmetic operations.
 
+#if !defined(PLANAR_CLOUD_LAYERS)
 #define PLANAR_CLOUD_LAYERS 1 // Number of layers of planar clouds [0 1 2 3 4]
+#endif
 
 // Only enable clouds if we need to draw cloud layers
 #if PLANAR_CLOUD_LAYERS > 0
@@ -33,10 +35,26 @@
 // The texture definitely fits in cache since it's so small!
 #include "../../lib/valueNoise.slang"
 
-uniform float cloudDensityScale;
-uniform float cloudDensityThreshold;
+#if !defined(NO_SLANG)
+	property float cloudDensityScale { 
+		get {
+			return float(irisCustomUniforms.cloudDensityScale);
+		}
+	}
 
+	property float cloudDensityThreshold {
+		get {
+			return float(irisCustomUniforms.cloudDensityThreshold);
+		}
+	}
+#elif !defined(EXTERNALLY_DEFINED_UNIFORMS)
+	uniform float cloudDensityScale;
+	uniform float cloudDensityThreshold;
+#endif
+
+#if !defined(PLANAR_CLOUD_COVERAGE)
 #define PLANAR_CLOUD_COVERAGE 2.0 // [1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0]
+#endif
 
 float cirrusCloudPlane(float seconds, float3 channel, float2 at) {
 	// Distort the sampling position with time and noise so that we don't have
@@ -193,8 +211,30 @@ static const float3[4] noiseChannels = float3[4](
 static const float[4] scales = float[4](-5, -2, -7.5, -1);
 
 // A few control parameters for mixing in the final cloud color
-uniform float3 cloudColor;
-uniform float cloudFade;
+#if !defined(NO_SLANG)
+	property float3 cloudColor {
+		get {
+			return float3(irisCustomUniforms.cloudColor);
+		}
+	}
+
+	property float cloudFade {
+		get {
+			return float(irisCustomUniforms.cloudFade);
+		}
+	}
+
+	property float cloudTimeSeconds {
+		get {
+			// TODO: Wire up to FREEZE_ANIMATION_TIMER
+			return frameTimeCounter;
+		}
+	}
+#elif !defined(EXTERNALLY_DEFINED_UNIFORMS)
+	uniform float3 cloudColor;
+	uniform float cloudFade;
+	uniform float cloudTimeSeconds;
+#endif
 
 float3 blendCirrusClouds(float3 skyColor, float2 intersectPos) {
 	// Fade clouds out with distance
@@ -205,16 +245,6 @@ float3 blendCirrusClouds(float3 skyColor, float2 intersectPos) {
 	if (fade <= 0.0) {
 		return skyColor;
 	}
-
-	// Whether to freeze animations (useful for testing).
-	//#define FREEZE_ANIMATION_TIMER
-	#ifdef FREEZE_ANIMATION_TIMER
-		// Non-zero, as otherwise the time term gets cancelled out and we might
-		// miss a significant change.
-		float timeSeconds = 500.0;
-	#else
-		float timeSeconds = frameTimeCounter;
-	#endif
 
 	// Each iteration, we do translucent blending of a cloud plane into the sky.
 	// However, because we are using the same cloud color each time, we can 
@@ -244,7 +274,7 @@ float3 blendCirrusClouds(float3 skyColor, float2 intersectPos) {
 
 	for (int q = 0; q < PLANAR_CLOUD_LAYERS; q++) {
 		float alpha = fade * cirrusCloudPlane(
-			timeSeconds,
+			cloudTimeSeconds,
 			noiseChannels[q], 
 			scales[q] * intersectPos
 		);

@@ -88,3 +88,7 @@ float2 mul(float2x3 m, float3 v) {
 }
 
 #define static
+
+// TODO: This is an escape hatch for when the abstractions above don't work, we
+// should sweep all usages and replace it with better approaches.
+#define NO_SLANG
