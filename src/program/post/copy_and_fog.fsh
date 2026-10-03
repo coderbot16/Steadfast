@@ -28,13 +28,13 @@ const int colortex5Format = R8;
 
 // Water absorption configuration, has wide-reaching impacts across the
 // codebase.
-#include "/environment/water/absorption_settings.slang"
+#include "../../environment/water/absorption_settings.slang"
 
 // float4 Fog(...)
-#include "/environment/fog.slang"
+#include "../../environment/fog.slang"
 
 // float3 SkyColor(float3 ray, float dither)
-#include "/environment/sky.slang"
+#include "../../environment/sky.slang"
 
 uniform float4x4 gbufferModelViewInverse;
 uniform float4x4 gbufferProjectionInverse;

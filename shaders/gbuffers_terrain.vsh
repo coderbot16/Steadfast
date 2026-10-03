@@ -16,7 +16,7 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
+#include "legacy/unslang.glsl"
 #define HAS_BLOCK_ATTRIBUTES
 #define HAS_WAVING_FOLIAGE
 // TODO: Create Aeronautics uses the terrain shader, but passes a non-identity
@@ -26,4 +26,4 @@
 #ifndef CREATE_AERONAUTICS_COMPATIBILITY
 	#define NORMALS_ARE_IN_WORLD_SPACE
 #endif
-#include "/program/world/lit.vsh"
+#include "program/world/lit.vsh"

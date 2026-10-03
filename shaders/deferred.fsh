@@ -16,5 +16,5 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
-#include "/program/post/copy_and_fog.fsh"
+#include "legacy/unslang.glsl"
+#include "program/post/copy_and_fog.fsh"

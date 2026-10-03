@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "common/post/cover_screen.slang"
+#include "cover_screen.slang"
 
 namespace NoisyGodrays {
 	#include <lib/iris_custom_uniforms.slang>
-	#include "common/post/godrays.slang"
+	#include "godrays.slang"
 
 	import aperture;
 

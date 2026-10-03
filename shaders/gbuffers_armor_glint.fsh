@@ -16,6 +16,6 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
+#include "legacy/unslang.glsl"
 #define UNLIT_BRIGHTNESS 1.0
-#include "/program/world/unlit.fsh"
+#include "program/world/unlit.fsh"

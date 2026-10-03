@@ -21,4 +21,4 @@
 	// Just so that Iris detects the option
 #endif
 
-#include "/program/world/lit_voxy.fsh"
+#include "program/world/lit_voxy.fsh"

@@ -16,6 +16,6 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
+#include "legacy/unslang.glsl"
 #define NEVER_RECEIVES_SHADOWS
-#include "/program/world/lit.vsh"
+#include "program/world/lit.vsh"

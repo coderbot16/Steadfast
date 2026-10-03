@@ -16,9 +16,9 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
+#include "legacy/unslang.glsl"
 
-#include "/common/post/cover_screen.slang"
+#include "program/post/cover_screen.slang"
 
 void main() {
 	gl_Position = float4(coverScreen(uint(gl_VertexID)), 1.0, 1.0);

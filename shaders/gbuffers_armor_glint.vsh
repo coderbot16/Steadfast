@@ -16,5 +16,5 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
-#include "/program/world/unlit.vsh"
+#include "legacy/unslang.glsl"
+#include "program/world/unlit.vsh"

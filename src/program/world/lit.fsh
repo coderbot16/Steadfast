@@ -21,7 +21,7 @@
 
 // Water absorption configuration, has wide-reaching impacts across the codebase
 // Uniforms: none
-#include "/environment/water/absorption_settings.slang"
+#include "../../environment/water/absorption_settings.slang"
 
 // Used to covert viewPos to worldPos.
 uniform float3 cameraPosition;
@@ -37,29 +37,29 @@ uniform float frameTimeCounter;
 	float timeSeconds = frameTimeCounter;
 #endif
 
-#include "/environment/materialIDs.slang"
+#include "../../environment/materialIDs.slang"
 
 #if !defined(NEVER_REALTIME_SHADOWS) && !defined(NEVER_RECEIVES_SHADOWS)
 	#define REAL_TIME_SHADOWS // Enables real-time shadows using shadow mapping.
 #endif
 
 #if defined(REAL_TIME_SHADOWS)
-	#include "/environment/lighting/shadowmap.slang"
+	#include "../../environment/lighting/shadowmap.slang"
 	in float3 shadowPos;
 #endif
 
-#include "/environment/lighting/diffuse.slang"
-#include "/environment/lighting/blocklight_color_detection.slang"
+#include "../../environment/lighting/diffuse.slang"
+#include "../../environment/lighting/blocklight_color_detection.slang"
 
 #if defined(AFTER_DEFERRED)
 	#define APPLY_FOG
 #endif
 
 #if defined(TRANSLUCENT) || defined(APPLY_FOG)
-	#include "/environment/fog.slang"
+	#include "../../environment/fog.slang"
 
 	// Sky reflection
-	#include "/environment/sky.slang"
+	#include "../../environment/sky.slang"
 #endif
 
 #if defined(TRANSLUCENT) || defined(EXPLICIT_OPAQUE_DEPTH_TEST)
@@ -116,19 +116,19 @@ uniform float2 windowToNdc;
 // Note: using #if defined instead of #ifdef to prevent this from being picked
 // up as a shader configuration option.
 #if defined(TRANSLUCENT)
-	#include "/environment/lighting/translucent.slang"
+	#include "../../environment/lighting/translucent.slang"
 #endif
 
 #ifdef DISTANT_HORIZONS
 	// Needed for stippling between vanilla and distant terrain during the
 	// transition between the two near the edge of vanilla render distance.
 	uniform float far;
-	#include "/common/lib/bayer8.slang"
+	#include "../../lib/bayer8.slang"
 #endif
 
 // sRGB to Linear RGB
 // Uniforms: none
-#include "/lib/srgb.slang"
+#include "../../lib/srgb.slang"
 
 #if !defined(COLORWHEEL)
 	// The interpolated vertex color directly from the vertex buffer.
@@ -206,10 +206,10 @@ uniform float2 windowToNdc;
 	#define alphaTestRef ALPHA_TEST_CUTOFF
 #endif
 
-#include "/lib/encoding/lightmap.slang"
+#include "../../lib/encoding/lightmap.slang"
 
 // Per-face data encoded by EncodePerFace (/lib/encoding/face.slang)
-#include "/lib/encoding/face.slang"
+#include "../../lib/encoding/face.slang"
 flat in uint perFace;
 
 void main() {

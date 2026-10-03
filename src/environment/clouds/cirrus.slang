@@ -31,7 +31,7 @@
 // interpolation for us, and memory reads from cache are incredibly cheap.
 //
 // The texture definitely fits in cache since it's so small!
-#include "/lib/valueNoise.slang"
+#include "../../lib/valueNoise.slang"
 
 uniform float cloudDensityScale;
 uniform float cloudDensityThreshold;

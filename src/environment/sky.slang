@@ -25,7 +25,7 @@
 	#include "sky/minishita.slang"
 #endif
 
-#include "/common/lib/bayer8.slang"
+#include "../lib/bayer8.slang"
 
 // Returns a darkening or brightening factor for the given fragment / pixel
 // coordinate on the screen.

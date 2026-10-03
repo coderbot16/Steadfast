@@ -16,7 +16,7 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
+#include "legacy/unslang.glsl"
 #define NEVER_REALTIME_SHADOWS
 #define AFTER_DEFERRED
 #define DH_TERRAIN
@@ -30,4 +30,4 @@
 #define SKIP_ALPHA_TEST
 #define NO_HELD_BLOCK_LIGHTING
 #define EXPLICIT_OPAQUE_DEPTH_TEST
-#include "/program/world/lit.fsh"
+#include "program/world/lit.fsh"

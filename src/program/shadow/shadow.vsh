@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "/lib/distort.slang"
+#include "../../lib/distort.slang"
 
 in float4 mc_Entity;
 in float3 at_midBlock;
@@ -24,7 +24,7 @@ out float waterHeight;
 
 uniform float4x4 shadowModelViewInverse;
 
-#include "/environment/materialIDs.slang"
+#include "../../environment/materialIDs.slang"
 
 void main() {
 	float4 viewPos = mul(gl_ModelViewMatrix, gl_Vertex);

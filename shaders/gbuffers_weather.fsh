@@ -16,7 +16,7 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
+#include "legacy/unslang.glsl"
 #define WEATHER
 #define NEVER_RECEIVES_SHADOWS
-#include "/program/world/lit.fsh"
+#include "program/world/lit.fsh"

@@ -48,12 +48,12 @@ const int colortex1Format = R8;
 // performance difference but it is unusual compared to all other textures
 const float4 colortex1ClearColor = float4(0.0, 0.0, 0.0, 0.0);
 
-#include "/lib/tonemap_uncharted2.slang"
-#include "/lib/tonemap_uchimura.slang"
-#include "/lib/srgb.slang"
+#include "../../lib/tonemap_uncharted2.slang"
+#include "../../lib/tonemap_uchimura.slang"
+#include "../../lib/srgb.slang"
 
 // GODRAYS BEGIN
-#include "/common/lib/bayer8.slang"
+#include "../../lib/bayer8.slang"
 
 #define GODRAYS_SAMPLE_DEFINED
 #define GodraysSampler sampler2D
@@ -62,7 +62,7 @@ float godraysSample(GodraysSampler sampler, float2 uv) {
 	return texture(sampler, uv).r;
 }
 
-#include "/common/post/godrays.slang"
+#include "godrays.slang"
 
 #define GODRAYS // Efficient screen-space light shafts.
 
@@ -122,7 +122,7 @@ float3 smoothGodrays() {
 	uniform sampler2D colortex0;
 #endif
 
-#include "/environment/tonemap_settings.slang"
+#include "../../environment/tonemap_settings.slang"
 
 layout(location = 0) out float3 finalColor;
 

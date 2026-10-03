@@ -22,7 +22,7 @@
 
 // Just for shadow mapping constants
 // Uniforms: none
-#include "/lib/distort.slang"
+#include "../../lib/distort.slang"
 
 // Enable PCF (shadowHardwareFiltering) on both shadowmaps
 const bool shadowHardwareFiltering0 = true;
@@ -87,7 +87,7 @@ const float entityShadowDistanceMul = 0.25;
 #endif
 
 #ifdef WATER_CAUSTICS
-#include "/environment/water/caustics_noise.slang"
+#include "../../environment/water/caustics_noise.slang"
 
 float SampleWaterCaustics(
 	float shadowSample,

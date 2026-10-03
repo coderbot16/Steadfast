@@ -35,7 +35,7 @@
 #endif
 
 // Screenspace terrain reflections
-#include "/lib/raytrace.slang"
+#include "../../lib/raytrace.slang"
 
 // Screenspace terrain refraction for water
 #include "../water/refraction.slang"

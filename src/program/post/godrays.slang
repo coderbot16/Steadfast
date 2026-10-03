@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "../lib/bayer8.slang"
+#include "../../lib/bayer8.slang"
 
 #if !defined(GODRAYS_SAMPLE_DEFINED)
 	interface GodraysSampler {

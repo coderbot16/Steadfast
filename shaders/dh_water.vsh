@@ -16,7 +16,7 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
+#include "legacy/unslang.glsl"
 #define NEVER_RECEIVES_SHADOWS
 #define NORMALS_ARE_IN_WORLD_SPACE
 #define NO_GTEXTURE
@@ -29,4 +29,4 @@
 	// Whether to lower distant water faces to the same height as vanilla water
 	#define LOWER_DISTANT_WATER_HEIGHT
 #endif
-#include "/program/world/lit.vsh"
+#include "program/world/lit.vsh"

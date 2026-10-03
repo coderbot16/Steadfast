@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // sRGB to Linear RGB
-#include "/lib/srgb.slang"
+#include "../../lib/srgb.slang"
 
 // The interpolated vertex color directly from the vertex buffer.
 in float4 tinting;

@@ -16,10 +16,10 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
+#include "legacy/unslang.glsl"
 #define COLORWHEEL
 #define MIX_ENTITY_COLOR
 // Colorwheel material shaders have their own alpha test, which is evaluated
 // in clrwl_computeFragment.
 #define SKIP_ALPHA_TEST
-#include "/program/world/lit.fsh"
+#include "program/world/lit.fsh"

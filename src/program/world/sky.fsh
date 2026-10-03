@@ -16,13 +16,13 @@
 
 // Trivial program that draws the sky color on to the full screen.
 
-#include "/common/lib/bayer8.slang"
-#include "/environment/sky.slang"
+#include "../../lib/bayer8.slang"
+#include "../../environment/sky.slang"
 
 // Clouds are animated over time
 uniform float frameTimeCounter;
 
-#include "/environment/clouds/cirrus.slang"
+#include "../../environment/clouds/cirrus.slang"
 
 // #define VANILLA_CLOUDS
 #ifdef VANILLA_CLOUDS

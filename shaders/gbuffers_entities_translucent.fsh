@@ -16,7 +16,7 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
+#include "legacy/unslang.glsl"
 #define MIX_ENTITY_COLOR
 #define AFTER_DEFERRED
-#include "/program/world/lit.fsh"
+#include "program/world/lit.fsh"

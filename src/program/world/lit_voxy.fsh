@@ -26,7 +26,7 @@
 
 // Water absorption configuration, has wide-reaching impacts across the codebase
 // Uniforms: none
-#include "/environment/water/absorption_settings.slang"
+#include "../../environment/water/absorption_settings.slang"
 
 // Whether to freeze animations (useful for testing).
 //#define FREEZE_ANIMATION_TIMER
@@ -36,10 +36,10 @@
 	float timeSeconds = frameTimeCounter;
 #endif
 
-#include "/environment/materialIDs.slang"
+#include "../../environment/materialIDs.slang"
 
-#include "/environment/lighting/diffuse.slang"
-#include "/environment/lighting/blocklight_color_detection.slang"
+#include "../../environment/lighting/diffuse.slang"
+#include "../../environment/lighting/blocklight_color_detection.slang"
 
 layout(location = 0) out float4 out0;
 layout(location = 1) out float out1;
@@ -50,20 +50,20 @@ layout(location = 1) out float out1;
 	#define inverseProjectionMatrix vxProjInv
 
 	// Sky reflection
-	#include "/environment/fog.slang"
-	#include "/environment/sky.slang"
+	#include "../../environment/fog.slang"
+	#include "../../environment/sky.slang"
 
 	#define ROUGH_REFRACTION_NOT_SUPPORTED
-	#include "/environment/lighting/translucent.slang"
+	#include "../../environment/lighting/translucent.slang"
 #elif defined(FANCY_TRANSLUCENTS)
 	layout(location = 2) out float4 out2;
 #endif
 
 // sRGB to Linear RGB
 // Uniforms: none
-#include "/lib/srgb.slang"
+#include "../../lib/srgb.slang"
 
-#include "/lib/encoding/lightmap.slang"
+#include "../../lib/encoding/lightmap.slang"
 
 void voxy_emitFragment(VoxyFragmentParameters parameters) {
 	float normalSign = (float(int(parameters.face) & 1) * 2.0 - 1.0);

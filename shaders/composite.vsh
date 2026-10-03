@@ -16,5 +16,5 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
-#include "/program/post/noisy_godrays.vsh"
+#include "legacy/unslang.glsl"
+#include "program/post/noisy_godrays.vsh"

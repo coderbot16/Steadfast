@@ -15,10 +15,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Fog
-#include "/environment/fog.slang"
+#include "../../environment/fog.slang"
 
 // Fog requires the sky color
-#include "/environment/sky.slang"
+#include "../../environment/sky.slang"
 
 uniform float4x4 gbufferModelView;
 uniform float4x4 gbufferModelViewInverse;

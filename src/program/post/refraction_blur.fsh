@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "/lib/kernels/jimenez_downsample.slang"
+#include "../../lib/kernels/jimenez_downsample.slang"
 
 uniform float2 windowToScreenHalf;
 uniform sampler2D colortex4;

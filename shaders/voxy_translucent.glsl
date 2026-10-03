@@ -21,4 +21,4 @@
 	#define TRANSLUCENT
 #endif
 
-#include "/program/world/lit_voxy.fsh"
+#include "program/world/lit_voxy.fsh"

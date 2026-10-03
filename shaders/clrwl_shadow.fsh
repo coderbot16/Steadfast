@@ -16,8 +16,8 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
+#include "legacy/unslang.glsl"
 // Note: We ignore Colorwheel's material shader for now since it doesn't
 // contribute much to the shadow pass and we really only care about depth
 // anyhow.
-#include "/program/shadow/shadow.fsh"
+#include "program/shadow/shadow.fsh"

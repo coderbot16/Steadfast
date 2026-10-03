@@ -16,5 +16,5 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
-#include "/program/world/clouds.vsh"
+#include "legacy/unslang.glsl"
+#include "program/world/clouds.vsh"

@@ -16,10 +16,10 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
+#include "legacy/unslang.glsl"
 #define NEVER_REALTIME_SHADOWS
 #define DH_TERRAIN
 #define NO_GTEXTURE
 #define SKIP_ALPHA_TEST
 #define NO_HELD_BLOCK_LIGHTING
-#include "/program/world/lit.fsh"
+#include "program/world/lit.fsh"

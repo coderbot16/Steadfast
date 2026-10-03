@@ -16,7 +16,7 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
+#include "legacy/unslang.glsl"
 #define HAS_BLOCK_ATTRIBUTES
 // TODO: Create Aeronautics uses the terrain shader, but passes a non-identity
 //       normal matrix, and we have no easy way to detect or differentiate, so
@@ -32,4 +32,4 @@
 	#define TRANSLUCENT
 	#define ALLOW_CLIPPING_WATER_TO_COVER_SCREEN
 #endif
-#include "/program/world/lit.vsh"
+#include "program/world/lit.vsh"

@@ -16,9 +16,9 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
+#include "legacy/unslang.glsl"
 #define COLORWHEEL
 #define HAS_BLOCK_ATTRIBUTES
 #define NORMALS_ARE_IN_WORLD_SPACE
 #define TRANSLUCENT_LIGHTING
-#include "/program/world/lit.vsh"
+#include "program/world/lit.vsh"

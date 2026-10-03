@@ -23,7 +23,7 @@ float godraysSample(GodraysSampler sampler, float2 uv) {
 	return float(texture(sampler, uv).r == 1.0);
 }
 
-#include "/common/post/godrays.slang"
+#include "godrays.slang"
 
 uniform float2 windowToScreenHalf;
 uniform float4 screenLightVector;

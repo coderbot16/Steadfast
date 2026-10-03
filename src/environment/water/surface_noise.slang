@@ -63,7 +63,7 @@
 // water to look smooth, the noise must be smooth too - the bilinear
 // interpolation in noise is not acceptable, which is why we use the
 // smooth "fade" interpolation from Perlin noise instead.
-#include "/lib/valueNoise.slang"
+#include "../../lib/valueNoise.slang"
 
 // Whether to compute the gradient based on the slower finite gradient method
 // rather than using analytical derivatives.
@@ -78,7 +78,7 @@
 	//
 	// FDM is a fallback for when textureGather is not available.
 	#ifdef MC_GL_ARB_texture_gather
-		#include "/lib/valueNoiseDerivatives.slang"
+		#include "../../lib/valueNoiseDerivatives.slang"
 	#else
 		// textureGather is not available, we must fall back to FDM.
 		#define USE_FDM_GRADIENT

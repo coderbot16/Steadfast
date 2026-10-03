@@ -1,7 +1,6 @@
 sync*.sh
 shaders/shaders.properties
 build
-shaders/common
 shaders/environment
 shaders/lib
 shaders/program

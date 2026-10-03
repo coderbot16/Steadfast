@@ -16,7 +16,7 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
+#include "legacy/unslang.glsl"
 // Whether to enable fancy translucent effects. When disabled, translucents are
 // rendered with the same shading as solids.
 #define FANCY_TRANSLUCENTS
@@ -26,4 +26,4 @@
 #define AFTER_DEFERRED
 #define ALPHA_TEST_CUTOFF 0.0001
 #define HAS_AMBIENT_OCCLUSION
-#include "/program/world/lit.fsh"
+#include "program/world/lit.fsh"

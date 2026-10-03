@@ -16,6 +16,6 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
+#include "legacy/unslang.glsl"
 #define HAS_AMBIENT_OCCLUSION
-#include "/program/world/lit.fsh"
+#include "program/world/lit.fsh"

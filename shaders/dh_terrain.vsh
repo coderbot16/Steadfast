@@ -16,9 +16,9 @@
 
 #version 150 compatibility
 
-#include "/legacy/unslang.glsl"
+#include "legacy/unslang.glsl"
 #define NEVER_RECEIVES_SHADOWS
 #define NORMALS_ARE_IN_WORLD_SPACE
 #define NO_GTEXTURE
 #define HAS_DH_MATERIAL_ID
-#include "/program/world/lit.vsh"
+#include "program/world/lit.vsh"

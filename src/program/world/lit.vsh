@@ -22,7 +22,7 @@
 // Water clipping hack for refraction assisted water absorption
 #if defined(ALLOW_CLIPPING_WATER_TO_COVER_SCREEN)
 	// Water absorption configuration.
-	#include "/environment/water/absorption_settings.slang"
+	#include "../../environment/water/absorption_settings.slang"
 
 	#if WATER_ABSORPTION_METHOD == REFRACTION_ASSISTED
 		// Used for the clipping hack at the bottom for refraction-assisted
@@ -67,7 +67,7 @@
 	out float3 shadowPos;
 
 	// Shadow distortion
-	#include "/lib/distort.slang"
+	#include "../../lib/distort.slang"
 
 	uniform float4x4 shadowProjection;
 	uniform float4x4 shadowModelView;
@@ -75,8 +75,8 @@
 #endif
 
 // Per-face data encoded by EncodePerFace (/lib/encoding/face.slang)
-#include "/lib/encoding/face.slang"
-#include "/environment/materialIDs.slang"
+#include "../../lib/encoding/face.slang"
+#include "../../environment/materialIDs.slang"
 flat out uint perFace;
 
 #if defined(HAS_WAVING_FOLIAGE)
@@ -85,7 +85,7 @@ flat out uint perFace;
 	uniform float3 cameraPosition;
 
 	// WindDisplacement
-	#include "/environment/wind.slang"
+	#include "../../environment/wind.slang"
 
 	void WaveFoliage(uint materialID, inout float4 cameraRelativePos) {
 		// at_midBlock is the offset to the center of the block.
