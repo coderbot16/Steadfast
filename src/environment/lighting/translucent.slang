@@ -61,24 +61,7 @@
 // Strength of screenspace rough refractions (refraction blur), when enabled
 #define ROUGH_REFRACTION_STRENGTH 0.45 // [0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
 
-// Water scattering approximates the effect of suspended dirt and other
-// particles underwater. While water absorption reduces (absorbs) light,
-// water scattering scatters light in the direction of the viewer, "adding"
-// light.
-
-#include "../water/scattering_settings.slang"
-
-#if !defined(EXTERNALLY_DEFINED_UNIFORMS)
-	uniform float skyAmbientLuminance;
-#endif
-
-float3 WaterScattering(float skyLight, float waterDepth) {
-	float scatter = (1.0 - exp(WATER_SCATTER_BY_DEPTH * waterDepth));
-	// Fade out water scattering below 25% skylight
-	scatter *= max(0.0, skyLight * 1.25 - 0.25);
-	scatter *= skyAmbientLuminance;
-	return waterScattering * scatter;
-}
+#include "../water/scattering.slang"
 
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
 	// Color buffer to trace SSR in
@@ -667,7 +650,7 @@ float4 TranslucentLighting(
 					dstColor, colortex5, waterDepth
 				);
 
-				dstColor += WaterScattering(skyLight, waterDepth);
+				dstColor += WaterScattering(skyLight, WaterScatteringFalloff(waterDepth));
 			#endif
 
 			// To apply the refraction, sample the background texture at the
