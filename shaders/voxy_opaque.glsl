@@ -21,4 +21,5 @@
 	// Just so that Iris detects the option
 #endif
 
+#include "legacy/unslang.glsl"
 #include "program/world/lit_voxy.fsh"

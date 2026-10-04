@@ -21,4 +21,5 @@
 	#define TRANSLUCENT
 #endif
 
+#include "legacy/unslang.glsl"
 #include "program/world/lit_voxy.fsh"
