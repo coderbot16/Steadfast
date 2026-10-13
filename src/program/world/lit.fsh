@@ -212,6 +212,14 @@ uniform float2 windowToNdc;
 #include "../../lib/encoding/face.slang"
 flat in uint perFace;
 
+// Whether to enable a different style water.
+//#define VANILLA_ISH_WATER
+#ifdef VANILLA_ISH_WATER
+	const bool ENABLE_VANILLA_ISH_WATER = true;
+#else
+	const bool ENABLE_VANILLA_ISH_WATER = false;
+#endif
+
 void main() {
 	// Transform back from window coordinates to view-space position and world
 	// space positions (camera-relative and absolute).
@@ -287,9 +295,7 @@ void main() {
 		#endif
 	#endif
 
-	float skyLight = LightMapToLight(lightMap.y);
-
-	#if defined(TRANSLUCENT)
+	#if defined(TRANSLUCENT) && !defined(DH_TERRAIN)
 		// The strenght of sky reflections (separate from terrain reflections)
 		// 0.0 to 1.0, this is modulated into the fresnel value.
 		// 
@@ -321,54 +327,38 @@ void main() {
 		if (materialID == WATER && worldNormal.y <= 0.9999) {
 			materialID = GENERIC;
 		}
-
-		// Fade out reflections to zero as the skylight goes away, needed to
-		// avoid water being reflective underground which looks bad.
-		bool reflective = materialID == WATER || materialID == ICE;
-		float reflectionStrength = reflective ? skyLight : 0.0;
+	#elif !defined(TRANSLUCENT)
+		if (materialID == WATER) {
+			materialID = GENERIC;
+		}
 	#endif
 
-	// No need for this with Colorwheel as it handles this in its material
-	// shader.
-	#if !defined(NO_GTEXTURE) && !defined(COLORWHEEL)
-		#if defined(TRANSLUCENT)
-			if (materialID == WATER) {
-				// This alpha value is tuned for clear water but you can
-				// increase it for dirtier/murkier water (it might be better to
-				// adjust the water absorption though.)
-				//
-				// Note: When underground, don't tint the water with the sky
-				// color.
-				
-				// Whether to enable a different style water.
-				//#define VANILLA_ISH_WATER 
-				#ifndef VANILLA_ISH_WATER
-					// TODO: Use dedicated water color uniform?
-					sampledColor = float4(1.0);
-					surfaceColor.rgb = lerp(
-						surfaceColor.rgb,
-						skyAmbient,
-						reflectionStrength);
-					surfaceColor.a = 0.25 * (1.0 - reflectionStrength);
-				#else
-					sampledColor = texture(gtexture, texcoord);
-					surfaceColor *= sampledColor;
+	if (materialID == WATER && !ENABLE_VANILLA_ISH_WATER) {
+		sampledColor = float4(0.0);
+		surfaceColor = float4(0.0);
 
-					// We blend in HDR, meaning that there can be a large
-					// difference in brightness between the water surface
-					// and the background.
-					//
-					// To maintain a similar level of perceptual opacity,
-					// we need to scale the alpha value accordingly.
-					surfaceColor.a *= 0.25;
-				#endif
-			} else {
+		// I would rather use 0, but that results in water being
+		// discarded via the alpha test!
+		surfaceColor.a = 0.01;
+	} else {
+		// No need for this with Colorwheel as it handles this in its material
+		// shader.
+		#if !defined(NO_GTEXTURE) && !defined(COLORWHEEL)
+			sampledColor = texture(gtexture, texcoord);
+			surfaceColor *= sampledColor;
 		#endif
-				sampledColor = texture(gtexture, texcoord);
-				surfaceColor *= sampledColor;
-		#if defined(TRANSLUCENT)
-			}
-		#endif
+	}
+
+	#ifdef VANILLA_ISH_WATER
+		if (materialID == WATER) {
+			// We blend in HDR, meaning that there can be a large
+			// difference in brightness between the water surface
+			// and the background.
+			//
+			// To maintain a similar level of perceptual opacity,
+			// we need to scale the alpha value accordingly.
+			surfaceColor.a *= 0.25;
+		}
 	#endif
 
 	#if SURFACE_COLORS == NONE
@@ -389,16 +379,6 @@ void main() {
 	#elif SURFACE_COLORS == WORLD_BITANGENT
 		surfaceColor.rgb = 0.5 * worldTBN[1] + 0.5;
 	#endif
-
-	// TODO: For now, we make all water fully reflective with Distant Horizons
-	#if defined(NO_GTEXTURE) && defined(TRANSLUCENT) && defined(DH_TERRAIN)
-		materialID = WATER;
-
-		if (materialID == WATER) {
-			surfaceColor = float4(0.0);
-			reflectionStrength = 1.0;
-		}
-	#else
 
 	// Reduce alpha of weather (rain, snow) for better visibility
 	//
@@ -515,6 +495,7 @@ void main() {
 	surfaceColor.rgb = SrgbToLinear(surfaceColor.rgb);
 
 	float blockLight = LightMapToLight(lightMap.x);
+	float skyLight = LightMapToLight(lightMap.y);
 	float3 blockLightColor = BLOCKLIGHT_COLOR;
 	float ao = 1.0;
 
@@ -622,7 +603,11 @@ void main() {
 			worldTBN,
 			cameraRelativePos,
 			viewPos,
-			reflectionStrength,
+			// reflectionStrength:
+			//
+			// Fade out reflections to zero as the skylight goes away, needed
+			// to avoid water being reflective underground which looks bad.
+			(materialID == WATER || materialID == ICE) ? skyLight : 0.0,
 			skyLight,
 			materialID
 		);
