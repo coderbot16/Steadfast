@@ -86,10 +86,6 @@ float3 parallaxWaterNormal(
 	float3x3 worldTBN = float3x3(worldTangent, worldBinormal, worldNormal);
 	float2 waterWorldPos = cameraRelativePos.xz + cameraPosition.xz;
 
-	// If the normal vector is facing down instead of up, we need to flip the
-	// results of our non-TBN calculations.
-	float facing = worldNormal.y >= 0.0 ? 1.0 : -1.0;
-
 	// TODO: Limit WATER_PARALLAX_DISTANCE by vanilla terrain render distance
 	//       to ensure smooth transition to DH water.
 	#if defined(WATER_PARALLAX) && !defined(DH_TERRAIN)
@@ -106,6 +102,10 @@ float3 parallaxWaterNormal(
 			float(verticalNormal));
 
 		if (parallaxStrength > 0.0001) {
+			// If the normal vector is facing down instead of up, we need to
+			// flip the results of our non-TBN calculations.
+			float facing = worldNormal.y >= 0.0 ? 1.0 : -1.0;
+
 			// Note: this is safe instead of using (worldTBN * incident) because
 			// we already checked that the normal vector wasn't horizontal.
 			float3 viewDirTangent = facing * incident.xzy;
@@ -131,7 +131,6 @@ float3 parallaxWaterNormal(
 float4 TranslucentLighting(
 	float4 fragmentColor,
 	float3 worldNormal,
-	float3x3 worldTBN,
 	float3 cameraRelativePos,
 	float3 viewPos,
 	float reflectionStrength,
@@ -154,8 +153,8 @@ float4 TranslucentLighting(
 	// from our view is necessarily the direction of the fragment in view space!
 	float3 incident = normalize(cameraRelativePos);
 
-	float3 worldTangent  = worldTBN[0];
-	float3 worldBinormal = worldTBN[1];
+	float3 worldTangent, worldBinormal;
+	WaterTBN(worldNormal, worldTangent, worldBinormal);
 
 	// Compute ddxWorldPos = ddx(worldPos) and ddyWorldPos = ddy(worldPos)
 	// without actually requiring the screen-space partial derivative functions

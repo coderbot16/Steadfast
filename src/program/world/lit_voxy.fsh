@@ -73,30 +73,6 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
 		uint((parameters.face >> 1) == 1)
 	);
 
-	// Experimentally collected for normal terrain
-	//
-	// Normal -X -> Tangent +Z = float3( 0.0, 0.0,  1.0)
-	// Normal +X -> Tangent -Z = float3( 0.0, 0.0, -1.0)
-	// Normal -Y -> Tangent +X = float3( 1.0, 0.0,  0.0)
-	// Normal +Y -> Tangent +X = float3( 1.0, 0.0,  0.0)
-	// Normal -Z -> Tangent -X = float3(-1.0, 0.0,  0.0)
-	// Normal +Z -> Tangent +X = float3( 1.0, 0.0,  0.0)
-	float3 worldTangent = float3(
-		abs(worldNormal.y) + worldNormal.z,
-		0.0,
-		-1.0 * worldNormal.x
-	);
-
-	// Experimentally collected for normal terrain
-	// Horizontal normal -> Bitangent -Y = float3(0.0, -1.0, 0.0)
-	// Normal -Y -> Bitangent -Z
-	// Normal +Y -> Bitangent +Z
-	float3 worldBitangent = float3(
-		0.0,
-		(parameters.face >> 1) == 0 ? 0.0 : -1.0,
-		worldNormal.y
-	);
-
 	float4 surfaceColor =
 		SrgbToLinear(parameters.sampledColour * parameters.tinting);
 	uint materialID = DecodeMaterialID(parameters.customId);
@@ -155,11 +131,6 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
 		fragmentColor = TranslucentLighting(
 			fragmentColor,
 			worldNormal,
-			float3x3(
-				worldTangent,
-				worldBitangent,
-				worldNormal
-			),
 			cameraRelativePos,
 			viewPos,
 			reflectionStrength,

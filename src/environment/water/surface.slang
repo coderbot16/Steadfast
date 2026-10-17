@@ -14,7 +14,38 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-// Water surface
+// "Building an Orthonormal Basis, Revisited"
+// https://jcgt.org/published/0006/01/01/
+//
+// Modified to swap Y/Z as most water faces are either mostly vertical or
+// entirely horizontal, the discontinuity as we go from +Y to -Y is not
+// noticeable.
+//
+// I previously tried setting worldTangent to the vector rejection of the down
+// vector from the normal (or up vector when the normal pointed down), but the
+// below method doesn't look visually different, lacks the same discontinuities
+// caused by special casing vertical faces, and is faster due to avoiding
+// normalization!
+//
+// Details on vector rejection: https://en.wikipedia.org/wiki/Vector_projection
+void WaterTBN(float3 normal, out float3 tangent, out float3 binormal) {
+	float sign = normal.y >= 0.0 ? 1.0 : -1.0;
+	float a = -1.0 / (sign + normal.y);
+	float b = normal.x * normal.z * a;
+
+	tangent = float3(
+		1.0 + sign * normal.x * normal.x * a,
+		-sign * normal.x,
+		sign * b
+	);
+
+	binormal = float3(
+		b,
+		-normal.z,
+		sign + normal.z * normal.z * a
+	);
+}
+
 #define BASIC 0
 #define NOISE 1
 // The water surface model. Each option has varying quality and performance.

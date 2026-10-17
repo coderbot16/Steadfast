@@ -257,7 +257,6 @@ void main() {
 
 	uint materialID = DecodePerFaceMaterialID(perFace);
 	float3 worldNormal = DecodePerFaceWorldNormal(perFace);
-	float3x3 worldTBN = DecodePerFaceWorldTBN(perFace, worldNormal);
 
 	float4 surfaceColor;
 	float4 sampledColor;
@@ -516,6 +515,7 @@ void main() {
 			// the one feature that's automatically compatible with all PBR
 			// resource packs.
 			float2 mappedNormal = normalsSample.xy * 2.0 - 1.0;
+			float3x3 worldTBN = DecodePerFaceWorldTBN(perFace, worldNormal);
 			worldNormal = worldTBN * float3(
 				mappedNormal,
 				sqrt(max(0.0, 1.0 - dot(mappedNormal, mappedNormal)))
@@ -600,7 +600,6 @@ void main() {
 		fragmentColor = TranslucentLighting(
 			fragmentColor,
 			worldNormal,
-			worldTBN,
 			cameraRelativePos,
 			viewPos,
 			// reflectionStrength:
