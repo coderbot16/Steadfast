@@ -302,7 +302,7 @@ float3 DiffuseLighting(SurfaceFragment fragment) {
 		|| fragment.materialID == GROUND_FOLIAGE \
 		|| fragment.materialID == LEAVES;
 
-	float3 lighting = fragment.ao * AmbientSkyLighting(
+	float3 skyLighting = AmbientSkyLighting(
 		// When night vision is active, treat everything as fully lit by sky
 		// light.
 		max(fragment.skyLight, nightVision),
@@ -322,8 +322,8 @@ float3 DiffuseLighting(SurfaceFragment fragment) {
 		fragment.heldLightColor
 	);
 
-	float3 blocklightIndirect = blockLighting.rgb * BLOCKLIGHT_LUMINANCE;
-	lighting += blocklightIndirect * fragment.ao;
+	float3 lighting = blockLighting.rgb * BLOCKLIGHT_LUMINANCE + skyLighting;
+	lighting *= fragment.ao;
 
 	// TODO: Forward emission to bloom when implementing bloom.
 	float emission = blockLighting.a;
