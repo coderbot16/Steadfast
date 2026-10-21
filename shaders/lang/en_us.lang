@@ -222,6 +222,8 @@ option.shadowDistance.comment=The shadow render distance controls how far away \
 	The actual shadow render distance is capped by the View Distance setting \
 	in Video Settings..
 
+option.sunPathRotation=Sun Path Angle (degrees)
+
 option.SURFACE_COLORS=Surface colors
 value.SURFACE_COLORS.STANDARD=Standard
 value.SURFACE_COLORS.NONE=None (whiteworld)

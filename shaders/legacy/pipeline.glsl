@@ -59,7 +59,7 @@ const float ambientOcclusionLevel = 1.0; // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8
 
 // Tilt the path of the sun sideways. This is a standard shader effect that
 // makes shadows look much better.
-const float	sunPathRotation	= -40.0f;
+const float	sunPathRotation	= -40.0; // [-45.0 -40.0 -35.0 -30.0 -25.0 -20.0 -15.0 -10.0 -5.0 0.0 5.0 10.0 15.0 20.0 25.0 30.0 35.0 40.0 45.0]
 
 // Enable PCF (shadowHardwareFiltering) on both shadowmaps
 const bool shadowHardwareFiltering0 = true;
