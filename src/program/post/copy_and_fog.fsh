@@ -80,7 +80,7 @@ float3 ApplyFog(
 	if (isEyeInWater == 1) {
 		float waterDepth = (-15.0) * skyLight + 15.0;
 
-		// #define VIEW_DEPENDENT_WATER_DEPTH
+		#define VIEW_DEPENDENT_WATER_DEPTH
 		#ifdef VIEW_DEPENDENT_WATER_DEPTH
 			waterDepth += fragDistance;
 		#else

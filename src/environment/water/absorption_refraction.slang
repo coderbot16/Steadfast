@@ -95,7 +95,7 @@ float3 RefractionBasedWaterAbsorption(
 	}
 
 	// Beer's law for attenuation to simulate water absorption
-	// #define VIEW_DEPENDENT_WATER_DEPTH
+	#define VIEW_DEPENDENT_WATER_DEPTH
 	#ifdef VIEW_DEPENDENT_WATER_DEPTH
 		// This is an approximation of distance(viewPos, viewPosRefracted).
 		// distance() and length() are both a bit expensive, and because we know
