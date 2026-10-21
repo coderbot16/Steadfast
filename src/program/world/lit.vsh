@@ -74,6 +74,13 @@
 	uniform float3 worldLightVector;
 #endif
 
+// #define PBR_NORMAL_MAPPING
+#ifdef PBR_NORMAL_MAPPING
+	// TODO: This is only needed because we can't always encode the TBN matrix
+	// for performance reasons
+	#define ENCODE_TBN_MATRIX
+#endif
+
 // Per-face data encoded by EncodePerFace (/lib/encoding/face.slang)
 #include "../../lib/encoding/face.slang"
 #include "../../environment/materialIDs.slang"
