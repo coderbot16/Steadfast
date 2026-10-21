@@ -85,9 +85,13 @@ float3 RefractionBasedWaterAbsorption(
 		//
 		// Note: This is also required to see the sun/moon through less thick
 		// volumes of water.
-		float fadeFactor = min(-viewPos.z / 24.0, 1.0);
-		waterDepth = 4.0 + 12.0 * fadeFactor;
-		background *= 1.0 - fadeFactor;
+		#ifdef VIEW_DEPENDENT_WATER_DEPTH
+			waterDepth = 0.0;
+		#else
+			float fadeFactor = min(-viewPos.z / 24.0, 1.0);
+			waterDepth = 4.0 + 12.0 * fadeFactor;
+			background *= 1.0 - fadeFactor;
+		#endif
 	}
 
 	// Beer's law for attenuation to simulate water absorption
@@ -102,7 +106,11 @@ float3 RefractionBasedWaterAbsorption(
 		//
 		// I actually measured a performance difference here (not huge, <1%, but
 		// consistent) so this is a meaningful optimization.
-		waterDepth += abs(viewPos.z - viewPosRefracted.z);
+		if (isEyeInWater == 1) {
+			waterDepth += abs(viewPos.z);
+		} else {
+			waterDepth += abs(viewPos.z - viewPosRefracted.z);
+		}
 	#else
 		waterDepth += 1.0;
 	#endif

@@ -188,7 +188,9 @@ float4 TranslucentLighting(
 		}
 	#endif
 
-	if (reflectionStrength > 0.0001) {
+	// Disable reflections when underwater because we mostly lack a reasonable
+	// result for the reflections with SSR most of the time
+	if (reflectionStrength > 0.0001 && isEyeInWater == 0) {
 		// For non-water, allow the fresnel to go to zero and use the face
 		// normal instead of any normal-mapping.
 		//

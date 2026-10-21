@@ -22,6 +22,7 @@
 // Water absorption configuration, has wide-reaching impacts across the codebase
 // Uniforms: none
 #include "../../environment/water/absorption_settings.slang"
+uniform int isEyeInWater;
 
 // Used to covert viewPos to worldPos.
 uniform float3 cameraPosition;
@@ -581,6 +582,11 @@ void main() {
 	#endif
 
 	#if defined(APPLY_FOG)
+		if (isEyeInWater == 1) {
+			float depthInMeters = (15.0 - 15.0 * skyLight) + length(cameraRelativePos);
+			fragmentColor.rgb *= exp(WATER_ATTENUATION_COEFFICIENTS * depthInMeters);
+		}
+
 		// Determining the fragment distance for fog
 		float fogDistance = max(
 			abs(cameraRelativePos.y),

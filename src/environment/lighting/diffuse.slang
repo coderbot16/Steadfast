@@ -161,59 +161,10 @@ float4 BlockLighting(
 }
 
 #if !defined(EXTERNALLY_DEFINED_UNIFORMS)
-	#if WATER_ABSORPTION_METHOD == REFRACTION_ASSISTED
-		uniform int isEyeInWater;
-	#endif
-
 	uniform float3 directLightSurface;
 	uniform float3 directLightUnderwater;
 	uniform float3 worldLightVector;
 #endif
-
-void ApplyWaterAbsorption(
-	// Water depth in meters
-	float depthInMeters,
-	out float3 directLightColor,
-	inout float3 lighting,
-	float3 blocklightIndirect
-) {
-	// Beer's law for attenuation to simulate water absorption
-	float3 waterAbsorption =
-		exp(WATER_ATTENUATION_COEFFICIENTS * depthInMeters);
-
-	float wdepth = depthInMeters * (1.0 / 16.0);
-
-	// Fade direct light color to its luminance to avoid odd colors
-	// when orange sunrise light goes through water
-	directLightColor = lerp(directLightSurface, directLightUnderwater, wdepth);
-
-	// Tint lighting (direct and ambient, but not block lighting) by the water
-	// absorption
-	directLightColor *= waterAbsorption;
-
-	// Near the water surface, make water absorption apply to block light, but
-	// do not apply it fully when deep underwater. This is so that lights in
-	// underwater bases are not completely overwhelmed by the water absorption,
-	// but also so that lights placed near the surface do not appear to pass
-	// through the surface and ignore it completely.
-	//
-	// This is critical because in environments where the sky is not very
-	// bright, for example, the semi-natural profile at night, we rely on the
-	// water absorption to communicate that there is water. Without this, block
-	// light completely breaks the illusion.
-	//
-	// Even though at maximum depth we still only allow 33% of the block light
-	// to pass unaffected by water absorption, the original color of the block
-	// light is visible just darker than usual, as at maximum depth water
-	// absorption eliminates most light.
-	float blocklightNotAbsorbed = 0.33 * wdepth;
-	lighting += blocklightIndirect * (1.0 - blocklightNotAbsorbed);
-
-	// Apply water absorption and then add in the block light not affected by
-	// water absorption.
-	lighting *= waterAbsorption;
-	lighting += blocklightIndirect * blocklightNotAbsorbed;
-}
 
 struct SurfaceFragment {
 	#if defined(REAL_TIME_SHADOWS)
@@ -372,48 +323,12 @@ float3 DiffuseLighting(SurfaceFragment fragment) {
 	);
 
 	float3 blocklightIndirect = blockLighting.rgb * BLOCKLIGHT_LUMINANCE;
-	blocklightIndirect *= fragment.ao;
+	lighting += blocklightIndirect * fragment.ao;
 
 	// TODO: Forward emission to bloom when implementing bloom.
 	float emission = blockLighting.a;
 
 	float3 directLightColor = directLightSurface;
-
-	#if WATER_ABSORPTION_METHOD == REFRACTION_ASSISTED
-		// With refraction-assisted water absorption, we need an alternate way
-		// to apply water absorption when the viewpoint is itself underwater, as
-		// in this case, we can see the underwater terrain without it being
-		// behind any refractive surface.
-		// 
-		// Minecraft helpfully puts water surfaces around glass and similar, so
-		// underwater bases in glass domes for example will work fine when
-		// applying water absorption just on refraction, but if the view is
-		// actually within water, then we can utilize the skylight based water
-		// depth to apply absorption.
-		//
-		// The only difficult part is the transition between above water and
-		// underwater. This is because we can be in a state where the bottom of
-		// the screen is underwater, even though the center of the screen is
-		// above and can see above water. In this case, it is not trivial to
-		// tell if any given piece of terrain should receive water absorption.
-		//
-		// We rectify this with a clever hack that aims to cover the bottom half
-		// of the screen with water until the player's eyes are actually
-		// underwater, which takes place near the end of the lit vertex shader.
-		if (isEyeInWater == 1) {
-			float waterDepth = (-15.0) * fragment.skyLight + 16.0;
-
-			ApplyWaterAbsorption(
-				waterDepth,
-				directLightColor,
-				lighting,
-				blocklightIndirect);
-		} else {
-			lighting += blocklightIndirect;
-		}
-	#else
-		lighting += blocklightIndirect;
-	#endif
 
 	// If the direct light strength is nonzero, add in direct lighting
 	// based on sampling the shadow map.
