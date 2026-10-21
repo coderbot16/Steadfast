@@ -294,39 +294,7 @@ void main() {
 		#endif
 	#endif
 
-	#if defined(TRANSLUCENT) && !defined(DH_TERRAIN)
-		// The strenght of sky reflections (separate from terrain reflections)
-		// 0.0 to 1.0, this is modulated into the fresnel value.
-		// 
-		// Only ice and water can reflect the sky / terrain currently.
-		//
-		// We only enable sky & terrain reflections on faces pointing upwards.
-		// This is due to a few factors:
-		//
-		// - The player view angle is generally horizontal. As a result, when
-		//   looking at upwards-facing water surfaces, generally there are
-		//   plenty of things in the background to reflct, so upwards-facing
-		//   faces look good as a baseline.
-		//
-		// - When looking at the sides of faces, the screenspace reflections
-		//   cannot often actually trace to what the block is reflecting, due to
-		//   either there being things in the way or the object-to-be-reflected
-		//   simply not being on screen.
-		//
-		// - Flowing water sides should be rough anyways and should not have
-		//   glassy, specular reflections. We do not support rough reflections,
-		//   so even if we permitted reflections on the sides of water, it looks
-		//   bad.
-		//
-		// - Reflecting underwater terrain while underwater is OK, but is
-		//   not really impactful and not particularly worth our time, so we can
-		//   skip it.
-		//
-		// TODO: Bring back fancy flowing / sideways water
-		if (materialID == WATER && worldNormal.y <= 0.9999) {
-			materialID = GENERIC;
-		}
-	#elif !defined(TRANSLUCENT)
+	#if !defined(TRANSLUCENT)
 		if (materialID == WATER) {
 			materialID = GENERIC;
 		}

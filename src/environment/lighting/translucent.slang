@@ -78,7 +78,6 @@ float3 parallaxWaterNormal(
 	float3 cameraRelativePos,
 	float2 ddxWorldPos,
 	float2 ddyWorldPos,
-	bool verticalNormal,
 	float3 worldNormal,
 	float3 worldTangent,
 	float3 worldBinormal
@@ -99,7 +98,8 @@ float3 parallaxWaterNormal(
 			(WATER_PARALLAX_DISTANCE - length(cameraRelativePos))
 				/ (WATER_PARALLAX_DISTANCE * (1.5 - 1.0)),
 			0.0,
-			float(verticalNormal));
+			// Only use parallax water on the very top face
+			abs(float(worldNormal.y > 0.9999)));
 
 		if (parallaxStrength > 0.0001) {
 			// If the normal vector is facing down instead of up, we need to
@@ -137,8 +137,6 @@ float4 TranslucentLighting(
 	float skyLight,
 	uint materialID
 ) {
-	bool verticalNormal = worldNormal.y > 0.9999;
-
 	// Adjust output for the remultiplied alpha blending mode:
 	// glBlendFunc(sfactor=GL_ONE, dfactor=GL_ONE_MINUS_SRC_ALPHA)
 	// 
@@ -184,7 +182,6 @@ float4 TranslucentLighting(
 				cameraRelativePos,
 				ddxWorldPos.xz,
 				ddyWorldPos.xz,
-				verticalNormal,
 				worldNormal,
 				worldTangent,
 				worldBinormal);
@@ -212,7 +209,6 @@ float4 TranslucentLighting(
 					cameraRelativePos,
 					ddxWorldPos.xz,
 					ddyWorldPos.xz,
-					verticalNormal,
 					worldNormal,
 					worldTangent,
 					worldBinormal);
@@ -389,10 +385,7 @@ float4 TranslucentLighting(
 		//
 		// This is actually pretty desirable underground as it makes water far
 		// more noticeable than it otherwise would be.
-		//
-		// TODO: Permit sideways water to refract, or make it just opaque.
-		//       Just do something.
-		if (materialID == WATER && verticalNormal) {
+		if (materialID == WATER) {
 			// Screen-space refraction implementation. We are working within the
 			// following constraints:
 			//
@@ -507,7 +500,7 @@ float4 TranslucentLighting(
 
 				dstColor = RefractionBasedWaterAbsorption(
 					refractedScreenPos, viewPosRefracted, upVector,
-					viewPos, verticalNormal,
+					viewPos, abs(worldNormal.y) > 0.9999,
 					dstColor, colortex5, waterDepth
 				);
 

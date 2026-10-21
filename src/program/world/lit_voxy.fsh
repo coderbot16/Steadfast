@@ -83,12 +83,6 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
 		materialID = GENERIC;
 	}
 
-	// For now, disable fancy Voxy water when the normal isn't +Y or -Y.
-	// This mirrors current lit.fsh behavior.
-	if (materialID == WATER && (parameters.face >> 1) != 0) {
-		materialID = GENERIC;
-	}
-
 	float skyLight = LightMapToLight(parameters.lightMap.y);
 
 	float4 fragmentColor = float4(DiffuseLighting(SurfaceFragment(
