@@ -255,6 +255,15 @@ float4 TranslucentLighting(
 		// apply fog to the sky reflection, as we apply fog at the very end for
 		// the overall fragment (reflection + refraction + its own color.)
 		float3 skyReflection = SkyDither(gl_FragCoord.xy, SkyColor(reflected));
+
+		// Make sideways water faces use the zenith color instead of the horizon
+		// color. Otherwise sideways water faces are way too bright.
+		if (abs(worldNormal.y) <= 0.0001) {
+			// TODO: It might make sense to have a custom uniform for the zenith
+			// sky color since this isn't the only place we want it
+			skyReflection = SkyColor(vec3(0.0, 1.0, 0.0));
+		}
+
 		float3 reflectedColor = skyReflection;
 
 		// Allows water and ice to reflect the world in addition to the sky.
