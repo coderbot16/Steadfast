@@ -34,7 +34,6 @@ power.
 * Sunlight and moonlight cast bright water caustics on underwater surfaces
 * Windswept high-altitude cirrus clouds as well as support for Minecraft's
   standard blocky clouds
-	* Note: Neither are enabled on the default profile for now.
 * Ambient occlusion through Minecraft's built-in smooth lighting
 * Integration with the Distant Horizons and Voxy mods, which offer extreme
   render distances without significant performance loss
@@ -51,6 +50,7 @@ Steadfast supports the following hardware and underlying platforms:
 * Linux, including most hardware supported through the open-source Mesa graphics
   drivers, such as the Raspberry Pi and the Steam Deck.
 * Minecraft 1.18.2 and above using the Iris shader mod (Iris 1.5 or newer).
+* Minecraft 1.7.10 using the Angelica shader mod
 
 ## Current limitations
 
@@ -72,9 +72,6 @@ Steadfast has some notable limitations that I hope to resolve in the future:
 	* This is really hard to implement in a high-performance and high-quality
 	way, but I am looking into it and fortunately there is prior art in the
 	community.
-* The current default profile has some issues when underwater and lacks clouds.
-	* This profile is mostly playable otherwise, and you can enable existing
-	  cloud options if you prefer. Fixes for both are under development.
 
 ## Support policy
 

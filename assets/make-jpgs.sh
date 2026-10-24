@@ -1,6 +1,7 @@
 #!/bin/sh
 rm -rf converted \
 && mkdir converted \
-&& for png in *.png
-	do magick convert "$png" -quality 98 "converted/$png.jpg";
+&& mkdir converted/0.9.0 \
+&& for png in *.png 0.9.0/*.png
+	do magick "$png" -quality 98 "converted/$png.jpg";
 done
