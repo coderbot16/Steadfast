@@ -575,7 +575,7 @@ void main() {
 			//
 			// Fade out reflections to zero as the skylight goes away, needed
 			// to avoid water being reflective underground which looks bad.
-			(materialID == WATER || materialID == ICE) ? skyLight : 0.0,
+			(materialID == WATER || materialID == ICE) ? max(0.0, (1.25 * skyLight) - 0.25) : 0.0,
 			skyLight,
 			materialID
 		);
