@@ -13,7 +13,37 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#if !defined(EXTERNALLY_DEFINED_UNIFORMS)
+#if !defined(NO_SLANG)
+	struct WaterCausticsUniforms {
+		float3 causticsStretch0;
+		float4 causticsScale0;
+		float3 causticsStretch1;
+		float4 causticsScale1;
+		float3 causticsStretch2;
+		float4 causticsScale2;
+		float3 causticsStretch3;
+		float4 causticsScale3;
+		float3 causticsStretch4;
+		float4 causticsScale4;
+		float3 causticsStretch5;
+		float4 causticsScale5;
+	};
+
+	ConstantBuffer<WaterCausticsUniforms, ScalarDataLayout> waterCaustics;
+
+	property float3 causticsStretch0 { get { return waterCaustics.causticsStretch0; } };
+	property float4 causticsScale0   { get { return waterCaustics.causticsScale0  ; } };
+	property float3 causticsStretch1 { get { return waterCaustics.causticsStretch1; } };
+	property float4 causticsScale1   { get { return waterCaustics.causticsScale1  ; } };
+	property float3 causticsStretch2 { get { return waterCaustics.causticsStretch2; } };
+	property float4 causticsScale2   { get { return waterCaustics.causticsScale2  ; } };
+	property float3 causticsStretch3 { get { return waterCaustics.causticsStretch3; } };
+	property float4 causticsScale3   { get { return waterCaustics.causticsScale3  ; } };
+	property float3 causticsStretch4 { get { return waterCaustics.causticsStretch4; } };
+	property float4 causticsScale4   { get { return waterCaustics.causticsScale4  ; } };
+	property float3 causticsStretch5 { get { return waterCaustics.causticsStretch5; } };
+	property float4 causticsScale5   { get { return waterCaustics.causticsScale5  ; } };
+#elif !defined(EXTERNALLY_DEFINED_UNIFORMS)
 	uniform float3 causticsStretch0;
 	uniform float4 causticsScale0;
 	uniform float3 causticsStretch1;

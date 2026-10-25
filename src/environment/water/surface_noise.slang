@@ -130,7 +130,70 @@ float crestDerivative(float h) {
 static const float GRADIENT_STRENGTH = 0.15;
 
 // Generated wave definitions passed in via custom uniforms.
-#if !defined(EXTERNALLY_DEFINED_UNIFORMS)
+#if !defined(NO_SLANG)
+	struct WaterNoiseSurfaceUniforms {
+		float4 waterScrollRippleAB;
+		float4 waterScrollRippleCD;
+		float4 waterScrollCrestAB;
+
+		float3 waterStretchRippleA;
+		float3 waterStretchRippleB;
+		float3 waterStretchRippleC;
+		float3 waterStretchRippleD;
+		float3 waterStretchCrestA;
+		float3 waterStretchCrestB;
+
+		float4 waterMagnitudeRipple;
+		float2 waterMagnitudeCrest;
+	};
+
+	ConstantBuffer<WaterNoiseSurfaceUniforms, ScalarDataLayout>
+		waterNoiseSurface;
+
+	property float4 waterScrollRippleAB  {
+		get { return waterNoiseSurface.waterScrollRippleAB ; }
+	}
+
+	property float4 waterScrollRippleCD  {
+		get { return waterNoiseSurface.waterScrollRippleCD ; }
+	}
+
+	property float4 waterScrollCrestAB   {
+		get { return waterNoiseSurface.waterScrollCrestAB  ; }
+	}
+
+	property float3 waterStretchRippleA  {
+		get { return waterNoiseSurface.waterStretchRippleA ; }
+	}
+
+	property float3 waterStretchRippleB  {
+		get { return waterNoiseSurface.waterStretchRippleB ; }
+	}
+
+	property float3 waterStretchRippleC  {
+		get { return waterNoiseSurface.waterStretchRippleC ; }
+	}
+
+	property float3 waterStretchRippleD  {
+		get { return waterNoiseSurface.waterStretchRippleD ; }
+	}
+
+	property float3 waterStretchCrestA   {
+		get { return waterNoiseSurface.waterStretchCrestA  ; }
+	}
+
+	property float3 waterStretchCrestB   {
+		get { return waterNoiseSurface.waterStretchCrestB  ; }
+	}
+
+	property float4 waterMagnitudeRipple {
+		get { return waterNoiseSurface.waterMagnitudeRipple; }
+	}
+
+	property float2 waterMagnitudeCrest  {
+		get { return waterNoiseSurface.waterMagnitudeCrest ; }
+	}
+#elif !defined(EXTERNALLY_DEFINED_UNIFORMS)
 	uniform float4 waterScrollRippleAB;
 	uniform float4 waterScrollRippleCD;
 	uniform float4 waterScrollCrestAB;

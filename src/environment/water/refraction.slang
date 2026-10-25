@@ -20,7 +20,7 @@
 	// If textureGather is available, use that to pass/fail refracted fragments
 	// while maintaining bilinear filtering when sampling the color texture.
 	#define REFRACTION_REJECT_MODE_GATHER
-#else
+#elif defined(NO_SLANG)
 	// Otherwise, we have to fall back to nearest neighbor filtering, which
 	// gives a more aliased result.
 	//

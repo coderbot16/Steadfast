@@ -142,7 +142,11 @@ float2 gradSmoothNoise2D(float2 at) {
 	// References:
 	// https://registry.khronos.org/OpenGL-Refpages/gl4/html/textureGather.xhtml
 	// https://registry.khronos.org/OpenGL/extensions/ARB/ARB_texture_gather.txt
-	float4 corners = textureGather(noisetex, center);
+	#if defined(NO_SLANG)
+		float4 corners = textureGather(noisetex, center);
+	#else
+		float4 corners = textureGather(noisetex, irisNoiseSampler, center);
+	#endif
 
 	// Compute the 4 interpolations we require for the partial derivatives:
 	//
