@@ -131,6 +131,10 @@ const float4 colortex0ClearColor = float4(0.0, 0.0, 0.0, 0.0);
 // performance difference but it is unusual compared to all other textures
 const float4 colortex1ClearColor = float4(0.0, 0.0, 0.0, 0.0);
 
+// Similarly, the shadowcolor textures get cleared to (1.0, 1.0, 1.0, 1.0)
+// instead of zero
+const float4 shadowcolor0ClearColor = float4(0.0, 0.0, 0.0, 0.0);
+
 // Encoded water height
 //
 // We would prefer to use R16 but R16 is not in OpenGL 3. R16_SNORM is, though.
