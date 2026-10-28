@@ -50,3 +50,16 @@ uint DecodeMaterialID(float mc_EntityX) {
 uint DecodeMaterialID(uint customId) {
 	return customId > 10000u ? customId - 10000u : 0u;
 }
+
+uint ApplyGeometrySelector(uint materialID, float3 worldNormal) {
+	uint geometrySelector = materialID >> 4u;
+
+	if (geometrySelector == GEOMETRY_HORIZONTAL_DIAGONAL_ONLY) {
+		bool horizontal = abs(worldNormal.y) < 0.01;
+		bool diag = abs(worldNormal.x) < 0.95 && abs(worldNormal.z) < 0.95;
+
+		return horizontal && diag ? materialID & 0xFu : GENERIC;
+	}
+
+	return materialID;
+}

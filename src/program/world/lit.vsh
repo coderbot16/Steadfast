@@ -128,16 +128,7 @@ uint FetchMaterialID(float3 worldNormal, int currentRenderedItem) {
 			}
 		#endif
 
-		uint geometrySelector = materialID >> 4u;
-
-		if (geometrySelector == GEOMETRY_HORIZONTAL_DIAGONAL_ONLY) {
-			bool horizontal = abs(worldNormal.y) < 0.01;
-			bool diag = abs(worldNormal.x) < 0.95 && abs(worldNormal.z) < 0.95;
-			
-			return horizontal && diag ? materialID & 0xFu : GENERIC;
-		}
-
-		return materialID;
+		return ApplyGeometrySelector(materialID, worldNormal);
 	#elif defined(HAS_DH_MATERIAL_ID)
 		if (dhMaterialId == DH_BLOCK_LEAVES) {
 			return LEAVES;
