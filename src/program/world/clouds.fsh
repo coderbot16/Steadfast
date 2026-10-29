@@ -13,55 +13,15 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-// sRGB to Linear RGB
 #include "../../lib/srgb.slang"
 
-// The interpolated vertex color directly from the vertex buffer.
 in float4 tinting;
+in float2 uv;
 
-// The base material (block/entity/etc) texture
 uniform sampler2D gtexture;
-
-// The interpolated texture coordinate directly from the vertex buffer.
-in float2 texcoord;
-
-in float4 fog;
-
-uniform float3 cloudColor;
-
-// Alpha test threshold - any pixels with an alpha less than this will be
-// discarded.
-uniform float alphaTestRef;
+uniform float4 cloudColor;
 
 void main() {
-	float4 surfaceColor = tinting * texture(gtexture, texcoord);
-
-	// Run the alpha test immediately to avoid shading fragments
-	// that would fail the alpha test.
-	// 
-	// There's no penalty to running it early as we have to run it
-	// either way, but if it lets us skip a whole block of pixels
-	// (think player shoving their camera into a block of leaves),
-	// then maybe we will get a little boost!
-	// 
-	// Ideally, this helps us save on memory bandwidth when
-	// and sampling the shadowmap as well as overall TMU load.
-	if (surfaceColor.a < alphaTestRef) { 
-		discard;
-		return;
-	}
-
-	// Apply sRGB to linear conversion
-	//
-	// We do this after multiplying texture color with vertex color
-	// and after including entity color (if applicable) as to mimic
-	// Minecraft, as it does the same multiplications (incorrectly)
-	// in sRGB color space.
-	surfaceColor.rgb = SrgbToLinear(surfaceColor.rgb);
-
-	// Multiply in cloud color / fog and write out to the primary color
-	// buffer.
 /* DRAWBUFFERS:0 */
-	gl_FragData[0] = float4(surfaceColor.rgb * cloudColor * fog.a + fog.rgb, 0.2);
+	gl_FragData[0] = cloudColor * SrgbToLinear(tinting * texture(gtexture, uv));
 }

@@ -13,24 +13,15 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-// Fog
 #include "../../environment/fog.slang"
 
-// Fog requires the sky color
-#include "../../environment/sky.slang"
-
-uniform float4x4 gbufferModelView;
 uniform float4x4 gbufferModelViewInverse;
-uniform float4x4 gbufferProjection;
 
 // The interpolated vertex color directly from the vertex buffer.
 out float4 tinting;
 
 // The interpolated texture coordinate directly from the vertex buffer.
-out float2 texcoord;
-
-out float4 fog;
+out float2 uv;
 
 void main() {
 	// This is effectively as if we multiplied with the model matrix, because we
@@ -46,25 +37,22 @@ void main() {
 
 	// Fairly standard vertex shader boilerplate here.
 	tinting = gl_Color;
+	uv = gl_MultiTexCoord0.xy;
 
-	// Transform from camera-relative position to view position to clip position
 	gl_Position = mul(gl_ProjectionMatrix, viewPos);
-
-	// Put this at the bottom to make sure nothing else inadvertently depends on
-	// this.
-	texcoord = mul(gl_TextureMatrix[0], gl_MultiTexCoord0).xy;
-
-	// Compute fog based on the distance, the sky color, etc.
-	// TODO: SkyDither?
-	float3 skyGradient = SkyColor(normalize(cameraRelativePos.xyz));
 
 	float fragDistance = max(
 		abs(cameraRelativePos.y),
 		length(cameraRelativePos.xz));
-	
+
 	// Note: Clouds are always exposed to the sky (hence the 1.0)
 	// Note: Apply less border fog to clouds because it looks weird at low
 	// render distances.
 	// TODO: Not sure what to do about cloud border fog at high render distances
-	fog = Fog(skyGradient, 0.66 * fragDistance, 0.33 * fragDistance, 1.0);
+	float skyFogStrength;
+	tinting.a *= 1.0 - FogV2(
+		skyFogStrength,
+		0.66 * fragDistance,
+		0.33 * fragDistance,
+		1.0).a;
 }

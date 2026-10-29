@@ -212,15 +212,15 @@ static const float[4] scales = float[4](-5, -2, -7.5, -1);
 
 // A few control parameters for mixing in the final cloud color
 #if !defined(NO_SLANG)
-	property float3 cloudColor {
+	property float3 cirrusCloudColor {
 		get {
-			return float3(irisCustomUniforms.cloudColor);
+			return irisCustomUniforms.cirrusCloudColor;
 		}
 	}
 
 	property float cloudFade {
 		get {
-			return float(irisCustomUniforms.cloudFade);
+			return irisCustomUniforms.cloudFade;
 		}
 	}
 
@@ -231,7 +231,7 @@ static const float[4] scales = float[4](-5, -2, -7.5, -1);
 		}
 	}
 #elif !defined(EXTERNALLY_DEFINED_UNIFORMS)
-	uniform float3 cloudColor;
+	uniform float3 cirrusCloudColor;
 	uniform float cloudFade;
 	uniform float cloudTimeSeconds;
 #endif
@@ -283,7 +283,7 @@ float3 blendCirrusClouds(float3 skyColor, float2 intersectPos) {
 		skyColorWeight *= 1.0 - alpha;
 	}
 
-	return skyColor * skyColorWeight + cloudColor * cloudColorWeight;
+	return skyColor * skyColorWeight + cirrusCloudColor * cloudColorWeight;
 }
 
 // Given the background sky color and a world-space ray for this position in the
