@@ -13,15 +13,13 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#include "../../lib/srgb.slang"
-
-in float4 tinting;
-in float2 uv;
-
-uniform sampler2D gtexture;
-uniform float4 cloudColor;
+in float4 color;
 
 void main() {
+	if (color.a <= 0.0) {
+		discard;
+	}
+
 /* DRAWBUFFERS:0 */
-	gl_FragData[0] = cloudColor * SrgbToLinear(tinting * texture(gtexture, uv));
+	gl_FragData[0] = color;
 }

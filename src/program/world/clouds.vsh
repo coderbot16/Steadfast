@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "../../environment/fog.slang"
+#include "../../lib/srgb.slang"
 
 uniform float4x4 gbufferModelViewInverse;
+uniform float4 cloudColor;
 
-// The interpolated vertex color directly from the vertex buffer.
-out float4 tinting;
-
-// The interpolated texture coordinate directly from the vertex buffer.
-out float2 uv;
+out float4 color;
 
 void main() {
 	// This is effectively as if we multiplied with the model matrix, because we
@@ -33,26 +31,26 @@ void main() {
 	// So the inverse of the view matrix times the model view matrix is the
 	// model matrix, which gives us camera-relative coordinates.
 	float4 viewPos = mul(gl_ModelViewMatrix, gl_Vertex);
+
+	float4 tinting = gl_Color;
 	float4 cameraRelativePos = mul(gbufferModelViewInverse, viewPos);
 
-	// Fairly standard vertex shader boilerplate here.
-	tinting = gl_Color;
-	uv = gl_MultiTexCoord0.xy;
-
-	gl_Position = mul(gl_ProjectionMatrix, viewPos);
-
-	float fragDistance = max(
+	float fogFragDistance = max(
 		abs(cameraRelativePos.y),
 		length(cameraRelativePos.xz));
 
 	// Note: Clouds are always exposed to the sky (hence the 1.0)
 	// Note: Apply less border fog to clouds because it looks weird at low
 	// render distances.
-	// TODO: Not sure what to do about cloud border fog at high render distances
+	// TODO: Not sure what to do about cloud border fog at high render
+	// distances
 	float skyFogStrength;
 	tinting.a *= 1.0 - FogV2(
 		skyFogStrength,
-		0.66 * fragDistance,
-		0.33 * fragDistance,
+		0.66 * fogFragDistance,
+		0.33 * fogFragDistance,
 		1.0).a;
+
+	color = cloudColor * SrgbToLinear(tinting);
+	gl_Position = mul(gl_ProjectionMatrix, viewPos);
 }

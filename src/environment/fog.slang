@@ -14,7 +14,36 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#if !defined (EXTERNALLY_DEFINED_UNIFORMS)
+#if !defined(NO_SLANG)
+	property float3 caveFogColor {
+		get { return irisCustomUniforms.caveFogColor; }
+	}
+
+	property float eyeSkylight {
+		get { return irisCustomUniforms.eyeSkylight; }
+	}
+
+	property int isEyeInWaterFog {
+		get { return irisCustomUniforms.isEyeInWaterFog; }
+	}
+
+	property float3 underwaterFogColor {
+		get { return irisCustomUniforms.underwaterFogColor; }
+	}
+
+	property float atmosphereFogCoefficient {
+		get { return irisCustomUniforms.atmosphereFogCoefficient; }
+	}
+
+	// TODO: blindness is not exposed by Aperture
+	property float blindness {
+		get { return 0.0; }
+	}
+
+	property float borderFogDistance {
+		get { return irisCustomUniforms.borderFogDistance; }
+	}
+#elif !defined (EXTERNALLY_DEFINED_UNIFORMS)
 	uniform float3 caveFogColor;
 	uniform float eyeSkylight;
 	uniform int isEyeInWaterFog;
@@ -24,6 +53,8 @@
 	uniform float blindness;
 	uniform float borderFogDistance;
 #endif
+
+// TODO: Rework these shader options for Aperture
 
 // Whether to enable fog that hides the render distance border.
 #define BORDER_FOG
